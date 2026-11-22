@@ -2358,8 +2358,8 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   async function load(id = companyId) { if (!id) return; const [response, optionsResponse] = await Promise.all([fetch(`/api/contracts?companyId=${encodeURIComponent(id)}`), fetch(`/api/contracts?companyId=${encodeURIComponent(id)}&options=1`)]), data = await response.json(), options = await optionsResponse.json(); if (response.ok) setRows(data.contracts || []); else setMessage(data.error || "Não foi possível carregar os contratos."); if (optionsResponse.ok) { setEquipmentOptions(options.equipment || []); setSupplierOptions((options.suppliers || []).filter((row: any) => row.id && row.name && Object.prototype.hasOwnProperty.call(row, "tradeName"))); } }
   async function createContract(event: React.FormEvent) {
     event.preventDefault();
-    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;\n    const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
-    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");\n    if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
+    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;   const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
+    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");   if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
     if (!createDraft.equipmentId) return setMessage("Selecione o equipamento já cadastrado na Frota.");
     setSaving(true); setMessage("");
     const normalizedType = /com.*(mão|operador)/i.test(String(parent?.contractType || createDraft.contractType)) ? "Locação com mão de obra" : "Locação sem mão de obra";

@@ -4041,7 +4041,41 @@ function BackupSyncPage() {
     anchor.href = url; anchor.download = fileName; anchor.click();
     URL.revokeObjectURL(url);
   }
-  return (
+  return (async function importBackupFile(event: React.ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+  setWorking(true);
+  setMessage("");
+  try {
+    const text = await file.text();
+    const backupPayload = JSON.parse(text);
+    const response = await fetch("/api/backups", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "import",
+        companyId,
+        backupPayload,
+      }),
+    });
+    const data = await response.json();
+    setWorking(false);
+    if (!response.ok) {
+      return setMessage(data.error || data.erro || "Não foi possível importar o backup.");
+    }
+    setMessage(`Backup restaurado com sucesso! ${data.restoredCount ?? 0} registros importados.`);
+    if (data.companyId) {
+      setCompanyId(data.companyId);
+      await loadBackups(data.companyId);
+    }
+    setTimeout(() => window.location.reload(), 1200);
+  } catch {
+    setWorking(false);
+    setMessage("Arquivo de backup inválido. Selecione o arquivo .json gerado pelo sistema.");
+  }
+}
+
     <div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
       <section className="panel p-5">
         <div className="flex items-center gap-3">

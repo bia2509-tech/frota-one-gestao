@@ -53,7 +53,55 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { companyId?: string };
+    const body = await request.json() as {
+      companyId?: string;
+      action?: string;
+      backupPayload?: {
+        format?: string;
+        companyId?: string;
+        data?: Record<string, Record<string, unknown>[]>;
+      };
+    };
+
+    if (body.action === "import" && body.backupPayload?.data) {
+      const payload = body.backupPayload;
+      if (payload.format && payload.format !== "frota-one-backup-v1") {
+        return Response.json({ error: "Formato de arquivo de backup inválido." }, { status: 400 });
+      }
+      const targetCompanyId = payload.companyId || body.companyId || "";
+      if (!targetCompanyId) {
+        return Response.json({ error: "Empresa do backup não identificada." }, { status: 400 });
+      }
+      await requireBackupAdmin(targetCompanyId);
+
+      let restoredCount = 0;
+      await env.DB.prepare("PRAGMA foreign_keys = OFF").run();
+
+      for (const table of COMPANY_TABLES) {
+        const rows = payload.data[table];
+        if (!Array.isArray(rows) || rows.length === 0) continue;
+
+        const statements = [];
+        for (const row of rows) {
+          const cols = Object.keys(row).filter((k) => /^[a-zA-Z0-9_]+$/.test(k));
+          if (cols.length === 0) continue;
+          const placeholders = cols.map(() => "?").join(", ");
+          const values = cols.map((col) => (row[col] === undefined ? null : row[col]));
+          statements.push(
+            env.DB.prepare(`INSERT OR REPLACE INTO ${table} (${cols.join(", ")}) VALUES (${placeholders})`).bind(...values)
+          );
+          restoredCount++;
+        }
+
+        for (let i = 0; i < statements.length; i += 50) {
+          await env.DB.batch(statements.slice(i, i + 50));
+        }
+      }
+
+      await env.DB.prepare("PRAGMA foreign_keys = ON").run();
+      return Response.json({ ok: true, restoredCount, companyId: targetCompanyId });
+    }
+
     const companyId = body.companyId || "";
     const access = await requireBackupAdmin(companyId);
     const data: Record<string, unknown[]> = {};

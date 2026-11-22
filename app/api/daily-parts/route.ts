@@ -3,6 +3,8 @@ import { getDb } from "@/db";
 import { dailyPartEntries, equipment, maintenanceOrders } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
 
+const roundReading = (value: number | null | undefined) => value == null ? null : Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url),
@@ -62,6 +64,8 @@ export async function PATCH(request: Request) {
       observation?: string;
     };
     const companyId = body.companyId || "";
+    const hourmeterStart = roundReading(body.hourmeterStart), hourmeterEnd = roundReading(body.hourmeterEnd);
+    const kilometerStart = roundReading(body.kilometerStart), kilometerEnd = roundReading(body.kilometerEnd);
     const id = body.id || "";
     const access = await requirePermission(companyId, "daily_parts", "update");
     if (!id || !body.entryDate || !body.status)
@@ -79,9 +83,9 @@ export async function PATCH(request: Request) {
     )).limit(1);
     if (duplicate)
       return Response.json({ error: "Não foi possível alterar: já existe uma parte diária para este equipamento nesta data." }, { status: 409 });
-    if (body.hourmeterStart != null && body.hourmeterEnd != null && body.hourmeterEnd < body.hourmeterStart)
+    if (hourmeterStart != null && hourmeterEnd != null && hourmeterEnd < hourmeterStart)
       return Response.json({ error: "O horímetro final não pode ser menor que o horímetro inicial." }, { status: 400 });
-    if (body.kilometerStart != null && body.kilometerEnd != null && body.kilometerEnd < body.kilometerStart)
+    if (kilometerStart != null && kilometerEnd != null && kilometerEnd < kilometerStart)
       return Response.json({ error: "O KM final não pode ser menor que o KM inicial." }, { status: 400 });
 
     let maintenanceOrderId = body.maintenanceOrderId || null;
@@ -121,8 +125,8 @@ export async function PATCH(request: Request) {
     const observation = body.observation?.trim() || null;
     await getDb().run(sql`UPDATE daily_part_entries SET
       entry_date = ${body.entryDate}, status = ${body.status}, maintenance_order_id = ${maintenanceOrderId},
-      hourmeter_start = ${body.hourmeterStart ?? null}, hourmeter_end = ${body.hourmeterEnd ?? null},
-      kilometer_start = ${body.kilometerStart ?? null}, kilometer_end = ${body.kilometerEnd ?? null},
+      hourmeter_start = ${hourmeterStart}, hourmeter_end = ${hourmeterEnd},
+      kilometer_start = ${kilometerStart}, kilometer_end = ${kilometerEnd},
       observation = ${observation}
       WHERE id = ${id} AND company_id = ${companyId}`);
 
@@ -132,8 +136,8 @@ export async function PATCH(request: Request) {
       gt(dailyPartEntries.entryDate, body.entryDate),
     )).limit(1);
     const latestReadings: { currentKilometer?: number; currentHourmeter?: number } = {};
-    if (body.kilometerEnd != null) latestReadings.currentKilometer = body.kilometerEnd;
-    if (body.hourmeterEnd != null) latestReadings.currentHourmeter = body.hourmeterEnd;
+    if (kilometerEnd != null) latestReadings.currentKilometer = kilometerEnd;
+    if (hourmeterEnd != null) latestReadings.currentHourmeter = hourmeterEnd;
     if (!laterEntry && Object.keys(latestReadings).length)
       await getDb().update(equipment).set(latestReadings).where(and(eq(equipment.id, current.equipmentId), eq(equipment.companyId, companyId)));
     return Response.json({ updated: true, id });
@@ -161,6 +165,8 @@ export async function POST(request: Request) {
       source?: "manual" | "spreadsheet";
     };
     const companyId = body.companyId || "";
+    const hourmeterStart = roundReading(body.hourmeterStart), hourmeterEnd = roundReading(body.hourmeterEnd);
+    const kilometerStart = roundReading(body.kilometerStart), kilometerEnd = roundReading(body.kilometerEnd);
     const access = await requirePermission(companyId, "daily_parts", "create");
     let equipmentId = body.equipmentId || "";
     if (equipmentId) {
@@ -192,9 +198,9 @@ export async function POST(request: Request) {
         { error: "Lançamento duplicado: já existe uma parte diária para este equipamento nesta data." },
         { status: 409 },
       );
-    if (body.hourmeterStart != null && body.hourmeterEnd != null && body.hourmeterEnd < body.hourmeterStart)
+    if (hourmeterStart != null && hourmeterEnd != null && hourmeterEnd < hourmeterStart)
       return Response.json({ error: "O horímetro final não pode ser menor que o horímetro inicial." }, { status: 400 });
-    if (body.kilometerStart != null && body.kilometerEnd != null && body.kilometerEnd < body.kilometerStart)
+    if (kilometerStart != null && kilometerEnd != null && kilometerEnd < kilometerStart)
       return Response.json({ error: "O KM final não pode ser menor que o KM inicial." }, { status: 400 });
     let maintenanceOrderId = body.maintenanceOrderId || null;
     const maintenanceOrderNumber = body.maintenanceOrderNumber?.trim() || "";
@@ -263,10 +269,10 @@ export async function POST(request: Request) {
       status: body.status,
       maintenanceOrderId:
         body.status === "M" ? maintenanceOrderId : null,
-      hourmeterStart: body.hourmeterStart ?? null,
-      hourmeterEnd: body.hourmeterEnd ?? null,
-      kilometerStart: body.kilometerStart ?? null,
-      kilometerEnd: body.kilometerEnd ?? null,
+      hourmeterStart,
+      hourmeterEnd,
+      kilometerStart,
+      kilometerEnd,
       observation: body.observation?.trim() || null,
       createdBy: access.user.userId,
       createdAt: new Date().toISOString(),

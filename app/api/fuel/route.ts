@@ -126,7 +126,9 @@ export async function GET(request: Request) {
         .from(fuelCreditUsages).where(eq(fuelCreditUsages.companyId, companyId)).groupBy(fuelCreditUsages.fuelEntryId),
     ]);
     const usageMap = new Map(usageRows.map((row) => [row.fuelEntryId, row.amountCents]));
-    return Response.json({ entries: rows.map((row) => ({ ...row, creditUsedCents: Number(usageMap.get(row.id) || 0) })) });
+    const [latestNumber] = await getDb().select({ value: sql<number>`coalesce(max(${fuelEntries.systemNumber}), 0)` })
+      .from(fuelEntries).where(eq(fuelEntries.companyId, companyId));
+    return Response.json({ entries: rows.map((row) => ({ ...row, creditUsedCents: Number(usageMap.get(row.id) || 0) })), nextSystemNumber: Number(latestNumber?.value || 0) + 1 });
   } catch (error) { return apiError(error); }
 }
 

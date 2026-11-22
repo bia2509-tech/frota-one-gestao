@@ -774,6 +774,16 @@ const originalAttributes = new WeakMap<Element, Record<string, string>>();
 function dynamicChinese(value: string) {
   return value
     .replace(/Contrato vence em (\d+) dias/gi, "合同将在 $1 天后到期")
+    .replace(/Contratos vencidos/gi, "已到期合同")
+    .replace(/Próximos do vencimento/gi, "即将到期")
+    .replace(/Vigências atuais/gi, "当前有效期")
+    .replace(/Valor contratado/gi, "合同金额")
+    .replace(/Valor realizado/gi, "已执行金额")
+    .replace(/Saldo contratual/gi, "合同余额")
+    .replace(/Saldo por vigência/gi, "按有效期余额")
+    .replace(/Saldo global/gi, "总余额")
+    .replace(/Total horímetro/gi, "小时表总计")
+    .replace(/Total KM/gi, "里程总计")
     .replace(/Tacógrafo vence em (\d+) dias/gi, "行车记录仪将在 $1 天后到期")
     .replace(/(\d+)\s+registro\(s\)/gi, "$1 条记录")
     .replace(/(\d+)\s+resultado\(s\)/gi, "$1 个结果")

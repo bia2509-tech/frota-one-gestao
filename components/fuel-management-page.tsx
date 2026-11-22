@@ -28,6 +28,7 @@ export default function FuelManagementPage() {
   const [convoys, setConvoys] = useState<Convoy[]>([]);
   const [movementHistory, setMovementHistory] = useState<StockMovement[]>([]);
   const [history, setHistory] = useState<FuelEntry[]>([]);
+  const [nextSystemNumber, setNextSystemNumber] = useState(1);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [openForm, setOpenForm] = useState(false);
@@ -59,7 +60,7 @@ export default function FuelManagementPage() {
     ]);
     const [fuelData, stockData, equipmentData, supplierData, locationData, invoiceData] = await Promise.all([fuelRes.json(), stockRes.json(), equipmentRes.json(), supplierRes.json(), locationRes.json(), invoiceRes.json()]);
     if (!fuelRes.ok) { setError(true); setMessage(fuelData.error || "Não foi possível consultar os abastecimentos."); return; }
-    setHistory(fuelData.entries || []); setConvoys(stockData.convoys || []); setCredits(stockData.credits || []); setMovementHistory(stockData.history || []);
+    setHistory(fuelData.entries || []); setNextSystemNumber(Number(fuelData.nextSystemNumber || 1)); setConvoys(stockData.convoys || []); setCredits(stockData.credits || []); setMovementHistory(stockData.history || []);
     setEquipment(equipmentData.equipment || []); setSuppliers((supplierData.suppliers || []).filter((s: Supplier) => s.active !== false));
     setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []);
   }
@@ -115,7 +116,9 @@ export default function FuelManagementPage() {
     const res = await offlineRequest("/api/fuel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const data = await res.json(); setBusy(false);
     if (!res.ok) { setError(true); setMessage(data.error || "Não foi possível salvar o abastecimento."); return; }
-    setMessage(data.queued ? data.message : "Abastecimento registrado e integrado ao histórico."); setOpenForm(false); setForm(emptyForm()); setCreditAnswer("");
+    const savedNumber = Number(data.entries?.[0]?.systemNumber || 0);
+    if (savedNumber > 0) setNextSystemNumber(savedNumber + 1);
+    setMessage(data.queued ? data.message : `Abastecimento ${String(savedNumber || nextSystemNumber).padStart(6, "0")} registrado e integrado ao histórico.`); setOpenForm(false); setForm(emptyForm()); setCreditAnswer("");
     if (!data.queued) load();
   }
 
@@ -220,7 +223,7 @@ export default function FuelManagementPage() {
       <aside className="space-y-4">
         <section className="panel p-4"><div className="flex items-center justify-between"><div><h3 className="font-bold">Comboios</h3><p className="text-xs text-slate-500">Saldo calculado por movimentação</p></div><button className="btn-secondary" onClick={() => setConfigureEquipmentId(comboioCandidates[0]?.id || "")} disabled={!comboioCandidates.length}><Truck size={15}/>Configurar</button></div><div className="mt-3 space-y-2">{convoys.map((c) => <button key={c.id} onClick={() => { setDetail(c); setAlertList(false); }} className="w-full rounded-lg border p-3 text-left hover:bg-slate-50"><div className="flex justify-between"><span className="font-bold">Comboio {c.convoyNumber} · {c.fleetNumber}</span><span className={`font-bold ${c.percent <= 20 ? "text-red-700" : c.percent < 40 ? "text-amber-700" : "text-emerald-700"}`}>{c.capacityMilli ? `${c.percent.toFixed(1)}%` : "Configurar capacidade"}</span></div><div className="mt-1 flex justify-between text-sm text-slate-600"><span>{c.maintenanceLocation || "Local não definido"}</span><span>{liters(c.balanceMilli)}</span></div></button>)}{!convoys.length && <p className="py-4 text-center text-sm text-slate-500">Nenhum comboio configurado.</p>}</div></section>
         {openForm && <form onSubmit={save} className="panel space-y-3 p-4"><div className="flex items-center justify-between"><h3 className="font-bold">Novo abastecimento</h3><button type="button" onClick={() => setOpenForm(false)}><X size={18}/></button></div>
-          <label className="block text-sm font-semibold">Código automático<input readOnly className="input mt-1 bg-slate-50" value="Gerado ao salvar"/></label>
+          <label className="block text-sm font-semibold">Código automático<input readOnly inputMode="numeric" className="input mt-1 bg-slate-50 font-bold text-blue-900" value={String(nextSystemNumber).padStart(6, "0")}/><span className="mt-1 block text-xs font-normal text-slate-500">Prévia do próximo número; o código confirmado aparece no histórico.</span></label>
           <label className="block text-sm font-semibold">Requisição / Cupom<input className="input mt-1" value={form.requisitionCoupon} onChange={(e) => setForm({ ...form, requisitionCoupon: e.target.value })}/></label>
           <label className="block text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={form.maintenanceLocationId} onChange={(e) => setForm({ ...form, maintenanceLocationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
           <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })}/></label><label className="text-sm font-semibold">Hora<input type="time" className="input mt-1" value={form.entryTime} onChange={(e) => setForm({ ...form, entryTime: e.target.value })}/></label></div>

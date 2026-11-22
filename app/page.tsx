@@ -4110,9 +4110,23 @@ function BackupSyncPage() {
               <option value="">Selecione</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.tradeName}</option>)}
             </select>
           </label>
-          <button disabled={!online || working || !companyId} onClick={createBackup} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
-            <DatabaseBackup size={17} />{working ? "Processando..." : "Criar backup agora"}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+  <button disabled={!online || working || !companyId} onClick={createBackup} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+    <DatabaseBackup size={17} />{working ? "Processando..." : "Criar backup agora"}
+  </button>
+  <label className={`btn-secondary cursor-pointer ${!online || working ? "pointer-events-none opacity-50" : ""}`}>
+    <DatabaseBackup size={17} />
+    {working ? "Importando..." : "Importar backup (.json)"}
+    <input
+      type="file"
+      accept=".json,application/json"
+      className="hidden"
+      disabled={!online || working}
+      onChange={importBackupFile}
+    />
+  </label>
+</div>
+
           {message && <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{message}</div>}
           <div className="divide-y divide-slate-100 rounded-xl border border-slate-200">
             {backups.length ? backups.map((backup) => (

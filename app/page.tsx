@@ -4041,7 +4041,7 @@ function BackupSyncPage() {
     anchor.href = url; anchor.download = fileName; anchor.click();
     URL.revokeObjectURL(url);
   }
-  return (async function importBackupFile(event: React.ChangeEvent<HTMLInputElement>) {
+  async function importBackupFile(event: React.ChangeEvent<HTMLInputElement>) {
   const file = event.target.files?.[0];
   event.target.value = "";
   if (!file) return;
@@ -4074,8 +4074,8 @@ function BackupSyncPage() {
     setWorking(false);
     setMessage("Arquivo de backup inválido. Selecione o arquivo .json gerado pelo sistema.");
   }
-}
-return (
+  }  
+    return (
     <div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
       <section className="panel p-5">
         <div className="flex items-center gap-3">

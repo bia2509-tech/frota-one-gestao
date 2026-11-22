@@ -1,0 +1,31 @@
+FROTA ONE GESTAO — STATUS DO PACOTE DE CONTRATOS
+
+O pacote contém o projeto existente e as alterações locais do módulo Contratos.
+Não houve publicação do site nem alteração direta do banco de produção.
+
+Integração com Apropriação
+- A Apropriação e o relatório de medição usam a mesma regra mensal: valor do
+  equipamento mais mão de obra, quando prevista no contrato.
+- Mobilização e desmobilização ficam fora do valor mensal e são contabilizadas
+  separadamente.
+- O teste do exemplo RET-2886 resulta em 4 meses, R$ 62.000,00 e redução de
+  R$ 124.000,00 frente ao compromisso de 12 meses (R$ 186.000,00).
+
+Verificações executadas
+- 25 testes de domínio passaram, incluindo cálculo contratual e regras de
+  abastecimento já existentes.
+- git diff --check passou sem erros de formatação.
+- A compilação não pôde ser validada: o ambiente não contém a dependência
+  vinext no node_modules e não disponibiliza npm/pnpm para instalá-la.
+
+Pendências antes de uso em produção
+- Aplicar a migração aditiva drizzle/0035_contract_documents.sql no ambiente
+  apropriado, após backup e validação do processo de publicação.
+- Instalar dependências e executar a compilação completa, além de validar as
+  rotas com o banco e o armazenamento de arquivos do ambiente existente.
+- O ZIP não inclui node_modules, segredos, arquivos .env, cache, artefatos de
+  build nem metadados locais do executor.
+
+Observação
+- O pacote preserva também a alteração local preexistente em
+  components/fuel-management-page.tsx; ela não faz parte do módulo Contratos.

@@ -1,0 +1,1 @@
+ALTER TABLE `maintenance_orders` ADD `origin_maintenance_order_id` text;

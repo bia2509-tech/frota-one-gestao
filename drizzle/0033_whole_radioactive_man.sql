@@ -1,0 +1,1 @@
+ALTER TABLE `fuel_entries` ADD `maintenance_location` text;

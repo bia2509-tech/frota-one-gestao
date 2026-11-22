@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 447 153" role="img" aria-label="SEPCO1 Construções do Brasil Ltda">
+  <defs><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ef3b53"/><stop offset="1" stop-color="#9b0c45"/></linearGradient><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#129ed7"/><stop offset="1" stop-color="#07539c"/></linearGradient></defs>
+  <rect width="447" height="153" fill="white"/>
+  <g transform="translate(10 18) rotate(45 55 55)"><rect x="12" y="14" width="54" height="75" rx="8" fill="url(#r)"/><rect x="46" y="30" width="54" height="75" rx="8" fill="url(#b)"/><path d="M50 20h12v76H50z" fill="white" opacity=".85"/></g>
+  <text x="120" y="82" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="800" letter-spacing="9" fill="#0757a0">SEPCO1</text>
+  <text x="120" y="118" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="800" fill="#0757a0">CONSTRUÇÕES DO BRASIL LTDA</text>
+</svg>

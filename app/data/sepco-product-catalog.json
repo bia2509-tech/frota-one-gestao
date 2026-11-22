@@ -1,0 +1,2666 @@
+{
+  "categories": [
+    {
+      "name": "Combustíveis",
+      "group": "Consumo operacional",
+      "itemCount": 5
+    },
+    {
+      "name": "Lubrificantes e fluidos",
+      "group": "Consumo operacional",
+      "itemCount": 9
+    },
+    {
+      "name": "Motor e alimentação",
+      "group": "Manutenção",
+      "itemCount": 45
+    },
+    {
+      "name": "Arrefecimento",
+      "group": "Manutenção",
+      "itemCount": 16
+    },
+    {
+      "name": "Emissões e escapamento",
+      "group": "Manutenção e consumo",
+      "itemCount": 14
+    },
+    {
+      "name": "Transmissão e embreagem",
+      "group": "Manutenção",
+      "itemCount": 28
+    },
+    {
+      "name": "Freios",
+      "group": "Manutenção",
+      "itemCount": 23
+    },
+    {
+      "name": "Suspensão e direção",
+      "group": "Manutenção",
+      "itemCount": 29
+    },
+    {
+      "name": "Pneus e rodas",
+      "group": "Manutenção e rodagem",
+      "itemCount": 19
+    },
+    {
+      "name": "Elétrica e eletrônica",
+      "group": "Manutenção",
+      "itemCount": 31
+    },
+    {
+      "name": "Iluminação e sinalização",
+      "group": "Manutenção",
+      "itemCount": 9
+    },
+    {
+      "name": "Climatização",
+      "group": "Manutenção",
+      "itemCount": 15
+    },
+    {
+      "name": "Cabine e carroceria",
+      "group": "Manutenção",
+      "itemCount": 27
+    },
+    {
+      "name": "Hidráulica de implementos",
+      "group": "Manutenção",
+      "itemCount": 15
+    },
+    {
+      "name": "Implementos e material rodante",
+      "group": "Manutenção",
+      "itemCount": 17
+    },
+    {
+      "name": "Materiais gerais de oficina",
+      "group": "Apoio à manutenção",
+      "itemCount": 24
+    },
+    {
+      "name": "Ferramentas e segurança",
+      "group": "Apoio à operação",
+      "itemCount": 13
+    },
+    {
+      "name": "Lavagem e conservação",
+      "group": "Consumo operacional",
+      "itemCount": 9
+    },
+    {
+      "name": "Transporte e locação",
+      "group": "Operação",
+      "itemCount": 7
+    },
+    {
+      "name": "Seguros e regularização",
+      "group": "Administrativo",
+      "itemCount": 6
+    },
+    {
+      "name": "Despesas de viagem",
+      "group": "Operação",
+      "itemCount": 4
+    }
+  ],
+  "items": [
+    {
+      "name": "Etanol hidratado",
+      "unit": "LT",
+      "category": "Combustíveis",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Gasolina aditivada",
+      "unit": "LT",
+      "category": "Combustíveis",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Gasolina comum",
+      "unit": "LT",
+      "category": "Combustíveis",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo diesel S10",
+      "unit": "LT",
+      "category": "Combustíveis",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo diesel S500",
+      "unit": "LT",
+      "category": "Combustíveis",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fluido de direção hidráulica",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fluido de freio",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fluido de transmissão automática",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Graxa lubrificante",
+      "unit": "KG",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo de diferencial",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo de transmissão manual",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo hidráulico",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo lubrificante de motor",
+      "unit": "LT",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de troca de óleo e lubrificação",
+      "unit": "SV",
+      "category": "Lubrificantes e fluidos",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Balancim de válvula",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bico injetor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Biela do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Boia do tanque de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba alimentadora de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba de óleo do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba elétrica de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba injetora",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabeçote do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabo do acelerador",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Camisa do cilindro",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Carcaça do filtro de ar",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cárter do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Comando de válvulas",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coxim do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de ar do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de óleo do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro separador de água do combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Intercooler",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de anéis do pistão",
+      "unit": "JG",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de bronzinas de biela",
+      "unit": "JG",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de bronzinas de mancal",
+      "unit": "JG",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de juntas do motor",
+      "unit": "JG",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Junta do cabeçote",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de correia dentada e tensionador",
+      "unit": "KIT",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de corrente de comando",
+      "unit": "KIT",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira de admissão de ar",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pedal eletrônico do acelerador",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pistão do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retentor do virabrequim",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de pressão de admissão",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de pressão do combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de pressão do óleo do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de rotação do motor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de manutenção da injeção",
+      "unit": "SV",
+      "category": "Motor e alimentação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de manutenção do turbocompressor",
+      "unit": "SV",
+      "category": "Motor e alimentação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de retífica de motor",
+      "unit": "SV",
+      "category": "Motor e alimentação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Tampa do tanque de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tanque de combustível",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tucho de válvula",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Turbocompressor",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula de admissão",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula de escape",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Virabrequim",
+      "unit": "UN",
+      "category": "Motor e alimentação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Aditivo de arrefecimento",
+      "unit": "LT",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Água desmineralizada",
+      "unit": "LT",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba de água do motor",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Defletor do radiador",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Embreagem viscosa da ventoinha",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira do radiador",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Radiador do motor",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Reservatório de expansão",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de temperatura do líquido de arrefecimento",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de limpeza do arrefecimento",
+      "unit": "SV",
+      "category": "Arrefecimento",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo do radiador",
+      "unit": "SV",
+      "category": "Arrefecimento",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Tampa do radiador",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tampa do reservatório de expansão",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Trocador de calor do motor",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula termostática",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Ventoinha do motor",
+      "unit": "UN",
+      "category": "Arrefecimento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Abraçadeira do escapamento",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "ARLA 32",
+      "unit": "LT",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba de ARLA",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Catalisador",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Dosador de ARLA",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de ARLA",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de partículas diesel",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Flexível do escapamento",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor de NOx",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de limpeza do filtro de partículas",
+      "unit": "SV",
+      "category": "Emissões e escapamento",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo do escapamento",
+      "unit": "SV",
+      "category": "Emissões e escapamento",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Silencioso do escapamento",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sonda lambda",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tubo do escapamento",
+      "unit": "UN",
+      "category": "Emissões e escapamento",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Árvore de transmissão cardan",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Atuador de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabo seletor de marchas",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Caixa de câmbio",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cilindro auxiliar de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cilindro mestre de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coifa da junta homocinética",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Conjunto coroa e pinhão",
+      "unit": "JG",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Conjunto diferencial",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coxim do câmbio",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cruzeta do cardan",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Disco de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Junta homocinética",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de embreagem",
+      "unit": "KIT",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Luva do cardan",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Manopla de câmbio",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Platô de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retentor do diferencial",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Rolamento central do cardan",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Rolamento de embreagem",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Rolamento do diferencial",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Semieixo",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de reparo de câmbio",
+      "unit": "SV",
+      "category": "Transmissão e embreagem",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo de cardan",
+      "unit": "SV",
+      "category": "Transmissão e embreagem",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo de diferencial",
+      "unit": "SV",
+      "category": "Transmissão e embreagem",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de troca de embreagem",
+      "unit": "SV",
+      "category": "Transmissão e embreagem",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Tomada de força",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Volante do motor",
+      "unit": "UN",
+      "category": "Transmissão e embreagem",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabo do freio de estacionamento",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Câmara de freio pneumático",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cartucho do secador de ar",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Catraca de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cilindro de roda de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cilindro mestre de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Compressor de ar do freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Disco de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Flexível de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de lonas de freio",
+      "unit": "JG",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de pastilhas de freio",
+      "unit": "JG",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de sapatas de freio",
+      "unit": "JG",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de reparo da pinça de freio",
+      "unit": "KIT",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pinça de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Reservatório de ar do freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Secador de ar do freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sensor ABS",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de manutenção de freios",
+      "unit": "SV",
+      "category": "Freios",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de sangria de freios",
+      "unit": "SV",
+      "category": "Freios",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Servofreio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tambor de freio",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula de descarga rápida",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula protetora de quatro circuitos",
+      "unit": "UN",
+      "category": "Freios",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Amortecedor",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Articulação axial de direção",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bandeja de suspensão",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Barra de direção",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Barra estabilizadora",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Batente do amortecedor",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bieleta da suspensão",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bolsa de ar da suspensão",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba de direção hidráulica",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bucha da barra estabilizadora",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bucha de bandeja",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bucha do feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Caixa de direção",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coifa do amortecedor",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coxim do amortecedor",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro da direção hidráulica",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Grampo do feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jumelo do feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lâmina do feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Manga de eixo",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira da direção hidráulica",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mola helicoidal",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pino do feixe de molas",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pivô de suspensão",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de manutenção da direção",
+      "unit": "SV",
+      "category": "Suspensão e direção",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de manutenção da suspensão",
+      "unit": "SV",
+      "category": "Suspensão e direção",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Terminal de direção",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula de nivelamento da suspensão",
+      "unit": "UN",
+      "category": "Suspensão e direção",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Câmara de ar do pneu",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cubo de roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de reparo de pneu",
+      "unit": "KIT",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Parafuso de roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pneu novo",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pneu recapado",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Porca de roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Protetor de câmara de ar",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retentor do cubo de roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Rolamento de roda",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de alinhamento",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de balanceamento",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de cambagem",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de conserto de pneu",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de montagem de pneu",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de recapagem de pneu",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de rodízio de pneus",
+      "unit": "SV",
+      "category": "Pneus e rodas",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Válvula do pneu",
+      "unit": "UN",
+      "category": "Pneus e rodas",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Alarme sonoro de ré",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Alternador",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bateria automotiva",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bobina de ignição",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Buzina",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabo elétrico",
+      "unit": "MT",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Chave de ignição",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Chave geral elétrica",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Chicote elétrico",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Correia de acessórios",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Escova do motor de partida",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fusível",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Jogo de cabos de ignição",
+      "unit": "JG",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Módulo eletrônico",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Motor de partida",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Polia de acessórios",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Porta-fusível",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Porta-relé",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Regulador de tensão",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Relé",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retificador do alternador",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de diagnóstico eletrônico",
+      "unit": "SV",
+      "category": "Elétrica e eletrônica",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de manutenção do alternador",
+      "unit": "SV",
+      "category": "Elétrica e eletrônica",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de manutenção do motor de partida",
+      "unit": "SV",
+      "category": "Elétrica e eletrônica",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo elétrico",
+      "unit": "SV",
+      "category": "Elétrica e eletrônica",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Solenoide do motor de partida",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Tensionador da correia de acessórios",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Terminal de bateria",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Terminal elétrico",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Vela aquecedora diesel",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Vela de ignição",
+      "unit": "UN",
+      "category": "Elétrica e eletrônica",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Farol",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fita refletiva",
+      "unit": "MT",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Interruptor da luz de ré",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lâmpada automotiva",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lanterna",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lente da lanterna",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lente do farol",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de regulagem de faróis",
+      "unit": "SV",
+      "category": "Iluminação e sinalização",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Soquete de lâmpada",
+      "unit": "UN",
+      "category": "Iluminação e sinalização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Anel de vedação do ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Compressor de ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Condensador de ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Evaporador de ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro de cabine",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro secador do ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Gás refrigerante",
+      "unit": "KG",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira de ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Motor do ventilador interno",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Óleo do compressor de ar-condicionado",
+      "unit": "LT",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pressostato do ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de carga de gás refrigerante",
+      "unit": "SV",
+      "category": "Climatização",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de higienização da climatização",
+      "unit": "SV",
+      "category": "Climatização",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo do ar-condicionado",
+      "unit": "SV",
+      "category": "Climatização",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Válvula de expansão do ar-condicionado",
+      "unit": "UN",
+      "category": "Climatização",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Banco do veículo",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba do lavador de para-brisa",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Borracha de vedação da porta",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Capota marítima",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cinto de segurança",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Coxim da cabine",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Estribo",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fechadura de porta",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Grade frontal",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Limitador de porta",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Maçaneta de porta",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Máquina do vidro da porta",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Motor do limpador de para-brisa",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Palheta do limpador",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Para-barro",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Para-brisa",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Para-choque",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Para-lama",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Reservatório do lavador de para-brisa",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retrovisor",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de funilaria",
+      "unit": "SV",
+      "category": "Cabine e carroceria",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de instalação de vidros",
+      "unit": "SV",
+      "category": "Cabine e carroceria",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de pintura automotiva",
+      "unit": "SV",
+      "category": "Cabine e carroceria",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de tapeçaria",
+      "unit": "SV",
+      "category": "Cabine e carroceria",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Tapete da cabine",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Vidro lateral",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Vidro traseiro",
+      "unit": "UN",
+      "category": "Cabine e carroceria",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba hidráulica de implemento",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cilindro hidráulico",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Conexão hidráulica",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Engate rápido hidráulico",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Filtro hidráulico",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de vedação do cilindro hidráulico",
+      "unit": "KIT",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira hidráulica a granel",
+      "unit": "MT",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Mangueira hidráulica montada",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Manômetro hidráulico",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Motor hidráulico de implemento",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Reservatório hidráulico",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de montagem de mangueira hidráulica",
+      "unit": "SV",
+      "category": "Hidráulica de implementos",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo hidráulico",
+      "unit": "SV",
+      "category": "Hidráulica de implementos",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Terminal de mangueira hidráulica",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Válvula hidráulica",
+      "unit": "UN",
+      "category": "Hidráulica de implementos",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Adaptador do dente de caçamba",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bucha da caçamba",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cabo de aço",
+      "unit": "MT",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Canto da caçamba",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Dente de caçamba",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Esteira de máquina",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Kit de reparo de rompedor hidráulico",
+      "unit": "KIT",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lâmina de desgaste",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pino da caçamba",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Ponteiro de rompedor hidráulico",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Roda motriz da esteira",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Roda-guia da esteira",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Roletes da esteira",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Sapata da esteira",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de reparo de implemento",
+      "unit": "SV",
+      "category": "Implementos e material rodante",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reparo do material rodante",
+      "unit": "SV",
+      "category": "Implementos e material rodante",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Tensor da esteira",
+      "unit": "UN",
+      "category": "Implementos e material rodante",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Abraçadeira de nylon",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Abraçadeira metálica",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Anel de vedação de uso geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Anel elástico",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Arruela de uso geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Chapa metálica",
+      "unit": "KG",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cola de uso automotivo",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Desengripante",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Disco de corte",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Disco de desbaste",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Eletrodo de solda",
+      "unit": "KG",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Estopa",
+      "unit": "KG",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fita isolante",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Fita veda-rosca",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Limpa-contato elétrico",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Lixa",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Parafuso de uso geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Porca de uso geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Retentor de aplicação geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Rolamento de aplicação geral",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Selante de silicone",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de solda",
+      "unit": "SV",
+      "category": "Materiais gerais de oficina",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de usinagem",
+      "unit": "SV",
+      "category": "Materiais gerais de oficina",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Trava-rosca",
+      "unit": "UN",
+      "category": "Materiais gerais de oficina",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Bomba manual de lubrificação",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Calço de segurança para roda",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Calibrador de pneus",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cavalete de apoio",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Chave de roda",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cinta de amarração de carga",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Colete refletivo",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Cone de sinalização",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Engraxadeira",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Extintor veicular",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Macaco hidráulico",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Torquímetro",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Triângulo de sinalização",
+      "unit": "UN",
+      "category": "Ferramentas e segurança",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Desengraxante",
+      "unit": "LT",
+      "category": "Lavagem e conservação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Detergente automotivo",
+      "unit": "LT",
+      "category": "Lavagem e conservação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Escova de limpeza",
+      "unit": "UN",
+      "category": "Lavagem e conservação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Líquido limpador de para-brisa",
+      "unit": "LT",
+      "category": "Lavagem e conservação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Pano de microfibra",
+      "unit": "UN",
+      "category": "Lavagem e conservação",
+      "itemType": "product",
+      "sourceType": "Produto"
+    },
+    {
+      "name": "Serviço de lavagem completa",
+      "unit": "SV",
+      "category": "Lavagem e conservação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de lavagem externa",
+      "unit": "SV",
+      "category": "Lavagem e conservação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de limpeza interna",
+      "unit": "SV",
+      "category": "Lavagem e conservação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de polimento",
+      "unit": "SV",
+      "category": "Lavagem e conservação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Locação de caminhão por diária",
+      "unit": "DIA",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Locação de máquina por hora",
+      "unit": "H",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Locação de veículo leve por diária",
+      "unit": "DIA",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Serviço de desmobilização de equipamento",
+      "unit": "SV",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de frete",
+      "unit": "SV",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de mobilização de equipamento",
+      "unit": "SV",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Serviço de reboque",
+      "unit": "SV",
+      "category": "Transporte e locação",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Franquia de seguro",
+      "unit": "UN",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "IPVA",
+      "unit": "UN",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Multa de trânsito",
+      "unit": "UN",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Serviço de inspeção veicular",
+      "unit": "SV",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Serviço"
+    },
+    {
+      "name": "Taxa de aferição do tacógrafo",
+      "unit": "UN",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Taxa de licenciamento",
+      "unit": "UN",
+      "category": "Seguros e regularização",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Alimentação em viagem",
+      "unit": "UN",
+      "category": "Despesas de viagem",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Estacionamento",
+      "unit": "UN",
+      "category": "Despesas de viagem",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Hospedagem por diária",
+      "unit": "DIA",
+      "category": "Despesas de viagem",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    },
+    {
+      "name": "Pedágio",
+      "unit": "UN",
+      "category": "Despesas de viagem",
+      "itemType": "service",
+      "sourceType": "Despesa"
+    }
+  ]
+}

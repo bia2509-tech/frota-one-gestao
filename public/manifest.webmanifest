@@ -1,0 +1,9 @@
+{
+  "name": "Frota One - Gestão de Frota",
+  "short_name": "Frota One",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0b1930",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

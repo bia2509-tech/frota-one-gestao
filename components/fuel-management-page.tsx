@@ -1,0 +1,250 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3 } from "lucide-react";
+import { offlineRequest } from "@/lib/offline";
+
+type Equipment = { id: string; fleetNumber: string; plate: string | null; description: string; equipmentType?: string | null; projectName?: string | null; costCenter?: string | null; operatorName?: string | null };
+type Supplier = { id: string; name: string; active?: boolean };
+type Location = { id: string; name: string; description?: string | null };
+type Credit = { id: string; supplierId: string; supplierName: string; creditNumber: string; issueDate: string; originalCents: number; remainingCents: number };
+type Convoy = { id: string; equipmentId: string; convoyNumber: string; maintenanceLocation: string | null; costCenter: string | null; supplierName: string | null; fleetNumber: string; plate: string | null; description: string; capacityMilli: number; openingBalanceMilli: number; balanceMilli: number; percent: number; status: string };
+type FuelEntry = { id: string; equipmentId: string; systemNumber: number; entryDate: string; entryTime?: string | null; requisitionCoupon?: string | null; rn?: string | null; fleetNumber: string; plate: string | null; description: string; station: string | null; supplierId?: string | null; supplierName?: string | null; maintenanceLocation: string | null; costCenter?: string | null; product: string; litersMilli: number; totalCents: number; status: string; transactionType?: string; fuelConvoyId?: string | null; receiptObjectKey?: string | null; creditUsedCents?: number };
+type StockMovement = { id: string; convoyId: string; convoyNumber: string; movementType: string; movementDate: string; quantityMilli: number; deltaMilli: number; totalCents: number; supplierName: string | null; destinationEquipment: string | null; observation: string | null };
+
+const today = new Date().toISOString().slice(0, 10);
+const monthStart = `${today.slice(0, 8)}01`;
+const emptyForm = () => ({ entryDate: today, entryTime: "", requisitionCoupon: "", equipmentId: "", supplierId: "", maintenanceLocationId: "", costCenter: "", product: "ÓLEO DIESEL S10", productCode: "000002", liters: "", unitPrice: "", invoiceId: "", creditNoteId: "", creditAmount: "", receiptObjectKey: "" });
+const currency = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((Number(cents) || 0) / 100);
+const liters = (milli: number) => `${(Number(milli || 0) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 3 })} L`;
+const isConvoyAsset = (e: Equipment) => /COMBOIO/i.test(`${e.equipmentType || ""} ${e.description || ""}`);
+
+export default function FuelManagementPage() {
+  const [companyId, setCompanyId] = useState("");
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [credits, setCredits] = useState<Credit[]>([]);
+  const [convoys, setConvoys] = useState<Convoy[]>([]);
+  const [movementHistory, setMovementHistory] = useState<StockMovement[]>([]);
+  const [history, setHistory] = useState<FuelEntry[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [form, setForm] = useState(emptyForm);
+  const [openForm, setOpenForm] = useState(false);
+  const [openImport, setOpenImport] = useState(false);
+  const [creditAnswer, setCreditAnswer] = useState<"yes" | "no" | "">("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [filters, setFilters] = useState({ from: monthStart, to: today, supplierId: "", convoyId: "", equipmentId: "", costCenter: "" });
+  const [detail, setDetail] = useState<Convoy | null>(null);
+  const [openConvoyList, setOpenConvoyList] = useState(false);
+  const [alertList, setAlertList] = useState(false);
+  const [showCreditDetails, setShowCreditDetails] = useState(false);
+  const [configureEquipmentId, setConfigureEquipmentId] = useState("");
+  const [configure, setConfigure] = useState({ locationId: "", capacity: "", openingBalance: "", supplierId: "", costCenter: "" });
+  const [movement, setMovement] = useState({ type: "distribution", equipmentId: "", date: today, liters: "", adjustment: "", reason: "" });
+  const [importReport, setImportReport] = useState<{ imported: number; rejected: number; duplicates: number; errors: { row: number; error: string }[] } | null>(null);
+
+  async function load(id = companyId) {
+    if (!id) return;
+    const params = new URLSearchParams({ companyId: id, from: filters.from, to: filters.to });
+    if (filters.supplierId) params.set("supplierId", filters.supplierId);
+    if (filters.convoyId) params.set("convoyId", filters.convoyId);
+    if (filters.equipmentId) params.set("equipmentId", filters.equipmentId);
+    const [fuelRes, stockRes, equipmentRes, supplierRes, locationRes, invoiceRes] = await Promise.all([
+      fetch(`/api/fuel?${params}`), fetch(`/api/fuel/stock?companyId=${encodeURIComponent(id)}`),
+      fetch(`/api/equipment?companyId=${encodeURIComponent(id)}&dailyList=1`), fetch(`/api/suppliers?companyId=${encodeURIComponent(id)}`),
+      fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=local_manutencao`), fetch(`/api/invoices?companyId=${encodeURIComponent(id)}`),
+    ]);
+    const [fuelData, stockData, equipmentData, supplierData, locationData, invoiceData] = await Promise.all([fuelRes.json(), stockRes.json(), equipmentRes.json(), supplierRes.json(), locationRes.json(), invoiceRes.json()]);
+    if (!fuelRes.ok) { setError(true); setMessage(fuelData.error || "Não foi possível consultar os abastecimentos."); return; }
+    setHistory(fuelData.entries || []); setConvoys(stockData.convoys || []); setCredits(stockData.credits || []); setMovementHistory(stockData.history || []);
+    setEquipment(equipmentData.equipment || []); setSuppliers((supplierData.suppliers || []).filter((s: Supplier) => s.active !== false));
+    setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []);
+  }
+
+  useEffect(() => {
+    fetch("/api/companies").then((r) => r.json()).then((data) => { const id = data.companies?.[0]?.id || ""; setCompanyId(id); if (id) load(id); }).catch(() => { setError(true); setMessage("Não foi possível carregar a empresa ativa."); });
+  }, []);
+  useEffect(() => { if (companyId) load(); }, [filters.from, filters.to, filters.supplierId, filters.convoyId, filters.equipmentId, companyId]);
+
+  const filteredHistory = useMemo(() => history.filter((row) => !filters.costCenter || row.costCenter === filters.costCenter), [history, filters.costCenter]);
+  const purchases = filteredHistory.filter((x) => x.transactionType !== "distribution");
+  const totalLiters = purchases.reduce((s, x) => s + x.litersMilli, 0);
+  const totalValue = purchases.reduce((s, x) => s + x.totalCents, 0);
+  const alertConvoys = convoys.filter((x) => x.capacityMilli > 0 && x.percent < 40);
+  const costRows = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => map.set(x.costCenter || x.maintenanceLocation || "Sem canteiro", (map.get(x.costCenter || x.maintenanceLocation || "Sem canteiro") || 0) + x.totalCents));
+    return [...map].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [filteredHistory]);
+  const equipmentRows = useMemo(() => {
+    const map = new Map<string, { label: string; total: number }>();
+    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => { const current = map.get(x.equipmentId); map.set(x.equipmentId, { label: `${x.fleetNumber} ${x.plate || x.description}`, total: (current?.total || 0) + x.totalCents }); });
+    return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 5);
+  }, [filteredHistory]);
+  const monthlyRows = useMemo(() => {
+    const map = new Map<string, { value: number; volume: number }>();
+    purchases.forEach((x) => { const key = x.entryDate.slice(0, 7); const old = map.get(key) || { value: 0, volume: 0 }; map.set(key, { value: old.value + x.totalCents, volume: old.volume + x.litersMilli }); });
+    return [...map].sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+  }, [purchases]);
+  const supplierCredits = credits.filter((x) => x.supplierId === form.supplierId && x.remainingCents > 0);
+  const selectedCredit = supplierCredits.find((x) => x.id === form.creditNoteId);
+  const selectedEquipment = equipment.find((x) => x.id === form.equipmentId);
+  const comboioCandidates = equipment.filter(isConvoyAsset);
+
+  function selectEquipment(id: string) {
+    const found = equipment.find((e) => e.id === id);
+    setForm((current) => ({ ...current, equipmentId: id, costCenter: found?.costCenter || found?.projectName || current.costCenter, maintenanceLocationId: current.maintenanceLocationId || "" }));
+  }
+
+  async function attachReceipt(file?: File) {
+    if (!file || !companyId) return;
+    const payload = new FormData(); payload.set("companyId", companyId); payload.set("file", file);
+    setBusy(true);
+    try { const res = await fetch("/api/fuel/receipt", { method: "POST", body: payload }); const data = await res.json(); if (!res.ok) throw new Error(data.error || "Falha ao anexar o comprovante."); setForm((current) => ({ ...current, receiptObjectKey: data.objectKey })); setMessage(`Comprovante anexado: ${data.fileName}`); setError(false); }
+    catch (e) { setMessage(e instanceof Error ? e.message : "Falha ao anexar o comprovante."); setError(true); }
+    setBusy(false);
+  }
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault(); if (!companyId) return;
+    setBusy(true); setMessage(""); setError(false);
+    const payload = { ...form, companyId, strict: true, source: "manual", liters: Number(form.liters), unitPrice: Number(form.unitPrice), total: Number(form.liters) * Number(form.unitPrice), creditAmount: creditAnswer === "yes" ? Number(form.creditAmount || 0) : 0, creditNoteId: creditAnswer === "yes" ? form.creditNoteId : "" };
+    const res = await offlineRequest("/api/fuel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    const data = await res.json(); setBusy(false);
+    if (!res.ok) { setError(true); setMessage(data.error || "Não foi possível salvar o abastecimento."); return; }
+    setMessage(data.queued ? data.message : "Abastecimento registrado e integrado ao histórico."); setOpenForm(false); setForm(emptyForm()); setCreditAnswer("");
+    if (!data.queued) load();
+  }
+
+  async function importFile(file?: File) {
+    if (!file) return;
+    setBusy(true); setImportReport(null); setMessage(""); setError(false);
+    try {
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
+      const sheetName = workbook.SheetNames.find((n) => n.toUpperCase().includes("ABASTEC")) || workbook.SheetNames[0];
+      const matrix = XLSX.utils.sheet_to_json<any[]>(workbook.Sheets[sheetName], { header: 1, defval: "", raw: true });
+      const headerIndex = matrix.findIndex((row) => row.some((v) => /^data$/i.test(String(v).trim())) && row.some((v) => /placa|id/i.test(String(v).trim())));
+      if (headerIndex < 0) throw new Error("Cabeçalho padrão não encontrado. Baixe e use o modelo do sistema.");
+      const headers = matrix[headerIndex].map((v) => String(v).trim().toLocaleLowerCase("pt-BR"));
+      const pick = (row: any[], aliases: string[]) => { const i = headers.findIndex((h) => aliases.some((name) => h === name.toLocaleLowerCase("pt-BR"))); return i < 0 ? "" : row[i]; };
+      const toDate = (value: any) => value instanceof Date ? value.toISOString().slice(0, 10) : String(value).includes("/") ? String(value).split("/").reverse().join("-") : String(value).slice(0, 10);
+      const rows = matrix.slice(headerIndex + 1).filter((r) => r.some(Boolean)).map((row, i) => ({
+        entryDate: toDate(pick(row, ["Data"])), entryTime: String(pick(row, ["Hora"])),
+        requisitionCoupon: String(pick(row, ["Requisição", "Requisicao", "Cupom", "Requisição / Cupom"])),
+        fleetNumber: String(pick(row, ["ID", "Frota"])), plate: String(pick(row, ["Placa"])),
+        station: String(pick(row, ["Posto", "Fornecedor", "Posto / Fornecedor"])),
+        maintenanceLocation: String(pick(row, ["Local de manutenção", "Local de manutencao"])),
+        costCenter: String(pick(row, ["Canteiro", "Centro de custo"])),
+        product: String(pick(row, ["Produto", "Combustível", "Combustivel"]) || "ÓLEO DIESEL S10"),
+        productCode: String(pick(row, ["Código", "Codigo"])),
+        liters: Number(pick(row, ["Litros abastecidos", "Litros"])),
+        unitPrice: Number(pick(row, ["Preço por litro", "Preco por litro", "Valor por litro"])),
+        total: Number(pick(row, ["Custo total R$", "Valor total", "Total"])),
+        kilometer: Number(pick(row, ["Km Atual", "KM"])) || null,
+        hourmeter: Number(pick(row, ["Horímetro Atual", "Horimetro", "Horímetro"])) || null,
+        originalExternalId: String(pick(row, ["Nº Comboio", "ID externo", "Identificação externa"])),
+        rowNumber: i + headerIndex + 2,
+      }));
+      const res = await offlineRequest("/api/fuel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, source: "spreadsheet", strict: true, fileName: file.name, entries: rows }) });
+      const data = await res.json();
+      if (!res.ok) { const errors = data.errors || [{ row: 0, error: data.error || "Importação rejeitada." }]; const duplicates = errors.filter((x: any) => /duplicad|repetid/i.test(x.error)).length; setImportReport({ imported: 0, rejected: rows.length, duplicates, errors }); setError(true); setMessage("A planilha não foi gravada. Revise as linhas rejeitadas."); }
+      else { setImportReport({ imported: data.imported, rejected: 0, duplicates: 0, errors: [] }); setMessage(`${data.imported} abastecimento(s) importado(s).`); load(); }
+    } catch (e) { setError(true); setMessage(e instanceof Error ? e.message : "Planilha inválida."); }
+    setBusy(false);
+  }
+
+  async function configureConvoy(event: React.FormEvent) {
+    event.preventDefault(); setBusy(true); setError(false);
+    const res = await fetch("/api/fuel/stock", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, action: "configure-convoy", equipmentId: configureEquipmentId, maintenanceLocationId: configure.locationId, capacity: Number(configure.capacity), openingBalance: Number(configure.openingBalance), supplierId: configure.supplierId || undefined, costCenter: configure.costCenter }) });
+    const data = await res.json(); setBusy(false);
+    if (!res.ok) { setError(true); setMessage(data.error || "Não foi possível configurar o comboio."); return; }
+    setMessage(`Comboio ${data.convoy.convoyNumber} configurado. A identificação foi gerada e não pode ser alterada manualmente.`); setConfigureEquipmentId(""); setConfigure({ locationId: "", capacity: "", openingBalance: "", supplierId: "", costCenter: "" }); load();
+  }
+
+  async function saveMovement(event: React.FormEvent) {
+    event.preventDefault(); if (!detail) return; setBusy(true); setError(false);
+    const action = movement.type === "distribution" ? "distribution" : "adjustment";
+    const res = await fetch("/api/fuel/stock", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, action, convoyId: detail.id, destinationEquipmentId: movement.equipmentId, movementDate: movement.date, quantity: Number(movement.liters), delta: Number(movement.adjustment), observation: movement.reason, referenceKey: crypto.randomUUID() }) });
+    const data = await res.json(); setBusy(false);
+    if (!res.ok) { setError(true); setMessage(data.error || "Movimentação não realizada."); return; }
+    setMessage(action === "distribution" ? "Distribuição registrada; o saldo do comboio e a apropriação foram atualizados." : "Ajuste autorizado registrado no histórico do comboio."); setMovement({ type: "distribution", equipmentId: "", date: today, liters: "", adjustment: "", reason: "" }); setDetail(null); load();
+  }
+
+  return <div className="space-y-5">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><h2 className="text-xl font-bold text-slate-900">Painel de abastecimento</h2><p className="text-sm text-slate-500">Compras, estoque individual dos comboios e histórico rastreável.</p></div>
+      <div className="flex flex-wrap gap-2"><button className="btn-primary" onClick={() => { setForm(emptyForm()); setCreditAnswer(""); setOpenForm(true); }}><Plus size={16}/> Novo abastecimento</button><button className="btn-secondary" onClick={() => setOpenImport((x) => !x)}><Upload size={16}/> Importar planilha</button><a className="btn-secondary" href="/templates/modelo-abastecimento.xlsx" download="1.CONTROLE_DE_ABASTECIMENTO.xlsx"><FileSpreadsheet size={16}/> Planilha padrão</a></div>
+    </div>
+
+    {message && <div className={`rounded-xl border p-3 text-sm font-semibold ${error ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>{message}</div>}
+
+    <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-6">
+      <label className="text-xs font-semibold text-slate-600">Período inicial<input className="input mt-1" type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })}/></label>
+      <label className="text-xs font-semibold text-slate-600">Período final<input className="input mt-1" type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })}/></label>
+      <label className="text-xs font-semibold text-slate-600">Fornecedor<select className="input mt-1" value={filters.supplierId} onChange={(e) => setFilters({ ...filters, supplierId: e.target.value })}><option value="">Todos</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+      <label className="text-xs font-semibold text-slate-600">Comboio<select className="input mt-1" value={filters.convoyId} onChange={(e) => setFilters({ ...filters, convoyId: e.target.value })}><option value="">Todos</option>{convoys.map((c) => <option key={c.id} value={c.id}>Comboio {c.convoyNumber} · {c.fleetNumber}</option>)}</select></label>
+      <label className="text-xs font-semibold text-slate-600">Equipamento<select className="input mt-1" value={filters.equipmentId} onChange={(e) => setFilters({ ...filters, equipmentId: e.target.value })}><option value="">Todos</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+      <label className="text-xs font-semibold text-slate-600">Canteiro<select className="input mt-1" value={filters.costCenter} onChange={(e) => setFilters({ ...filters, costCenter: e.target.value })}><option value="">Todos</option>{[...new Set(equipment.map((e) => e.costCenter || e.projectName).filter(Boolean) as string[])].sort().map((x) => <option key={x}>{x}</option>)}</select></label>
+    </section>
+
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4"><div className="text-sm font-semibold text-blue-900">VOLUME TOTAL (LT)</div><div className="mt-2 text-2xl font-black text-blue-950">{liters(totalLiters)}</div><div className="mt-1 text-xs text-blue-700">Entradas de combustível no período</div></div>
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4"><div className="text-sm font-semibold text-blue-900">VALOR TOTAL (R$)</div><div className="mt-2 text-2xl font-black text-blue-950">{currency(totalValue)}</div><div className="mt-1 text-xs text-blue-700">Compras sem somar distribuições novamente</div></div>
+      <button className="rounded-xl border border-red-200 bg-red-50 p-4 text-left" onClick={() => setOpenConvoyList(true)}><div className="text-sm font-semibold text-red-800">TOTAL COMBOIO (SALDO ATUAL)</div><div className="mt-2 text-2xl font-black text-red-900">{liters(convoys.reduce((s, c) => s + c.balanceMilli, 0))}</div><div className="mt-1 text-xs text-red-700">Clique para detalhar os comboios</div></button>
+      <button className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left" onClick={() => setAlertList(true)}><div className="text-sm font-semibold text-amber-900">SALDO EM ALERTA</div><div className="mt-2 text-2xl font-black text-amber-950">{alertConvoys.length}</div><div className="mt-1 text-xs text-amber-800">Comboios abaixo de 40% da capacidade</div></button>
+    </div>
+
+    {configureEquipmentId && <section className="panel p-4"><div className="mb-3 flex justify-between"><div><h3 className="font-bold">Configurar comboio</h3><p className="text-sm text-slate-500">A identificação é criada pelo sistema e preservada no cadastro.</p></div><button className="btn-secondary" onClick={() => setConfigureEquipmentId("")}><X size={16}/></button></div><form onSubmit={configureConvoy} className="grid gap-3 md:grid-cols-5">
+      <label className="text-sm font-semibold">Equipamento<select required className="input mt-1" value={configureEquipmentId} onChange={(e) => setConfigureEquipmentId(e.target.value)}>{comboioCandidates.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+      <label className="text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={configure.locationId} onChange={(e) => setConfigure({ ...configure, locationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+      <label className="text-sm font-semibold">Capacidade (L)<input required min="0.001" step="0.001" type="number" className="input mt-1" value={configure.capacity} onChange={(e) => setConfigure({ ...configure, capacity: e.target.value })}/></label>
+      <label className="text-sm font-semibold">Saldo inicial (L)<input min="0" step="0.001" type="number" className="input mt-1" value={configure.openingBalance} onChange={(e) => setConfigure({ ...configure, openingBalance: e.target.value })}/></label>
+      <div className="flex items-end"><button disabled={busy} className="btn-primary w-full">Salvar comboio</button></div>
+    </form></section>}
+
+    {openImport && <section className="panel p-4"><div className="flex items-center justify-between"><div><h3 className="font-bold">Importar abastecimentos</h3><p className="text-sm text-slate-500">Todas as linhas são validadas antes da gravação; números externos de comboio ficam apenas para rastreabilidade.</p></div><label className="btn-secondary cursor-pointer"><Upload size={16}/>Escolher XLSX/CSV<input className="hidden" type="file" accept=".xlsx,.xls,.csv" disabled={busy} onChange={(e) => importFile(e.target.files?.[0])}/></label></div>{importReport && <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm"><div>Importados: {importReport.imported} · Rejeitados: {importReport.rejected} · Possíveis duplicidades: {importReport.duplicates}</div>{importReport.errors.map((x, i) => <div key={i} className="text-red-700">Linha {x.row}: {x.error}</div>)}</div>}</section>}
+
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_370px]">
+      <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Chart title="Gastos por canteiro" rows={costRows.map(([label, value]) => ({ label, value }))}/>
+          <Chart title="Equipamentos com maior gasto" rows={equipmentRows}/>
+          <Chart title="Evolução mensal · compras" rows={monthlyRows.map(([label, v]) => ({ label, value: v.value, sub: liters(v.volume) }))}/>
+        </div>
+        <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Histórico de abastecimentos</h3><p>{filteredHistory.length} lançamento(s) · integra com a apropriação</p></div><Search size={18}/></div><div className="overflow-x-auto"><table className="min-w-[1000px]"><thead><tr><th>Código</th><th>Data / Hora</th><th>ID / Placa</th><th>Origem</th><th>Litros</th><th>Valor</th><th>Req. / Cupom</th><th>Situação</th><th>Comprovante</th></tr></thead><tbody>{filteredHistory.length ? filteredHistory.map((e) => <tr key={e.id}><td className="font-bold text-blue-800">{String(e.systemNumber || "-").padStart(6, "0")}</td><td>{e.entryDate?.split("-").reverse().join("/")}{e.entryTime ? ` · ${e.entryTime}` : ""}</td><td>{e.fleetNumber} · {e.plate || "-"}</td><td>{e.transactionType === "stock_receipt" ? `Comboio ${convoys.find((c) => c.id === e.fuelConvoyId)?.convoyNumber || ""}` : e.station || e.maintenanceLocation || "-"}</td><td>{liters(e.litersMilli)}</td><td>{currency(e.totalCents)}</td><td>{e.requisitionCoupon || e.rn || "-"}</td><td>{e.status === "confirmed" ? "Confirmado" : e.status}</td><td>{e.receiptObjectKey ? <a className="text-blue-700 underline" target="_blank" href={`/api/fuel/receipt?companyId=${encodeURIComponent(companyId)}&key=${encodeURIComponent(e.receiptObjectKey)}`}>Baixar</a> : "-"}</td></tr>) : <tr><td colSpan={9} className="py-8 text-center text-slate-500">Nenhum lançamento no período selecionado.</td></tr>}</tbody></table></div></section>
+      </div>
+      <aside className="space-y-4">
+        <section className="panel p-4"><div className="flex items-center justify-between"><div><h3 className="font-bold">Comboios</h3><p className="text-xs text-slate-500">Saldo calculado por movimentação</p></div><button className="btn-secondary" onClick={() => setConfigureEquipmentId(comboioCandidates[0]?.id || "")} disabled={!comboioCandidates.length}><Truck size={15}/>Configurar</button></div><div className="mt-3 space-y-2">{convoys.map((c) => <button key={c.id} onClick={() => { setDetail(c); setAlertList(false); }} className="w-full rounded-lg border p-3 text-left hover:bg-slate-50"><div className="flex justify-between"><span className="font-bold">Comboio {c.convoyNumber} · {c.fleetNumber}</span><span className={`font-bold ${c.percent <= 20 ? "text-red-700" : c.percent < 40 ? "text-amber-700" : "text-emerald-700"}`}>{c.capacityMilli ? `${c.percent.toFixed(1)}%` : "Configurar capacidade"}</span></div><div className="mt-1 flex justify-between text-sm text-slate-600"><span>{c.maintenanceLocation || "Local não definido"}</span><span>{liters(c.balanceMilli)}</span></div></button>)}{!convoys.length && <p className="py-4 text-center text-sm text-slate-500">Nenhum comboio configurado.</p>}</div></section>
+        {openForm && <form onSubmit={save} className="panel space-y-3 p-4"><div className="flex items-center justify-between"><h3 className="font-bold">Novo abastecimento</h3><button type="button" onClick={() => setOpenForm(false)}><X size={18}/></button></div>
+          <label className="block text-sm font-semibold">Código automático<input readOnly className="input mt-1 bg-slate-50" value="Gerado ao salvar"/></label>
+          <label className="block text-sm font-semibold">Requisição / Cupom<input className="input mt-1" value={form.requisitionCoupon} onChange={(e) => setForm({ ...form, requisitionCoupon: e.target.value })}/></label>
+          <label className="block text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={form.maintenanceLocationId} onChange={(e) => setForm({ ...form, maintenanceLocationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+          <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })}/></label><label className="text-sm font-semibold">Hora<input type="time" className="input mt-1" value={form.entryTime} onChange={(e) => setForm({ ...form, entryTime: e.target.value })}/></label></div>
+          <label className="block text-sm font-semibold">ID / Placa<select required className="input mt-1" value={form.equipmentId} onChange={(e) => selectEquipment(e.target.value)}><option value="">Selecione</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Canteiro<input className="input mt-1" list="fuel-cost-centers" value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })}/><datalist id="fuel-cost-centers">{[...new Set(equipment.map((e) => e.costCenter || e.projectName).filter(Boolean) as string[])].map((x) => <option key={x} value={x}/>)}</datalist></label>
+
+          <label className="block text-sm font-semibold">Posto / Fornecedor<select required className="input mt-1" value={form.supplierId} onChange={(e) => { setForm({ ...form, supplierId: e.target.value, creditNoteId: "", creditAmount: "" }); setCreditAnswer(""); }}><option value="">Selecione</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+          {supplierCredits.length > 0 && <div className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm text-red-900"><div className="font-bold">Há nota(s) de crédito disponível(is) para {supplierCredits[0].supplierName}.</div><button type="button" className="mt-1 font-bold underline" onClick={() => setShowCreditDetails(true)}>Ver detalhes</button><p className="mt-1">Deseja utilizar uma Nota de Crédito neste abastecimento?</p><div className="mt-2 flex gap-2"><button type="button" className="btn-primary" onClick={() => { setCreditAnswer("yes"); setForm({ ...form, creditNoteId: supplierCredits[0].id, creditAmount: ((supplierCredits[0].remainingCents / 100)).toFixed(2) }); }}>Sim</button><button type="button" className="btn-secondary" onClick={() => { setCreditAnswer("no"); setForm({ ...form, creditNoteId: "", creditAmount: "" }); }}>Não</button></div>{creditAnswer === "yes" && <div className="mt-2 space-y-2"><select required className="input" value={form.creditNoteId} onChange={(e) => setForm({ ...form, creditNoteId: e.target.value, creditAmount: ((supplierCredits.find((c) => c.id === e.target.value)?.remainingCents || 0) / 100).toFixed(2) })}>{supplierCredits.map((c) => <option key={c.id} value={c.id}>NF {c.creditNumber} · disponível {currency(c.remainingCents)}</option>)}</select><div className="text-xs">Valor original: {currency(selectedCredit?.originalCents || 0)} · já usado: {currency((selectedCredit?.originalCents || 0) - (selectedCredit?.remainingCents || 0))} · saldo: {currency(selectedCredit?.remainingCents || 0)}</div><label className="block text-xs font-semibold">Valor a utilizar<input required min="0.01" step="0.01" type="number" className="input mt-1" value={form.creditAmount} onChange={(e) => setForm({ ...form, creditAmount: e.target.value })}/></label></div>}</div>}
+          <label className="block text-sm font-semibold">Nota fiscal existente (opcional)<select className="input mt-1" value={form.invoiceId} onChange={(e) => setForm({ ...form, invoiceId: e.target.value })}><option value="">Sem vínculo</option>{invoices.filter((i) => !form.supplierId || i.supplierId === form.supplierId).map((i) => <option key={i.id} value={i.id}>{i.invoiceNumber} · {i.supplierName}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Combustível<select className="input mt-1" value={form.product} onChange={(e) => setForm({ ...form, product: e.target.value })}><option>ÓLEO DIESEL S10</option><option>ÓLEO DIESEL S500</option><option>GASOLINA</option><option>ARLA 32</option></select></label>
+          <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Litros<input required min="0.001" step="0.001" type="number" className="input mt-1" value={form.liters} onChange={(e) => setForm({ ...form, liters: e.target.value })}/></label><label className="text-sm font-semibold">Valor por litro<input required min="0.001" step="0.001" type="number" className="input mt-1" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })}/></label></div>
+          <div className="rounded-lg bg-slate-50 p-3 text-sm font-bold">Valor total: {currency(Math.round(Number(form.liters || 0) * Number(form.unitPrice || 0) * 100))}</div>
+          <label className="block text-sm font-semibold">Anexar comprovante<input className="input mt-1" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" disabled={busy} onChange={(e) => attachReceipt(e.target.files?.[0])}/><span className="text-xs font-normal text-slate-500">PDF ou imagem até 15 MB.</span></label>
+          <button disabled={busy || !companyId} className="btn-primary w-full">{busy ? "Salvando..." : "Salvar abastecimento"}</button>
+        </form>}
+      </aside>
+    </div>
+
+    {showCreditDetails && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="max-h-[80vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-xl font-black">Créditos disponíveis · {supplierCredits[0]?.supplierName}</h3><button onClick={() => setShowCreditDetails(false)}><X/></button></div><div className="mt-4 space-y-2">{supplierCredits.map((c) => <div key={c.id} className="rounded-lg border border-red-200 bg-red-50 p-3"><b>Nota {c.creditNumber}</b><div className="mt-1 text-sm">Emissão: {c.issueDate} · Original: {currency(c.originalCents)} · Utilizado: {currency(c.originalCents - c.remainingCents)} · Saldo disponível: {currency(c.remainingCents)}</div></div>)}</div></section></div>}
+    {openConvoyList && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-xl font-black">Detalhamento dos comboios</h3><button onClick={() => setOpenConvoyList(false)}><X/></button></div><div className="mt-4 space-y-2">{convoys.map((c) => <button key={c.id} onClick={() => { setOpenConvoyList(false); setDetail(c); }} className="w-full rounded-lg border p-3 text-left hover:bg-slate-50"><div className="flex flex-wrap justify-between gap-2"><b>Comboio {c.convoyNumber} / {c.fleetNumber}</b><b className={c.percent <= 20 ? "text-red-700" : c.percent < 40 ? "text-amber-700" : "text-emerald-700"}>{c.percent.toFixed(1)}% / {liters(c.balanceMilli)}</b></div><div className="mt-1 text-sm text-slate-600">Local: {c.maintenanceLocation || "não definido"} / Canteiro: {c.costCenter || "não definido"} / Fornecedor: {c.supplierName || "não definido"} / Capacidade: {liters(c.capacityMilli)}</div></button>)}{!convoys.length && <p className="py-6 text-center text-slate-500">Nenhum comboio cadastrado.</p>}</div></section></div>}
+    {detail && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><h3 className="text-xl font-black">Comboio {detail.convoyNumber} · {detail.fleetNumber}</h3><p className="text-sm text-slate-500">{detail.maintenanceLocation} · {detail.costCenter || "Canteiro não definido"} · Fornecedor: {detail.supplierName || "não definido"}</p></div><button onClick={() => setDetail(null)}><X/></button></div><div className="mt-4 grid gap-3 sm:grid-cols-4"><Mini label="Capacidade" value={liters(detail.capacityMilli)}/><Mini label="Saldo atual" value={liters(detail.balanceMilli)}/><Mini label="Saldo percentual" value={detail.capacityMilli ? `${detail.percent.toFixed(1)}%` : "Sem capacidade"}/><Mini label="Situação" value={detail.percent <= 20 ? "Crítico" : detail.percent < 40 ? "Atenção" : "Normal"}/></div><form onSubmit={saveMovement} className="mt-5 grid gap-3 rounded-xl bg-slate-50 p-4 md:grid-cols-4"><label className="text-sm font-semibold">Movimentação<select className="input mt-1" value={movement.type} onChange={(e) => setMovement({ ...movement, type: e.target.value })}><option value="distribution">Distribuição para equipamento</option><option value="adjustment">Ajuste autorizado</option></select></label><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={movement.date} onChange={(e) => setMovement({ ...movement, date: e.target.value })}/></label>{movement.type === "distribution" ? <label className="text-sm font-semibold">Equipamento destino<select required className="input mt-1" value={movement.equipmentId} onChange={(e) => setMovement({ ...movement, equipmentId: e.target.value })}><option value="">Selecione</option>{equipment.filter((x) => x.id !== detail.equipmentId).map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label> : <label className="text-sm font-semibold">Variação (L, + ou −)<input required type="number" step="0.001" className="input mt-1" value={movement.adjustment} onChange={(e) => setMovement({ ...movement, adjustment: e.target.value })}/></label>}{movement.type === "distribution" && <label className="text-sm font-semibold">Litros<input required min="0.001" step="0.001" type="number" className="input mt-1" value={movement.liters} onChange={(e) => setMovement({ ...movement, liters: e.target.value })}/></label>}<label className="text-sm font-semibold md:col-span-2">Motivo / observação<input required={movement.type === "adjustment"} className="input mt-1" value={movement.reason} onChange={(e) => setMovement({ ...movement, reason: e.target.value })}/></label><div className="flex items-end"><button disabled={busy} className="btn-primary w-full">Registrar movimentação</button></div></form><h4 className="mt-5 font-bold">Movimentações recentes</h4><div className="mt-2 max-h-56 overflow-auto"><table className="w-full text-sm"><thead><tr><th>Data</th><th>Tipo</th><th>Quantidade</th><th>Valor</th><th>Destino / fornecedor</th></tr></thead><tbody>{movementHistory.filter((h) => h.convoyId === detail.id).map((h) => <tr key={h.id}><td>{h.movementDate}</td><td>{h.movementType}</td><td>{liters(h.quantityMilli)}</td><td>{currency(h.totalCents)}</td><td>{h.destinationEquipment || h.supplierName || "-"}</td></tr>)}</tbody></table></div></section></div>}
+    {alertList && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-xl font-black">Comboios em atenção ou situação crítica</h3><button onClick={() => setAlertList(false)}><X/></button></div><div className="mt-4 space-y-2">{alertConvoys.map((c) => <button key={c.id} onClick={() => { setAlertList(false); setDetail(c); }} className="w-full rounded-lg border border-amber-200 bg-amber-50 p-3 text-left"><b>Comboio {c.convoyNumber} · {c.fleetNumber}</b><span className="float-right">{c.percent.toFixed(1)}% · {liters(c.balanceMilli)}</span><div className="text-sm">{c.maintenanceLocation} · {c.costCenter}</div></button>)}{!alertConvoys.length && <div className="p-4 text-center text-slate-500">Nenhum comboio abaixo de 40%.</div>}</div></section></div>}
+  </div>;
+}
+
+function Mini({ label, value }: { label: string; value: string }) { return <div className="rounded-lg border p-3"><div className="text-xs font-semibold text-slate-500">{label}</div><div className="mt-1 font-bold">{value}</div></div>; }
+function Chart({ title, rows }: { title: string; rows: { label: string; value: number; sub?: string }[] }) { const max = Math.max(1, ...rows.map((r) => r.value)); return <section className="panel p-4"><h3 className="font-bold">{title}</h3><div className="mt-3 space-y-3">{rows.length ? rows.map((r) => <div key={r.label}><div className="mb-1 flex justify-between gap-2 text-xs"><span className="truncate">{r.label}</span><b>{currency(r.value)}{r.sub ? ` · ${r.sub}` : ""}</b></div><div className="h-2 rounded bg-slate-100"><div className="h-2 rounded bg-blue-700" style={{ width: `${Math.max(4, r.value / max * 100)}%` }}/></div></div>) : <p className="py-3 text-sm text-slate-500">Sem dados no período.</p>}</div></section>; }

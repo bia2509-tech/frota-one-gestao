@@ -4075,7 +4075,7 @@ function BackupSyncPage() {
     setMessage("Arquivo de backup inválido. Selecione o arquivo .json gerado pelo sistema.");
   }
 }
-
+return (
     <div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
       <section className="panel p-5">
         <div className="flex items-center gap-3">

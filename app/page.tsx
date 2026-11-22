@@ -2439,8 +2439,6 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
       const totalRow = 50 + extraRows;
       const dataEnd = 12 + sourceItems.length;
       for (let r = 13; r < totalRow; r++) for (let c = 1; c <= 25; c++) worksheet.getRow(r).getCell(c).value = null;
-      worksheet.getCell("A3").value = "Anexo I - " + (detail.contract.documentKind === "amendment" ? "Aditivo" : "Contrato") + " " + detail.contract.number + "
-Planilha de Quantidades e Preços";
       worksheet.getCell("A3").value = "Anexo I - " + (detail.contract.documentKind === "amendment" ? "Aditivo" : "Contrato") + " " + detail.contract.number + "\nPlanilha de Quantidades e Preços";
       worksheet.getCell("Y3").value = detail.contract.number;
       worksheet.getCell("M7").value = detail.contract.supplierName || "";

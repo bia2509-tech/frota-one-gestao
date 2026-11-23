@@ -235,11 +235,8 @@ export async function GET(request: Request) {
     sheet.getCell("A1").value = null;
     sheet.getCell("C3").value = null;
 
-    let headerRow = 0;
-    let dayCol = 3;
-    let totalKmRow = 0;
-
     sheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
+      if (rowNumber > 10) return;
       for (let c = 1; c <= 19; c++) {
         const cell = row.getCell(c);
         if (cell.master && cell.master !== cell) continue;
@@ -262,12 +259,6 @@ export async function GET(request: Request) {
         else if (txt.startsWith("COMB. TIPO") || txt.startsWith("COMB.TIPO")) cell.value = `COMB. TIPO 燃料类型\n${asset.fuelType || "—"}`;
         else if (txt.startsWith("PERIODO")) cell.value = `PERÍODO 月份\n${periodLabel}`;
         else if (txt.startsWith("DATA")) cell.value = `DATA 打印日期\n${printDate}`;
-        else if (txt === "DIA" || txt.startsWith("DIA\n") || txt.startsWith("DIA ")) {
-          headerRow = rowNumber;
-          dayCol = c;
-        } else if (txt.includes("TOTAL KM") || txt.includes("TOTAL HR")) {
-          totalKmRow = rowNumber;
-        }
       }
     });
 
@@ -294,17 +285,14 @@ export async function GET(request: Request) {
       servicesByDate.set(row.closedAt, [...(servicesByDate.get(row.closedAt) || []), row]);
     }
 
-    const firstDayRow = headerRow > 0 ? headerRow + 2 : 13;
-    const maxDaySlots = totalKmRow > firstDayRow ? totalKmRow - firstDayRow : 31;
     const weekdays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-
     let totalKm = 0;
     let totalLiters = 0;
     let totalFuel = 0;
     let totalServices = 0;
 
-    for (let i = 0; i < maxDaySlots; i++) {
-      const r = sheet.getRow(firstDayRow + i);
+    for (let i = 0; i < 31; i++) {
+      const r = sheet.getRow(13 + i);
       const day = dates[i];
       if (!day) {
         r.hidden = true;
@@ -329,21 +317,21 @@ export async function GET(request: Request) {
       totalFuel = Math.round((totalFuel + fuelValue) * 100) / 100;
       totalServices = Math.round((totalServices + serviceValue) * 100) / 100;
 
-      r.getCell(dayCol).master.value = `${day.slice(8, 10)}/${day.slice(5, 7)}`;
-      r.getCell(dayCol + 1).master.value = weekdays[new Date(`${day}T00:00:00Z`).getUTCDay()];
-      r.getCell(dayCol + 2).master.value = entry?.status || "";
-      r.getCell(dayCol + 3).master.value = start != null ? Number(start) : null;
-      r.getCell(dayCol + 4).master.value = end != null ? Number(end) : null;
-      r.getCell(dayCol + 5).master.value = distance || null;
-      r.getCell(dayCol + 6).master.value = liters || null;
-      r.getCell(dayCol + 7).master.value = liters ? Math.round((fuelValue / liters) * 1000) / 1000 : null;
-      r.getCell(dayCol + 8).master.value = fuelValue || null;
-      r.getCell(dayCol + 9).master.value = "";
-      r.getCell(dayCol + 10).master.value = fuel?.stations?.join(", ") || "";
-      r.getCell(dayCol + 11).master.value = services.map((item) => `${item.orderNumber} ${item.productService}`).join("; ");
-      r.getCell(dayCol + 12).master.value = serviceValue || null;
-      r.getCell(dayCol + 13).master.value = services.map((item) => item.invoiceNumber).filter(Boolean).join(", ");
-      r.getCell(dayCol + 14).master.value = services.some((item) => item.paymentResponsibility === "lessor")
+      r.getCell(3).master.value = `${day.slice(8, 10)}/${day.slice(5, 7)}`;
+      r.getCell(4).master.value = weekdays[new Date(`${day}T00:00:00Z`).getUTCDay()];
+      r.getCell(5).master.value = entry?.status || "";
+      r.getCell(6).master.value = start != null ? Number(start) : null;
+      r.getCell(7).master.value = end != null ? Number(end) : null;
+      r.getCell(8).master.value = distance || null;
+      r.getCell(9).master.value = liters || null;
+      r.getCell(10).master.value = liters ? Math.round((fuelValue / liters) * 1000) / 1000 : null;
+      r.getCell(11).master.value = fuelValue || null;
+      r.getCell(12).master.value = "";
+      r.getCell(13).master.value = fuel?.stations?.join(", ") || "";
+      r.getCell(14).master.value = services.map((item) => `${item.orderNumber} ${item.productService}`).join("; ");
+      r.getCell(15).master.value = serviceValue || null;
+      r.getCell(16).master.value = services.map((item) => item.invoiceNumber).filter(Boolean).join(", ");
+      r.getCell(17).master.value = services.some((item) => item.paymentResponsibility === "lessor")
         ? "LOCADOR"
         : services.some((item) => item.paymentResponsibility === "company_charge_lessor")
           ? "DESCONTO LOCADOR"
@@ -352,15 +340,13 @@ export async function GET(request: Request) {
             : "";
     }
 
-    if (totalKmRow > 0) {
-      const tr = sheet.getRow(totalKmRow);
-      tr.hidden = false;
-      tr.getCell(dayCol).master.value = `CÓD: ${asset.fleetNumber}`;
-      tr.getCell(dayCol + 5).master.value = totalKm;
-      tr.getCell(dayCol + 6).master.value = totalLiters;
-      tr.getCell(dayCol + 8).master.value = totalFuel;
-      tr.getCell(dayCol + 12).master.value = totalServices;
-    }
+    const tr = sheet.getRow(44);
+    tr.hidden = false;
+    tr.getCell(3).master.value = `CÓD: ${asset.fleetNumber}`;
+    tr.getCell(8).master.value = totalKm;
+    tr.getCell(9).master.value = totalLiters;
+    tr.getCell(11).master.value = totalFuel;
+    tr.getCell(15).master.value = totalServices;
 
     const reimbursement = (financial.reimbursementCents + quick.reimbursementCents) / 100;
     const osDiscount = financial.lessorChargeCents / 100;
@@ -373,7 +359,7 @@ export async function GET(request: Request) {
     const totalGross = netInvoice + totalDiscounts;
 
     sheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
-      if (rowNumber <= totalKmRow) return;
+      if (rowNumber <= 44) return;
       row.hidden = false;
       for (let c = 1; c <= 18; c++) {
         const cell = row.getCell(c);
@@ -381,28 +367,28 @@ export async function GET(request: Request) {
         const txt = norm(cell.value);
         if (!txt) continue;
 
-        if (txt.startsWith("DIAS TRABALHADOS")) { row.getCell(dayCol + 3).master.value = ap.counts.T; row.getCell(dayCol + 4).master.value = (ap.counts.T * ap.dailyValueCents) / 100; }
-        else if (txt.startsWith("DIAS A DISPOSICAO")) { row.getCell(dayCol + 3).master.value = ap.counts.D; row.getCell(dayCol + 4).master.value = (ap.counts.D * ap.dailyValueCents) / 100; }
-        else if (txt.startsWith("DIAS EM MANUTENCAO")) { row.getCell(dayCol + 3).master.value = ap.counts.M; row.getCell(dayCol + 4).master.value = maintenanceDiscount; }
-        else if (txt.startsWith("TOTAL DE DIAS")) { row.getCell(dayCol + 3).master.value = ap.paidDays; row.getCell(dayCol + 4).master.value = ap.payableCents / 100; }
-        else if (txt.startsWith("REEMBOLSO DE AVARIAS")) { row.getCell(dayCol + 4).master.value = reimbursement; }
-        else if (txt.startsWith("MAO DE OBRA")) { row.getCell(dayCol + 4).master.value = 0; }
-        else if (txt.startsWith("BORRACHARIA")) { row.getCell(dayCol + 4).master.value = tireWashLub; }
-        else if (txt.startsWith("MOBILIZACAO")) { row.getCell(dayCol + 4).master.value = mobilization; }
-        else if (txt.startsWith("OUTROS DESCONTOS")) { row.getCell(dayCol + 4).master.value = osDiscount; }
-        else if (txt.startsWith("PECAS / SERVICOS")) { row.getCell(dayCol + 4).master.value = partsServices; }
-        else if (txt.startsWith("TOTAL DE DESCONTOS")) { row.getCell(dayCol + 4).master.value = totalDiscounts; }
-        else if (txt.startsWith("TOTAL BRUTO")) { row.getCell(dayCol + 4).master.value = totalGross; }
-        else if (txt.startsWith("TOTAL LIQUIDO")) { row.getCell(dayCol + 4).master.value = netInvoice; }
-        else if (txt.startsWith("QUILOMETRAGEM MES")) { row.getCell(dayCol + 13).master.value = totalKm; }
-        else if (txt.startsWith("COMBUSTIVEL / LITRO")) { row.getCell(dayCol + 13).master.value = totalLiters; }
-        else if (txt.startsWith("MEDIA HO / KM")) { row.getCell(dayCol + 13).master.value = totalLiters ? Math.round((totalKm / totalLiters) * 100) / 100 : 0; }
-        else if (txt.startsWith("VL CONSUMO COMBUSTIVEL")) { row.getCell(dayCol + 13).master.value = totalFuel; }
-        else if (txt.startsWith("MEDIA LITRO COMBUSTIVEL")) { row.getCell(dayCol + 13).master.value = totalLiters ? Math.round((totalFuel / totalLiters) * 100) / 100 : 0; }
-        else if (txt.startsWith("CUSTO MEDIO DIARIO")) { row.getCell(dayCol + 13).master.value = ap.paidDays ? Math.round((netInvoice / ap.paidDays) * 100) / 100 : 0; }
-        else if (txt.startsWith("OBSERVACOES GERAIS")) { row.getCell(dayCol + 9).master.value = generalObservation || ""; }
-        else if (txt.startsWith("VALOR TOTAL DO CONTRATO")) { row.getCell(dayCol + 13).master.value = contractItem ? Number(contractItem.contractTotalCents || 0) / 100 : "—"; }
-        else if (txt.startsWith("SALDO DO CONTRATO")) { row.getCell(dayCol + 13).master.value = contractBalanceAfterCents != null ? contractBalanceAfterCents / 100 : "—"; }
+        if (txt.startsWith("DIAS TRABALHADOS")) { row.getCell(6).master.value = ap.counts.T; row.getCell(7).master.value = (ap.counts.T * ap.dailyValueCents) / 100; }
+        else if (txt.startsWith("DIAS A DISPOSICAO")) { row.getCell(6).master.value = ap.counts.D; row.getCell(7).master.value = (ap.counts.D * ap.dailyValueCents) / 100; }
+        else if (txt.startsWith("DIAS EM MANUTENCAO")) { row.getCell(6).master.value = ap.counts.M; row.getCell(7).master.value = maintenanceDiscount; }
+        else if (txt.startsWith("TOTAL DE DIAS")) { row.getCell(6).master.value = ap.paidDays; row.getCell(7).master.value = ap.payableCents / 100; }
+        else if (txt.startsWith("REEMBOLSO DE AVARIAS")) { row.getCell(7).master.value = reimbursement; }
+        else if (txt.startsWith("MAO DE OBRA")) { row.getCell(7).master.value = 0; }
+        else if (txt.startsWith("BORRACHARIA")) { row.getCell(7).master.value = tireWashLub; }
+        else if (txt.startsWith("MOBILIZACAO")) { row.getCell(7).master.value = mobilization; }
+        else if (txt.startsWith("OUTROS DESCONTOS")) { row.getCell(7).master.value = osDiscount; }
+        else if (txt.startsWith("PECAS / SERVICOS")) { row.getCell(7).master.value = partsServices; }
+        else if (txt.startsWith("TOTAL DE DESCONTOS")) { row.getCell(7).master.value = totalDiscounts; }
+        else if (txt.startsWith("TOTAL BRUTO")) { row.getCell(7).master.value = totalGross; }
+        else if (txt.startsWith("TOTAL LIQUIDO")) { row.getCell(7).master.value = netInvoice; }
+        else if (txt.startsWith("QUILOMETRAGEM MES")) { row.getCell(16).master.value = totalKm; }
+        else if (txt.startsWith("COMBUSTIVEL / LITRO")) { row.getCell(16).master.value = totalLiters; }
+        else if (txt.startsWith("MEDIA HO / KM")) { row.getCell(16).master.value = totalLiters ? Math.round((totalKm / totalLiters) * 100) / 100 : 0; }
+        else if (txt.startsWith("VL CONSUMO COMBUSTIVEL")) { row.getCell(16).master.value = totalFuel; }
+        else if (txt.startsWith("MEDIA LITRO COMBUSTIVEL")) { row.getCell(16).master.value = totalLiters ? Math.round((totalFuel / totalLiters) * 100) / 100 : 0; }
+        else if (txt.startsWith("CUSTO MEDIO DIARIO")) { row.getCell(16).master.value = ap.paidDays ? Math.round((netInvoice / ap.paidDays) * 100) / 100 : 0; }
+        else if (txt.startsWith("OBSERVACOES GERAIS")) { row.getCell(12).master.value = generalObservation || ""; }
+        else if (txt.startsWith("VALOR TOTAL DO CONTRATO")) { row.getCell(16).master.value = contractItem ? Number(contractItem.contractTotalCents || 0) / 100 : "—"; }
+        else if (txt.startsWith("SALDO DO CONTRATO")) { row.getCell(16).master.value = contractBalanceAfterCents != null ? contractBalanceAfterCents / 100 : "—"; }
       }
     });
 

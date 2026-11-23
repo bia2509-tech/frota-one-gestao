@@ -3490,6 +3490,8 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
   }
   async function exportAppropriationExcel() {
     if (!data) return;
+window.location.href = `/api/appropriation/export?companyId=${encodeURIComponent(companyId)}&equipmentId=${encodeURIComponent(equipmentId)}&referenceMonth=${encodeURIComponent(referenceMonth)}&periodStart=${encodeURIComponent(periodStart)}&periodEnd=${encodeURIComponent(periodEnd)}&movementType=${encodeURIComponent(movementType)}&observation=${encodeURIComponent(generalObservation || "")}`;
+return;
     const ExcelJS: any = await import("exceljs");
     const dates: string[] = [], cursor = new Date(`${periodStart}T00:00:00Z`), last = new Date(`${periodEnd}T00:00:00Z`);
     while (cursor <= last) { dates.push(cursor.toISOString().slice(0, 10)); cursor.setUTCDate(cursor.getUTCDate() + 1); }

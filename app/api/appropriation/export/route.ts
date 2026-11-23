@@ -17,7 +17,7 @@ import { calculateAppropriation } from "@/lib/appropriation";
 import { getMaintenanceGraceDays } from "@/lib/maintenance-rule";
 import { calculateContractMonthlyCents } from "@/lib/contracts-finance";
 import { apiError, requirePermission } from "@/lib/tenant";
-
+import { MODELO_APROPRIACAO_BASE64 } from "@/lib/modelo-apropriacao-template";
 const norm = (val: unknown) =>
   String(val ?? "")
     .normalize("NFD")
@@ -211,19 +211,10 @@ export async function GET(request: Request) {
       ? Math.max(0, contractItem.contractTotalCents - approvedMeasuredCents - lessorInvoiceCents)
       : null;
 
-    const templateUrl = new URL("/templates/modelo-apropriacao.xlsx", url.origin);
-    const assetsBinding = (env as unknown as { ASSETS?: { fetch: (req: Request) => Promise<Response> } }).ASSETS;
-    const templateRes = assetsBinding
-      ? await assetsBinding.fetch(new Request(templateUrl.toString()))
-      : await fetch(templateUrl.toString());
-
-    if (!templateRes.ok) {
-      return Response.json({ error: "Molde modelo-apropriacao.xlsx não encontrado." }, { status: 404 });
-    }
-
-    const ExcelJS = await import("exceljs");
+        const ExcelJS = await import("exceljs");
     const workbook = new ExcelJS.default.Workbook();
-    await workbook.xlsx.load(await templateRes.arrayBuffer());
+    await workbook.xlsx.load(Buffer.from(MODELO_APROPRIACAO_BASE64, "base64"));
+
     const sheet = workbook.worksheets[0];
 
     const setNextValueCell = (row: any, labelCol: number, value: any) => {

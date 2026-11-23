@@ -3834,7 +3834,10 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
         // Continua o padrão já formatado do molde: 13, 14 e 15; a primeira nova linha repete 15.
         sheet.insertRows(16, Array.from({ length: insertCount }, () => []), "n");
         for (let rowIndex = 16; rowIndex < 16 + insertCount; rowIndex++) {
-          const sourceRowIndex = 13 + ((rowIndex - 16 + 2) % 3);
+          // A linha 13 tem borda de início do quadro. Repeti-la a cada três
+          // linhas criava bordas sobrepostas no Excel; use a linha 15 como
+          // padrão de continuação para todas as linhas inseridas.
+          const sourceRowIndex = 15;
           const referenceRow = sheet.getRow(sourceRowIndex);
           const targetRow = sheet.getRow(rowIndex);
           targetRow.height = referenceRow.height ?? 16;
@@ -3866,6 +3869,10 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       const summaryOffset = totalRow + 2 - 18;
       const summaryRow = (baseRow: number) => baseRow + summaryOffset;
       const set = (address: string, value: any, format?: string) => { const cell = sheet.getCell(address); cell.value = value; if (format) cell.numFmt = format; };
+      const joinPresent = (values: unknown[]) => values
+        .map((value) => typeof value === "string" ? value.trim() : value)
+        .filter((value) => value !== null && value !== undefined && value !== "")
+        .join(", ");
       const dailyByDate = new Map((data.dailyEntries || []).map((row: any) => [row.entryDate, row]));
       const fuelsByDate = new Map<string, any>();
       for (const item of data.fuel?.entries || []) {
@@ -3908,10 +3915,10 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
         set(`E${rowNumber}`, entry?.status || "");
         set(`F${rowNumber}`, start ?? "", "#,##0.##"); set(`G${rowNumber}`, end ?? "", "#,##0.##"); set(`H${rowNumber}`, distance || "", "#,##0.##");
         set(`I${rowNumber}`, liters || "", "#,##0.000"); set(`J${rowNumber}`, liters ? fuelCents / 100 / liters : "", '"R$" #,##0.00'); set(`K${rowNumber}`, fuelCents ? fuelCents / 100 : "", '"R$" #,##0.00');
-        set(`L${rowNumber}`, fuel?.invoices?.join(", ") || ""); set(`M${rowNumber}`, fuel?.stations?.join(", ") || "");
+        set(`L${rowNumber}`, joinPresent(fuel?.invoices || [])); set(`M${rowNumber}`, joinPresent(fuel?.stations || []));
         set(`N${rowNumber}`, services.map((item: any) => [item.orderNumber, item.productService, item.supplierName].filter(Boolean).join(" ")).join("; "));
         set(`O${rowNumber}`, serviceCents ? serviceCents / 100 : "", '"R$" #,##0.00');
-        set(`P${rowNumber}`, services.map((item: any) => item.invoiceNumber).filter(Boolean).join(", "));
+        set(`P${rowNumber}`, joinPresent(services.map((item: any) => item.invoiceNumber)));
         set(`Q${rowNumber}`, services.some((item: any) => item.paymentResponsibility === "lessor") ? "LOCADOR" : services.some((item: any) => item.paymentResponsibility === "company_charge_lessor") ? "DESCONTO LOCADOR" : services.length ? "POWERCHINA" : "");
       }
       const spacerRow = totalRow - 1;

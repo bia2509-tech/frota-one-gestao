@@ -3795,7 +3795,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       const sheet = workbook.getWorksheet("MEDIÇÃO") || workbook.worksheets[0];
       if (!sheet) throw new Error("A planilha MEDIÇÃO não foi encontrada no modelo de apropriação.");
       // Clear the #VALUE! placeholder present in the official template.
-      sheet.getCell("C3").value = null;      const logoResponse = await fetch("/assets/sepco1-logo-template.png");
+      for (const address of ["A1", "C3"]) sheet.getCell(address).value = null;      const logoResponse = await fetch("/assets/sepco1-logo-template.png");
       if (logoResponse.ok) {
         const logoFile = await logoResponse.blob();
         const logoUrl = URL.createObjectURL(logoFile);
@@ -3920,7 +3920,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       set("M8", data.equipment.plate || "-"); set("O8", Number(data.totals.lessorInvoiceCents || 0) / 100, '"R$" #,##0.00');
       set("E9", data.contract?.supplierName || data.equipment.lessorName || "-"); set("L9", data.equipment.fleetNumber || "-"); set("O9", data.equipment.costCenter || "-");
       set("E10", data.equipment.operatorName || "-"); set("L10", data.contract?.itemStartsAt?.split("-").reverse().join("/") || "-"); set("O10", data.contract?.itemEndsAt?.split("-").reverse().join("/") || "-");
-      set(`A${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "#,##0.##");
+      set(`C${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "#,##0.##");
       set(`I${totalRow}`, totalLiters, "#,##0.000"); set(`K${totalRow}`, totalFuelCents / 100, '"R$" #,##0.00'); set(`N${totalRow}`, "TOTAL"); set(`O${totalRow}`, totalServiceCents / 100, '"R$" #,##0.00');
       const r = (baseRow: number) => summaryRow(baseRow);
       const summaryLabels = [
@@ -5475,6 +5475,7 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
+
 
 
 

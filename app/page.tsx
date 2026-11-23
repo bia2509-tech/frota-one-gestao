@@ -3841,7 +3841,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
         const distance = start != null && end != null ? Math.round((Number(end) - Number(start) + Number.EPSILON) * 100) / 100 : 0;
         const liters = Number(fuel?.litersMilli || 0) / 1000, fuelCents = Number(fuel?.totalCents || 0);
         const serviceCents = services.reduce((sum: number, item: any) => sum + Number(item.totalCents || 0), 0);
-        totalDistance += distance; totalLiters += liters; totalFuelCents += fuelCents; totalServiceCents += serviceCents;
+        totalDistance = Math.round((totalDistance + distance) * 100) / 100; totalLiters = Math.round((totalLiters + liters) * 1000) / 1000; totalFuelCents += fuelCents; totalServiceCents += serviceCents;
         set(`A${rowNumber}`, { formula: `WEEKDAY(C${rowNumber})` });
         set(`B${rowNumber}`, { formula: `CONCATENATE($M$8,C${rowNumber})` });
         set(`C${rowNumber}`, new Date(`${day}T12:00:00Z`), "dd/mm");
@@ -3874,16 +3874,31 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       set(`A${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "#,##0.##");
       set(`I${totalRow}`, totalLiters, "#,##0.000"); set(`K${totalRow}`, totalFuelCents / 100, '"R$" #,##0.00'); set(`N${totalRow}`, "TOTAL"); set(`O${totalRow}`, totalServiceCents / 100, '"R$" #,##0.00');
       const r = (baseRow: number) => summaryRow(baseRow);
-      const leftSummary = [
-        ["D", 0, ap.counts.T], ["I", 0, ap.counts.T * Number(ap.dailyValueCents || 0) / 100],
-        ["D", 1, ap.counts.D], ["I", 1, ap.counts.D * Number(ap.dailyValueCents || 0) / 100],
-        ["D", 2, ap.counts.M], ["I", 2, -Number(ap.discountCents || 0) / 100],
-        ["D", 3, ap.paidDays], ["I", 3, Number(ap.payableCents || 0) / 100],
+      const summaryLabels = [
+        [19, "DIAS TRABALHADOS 工作天数", ap.counts.T, ap.counts.T * Number(ap.dailyValueCents || 0) / 100],
+        [20, "DIAS À DISPOSIÇÃO 可用天数", ap.counts.D, ap.counts.D * Number(ap.dailyValueCents || 0) / 100],
+        [21, "DIAS EM MANUTENÇÃO 维护天数", ap.counts.M, -Number(ap.discountCents || 0) / 100],
+        [22, "TOTAL DE DIAS", ap.paidDays, Number(ap.payableCents || 0) / 100],
+      ] as [number, string, number, number][];
+      for (const [base, label, daysCount, amount] of summaryLabels) {
+        const rowNum = r(base);
+        try { sheet.unMergeCells(`C${rowNum}:H${rowNum}`); } catch {}
+        try { sheet.unMergeCells(`C${rowNum}:G${rowNum}`); } catch {}
+        try { sheet.mergeCells(`C${rowNum}:G${rowNum}`); } catch {}
+        const labelCell = sheet.getCell(`C${rowNum}`);
+        labelCell.value = label;
+        labelCell.alignment = { horizontal: "left", vertical: "middle" };
+        const countCell = sheet.getCell(`H${rowNum}`);
+        countCell.value = daysCount;
+        countCell.alignment = { horizontal: "center", vertical: "middle" };
+        set(`I${rowNum}`, amount, '"R$" #,##0.00');
+      }
+      const extraSummary = [
         ["I", 4, reimbursementCents / 100], ["I", 5, 0], ["I", 6, tireWashCents / 100],
         ["I", 7, data.movement?.type === "mobilization" ? Number(data.movement.valueCents || 0) / 100 : 0],
         ["I", 8, data.movement?.type === "demobilization" ? Number(data.movement.valueCents || 0) / 100 : 0],
       ] as [string, number, number][];
-      for (const [column, offset, value] of leftSummary) set(`${column}${r(19 + offset)}`, value, column === "I" ? '"R$" #,##0.00' : undefined);
+      for (const [column, offset, value] of extraSummary) set(`${column}${r(19 + offset)}`, value, '"R$" #,##0.00');
       set(`H${r(29)}`, otherDiscountCents / 100, '"R$" #,##0.00');
       set(`H${r(30)}`, Number(financial?.partsServicesCents || 0) / 100, '"R$" #,##0.00');
       set(`H${r(31)}`, totalDiscountCents / 100, '"R$" #,##0.00');

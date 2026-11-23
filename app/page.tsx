@@ -3881,8 +3881,15 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
 
       const weekdays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
       let totalDistance = 0, totalLiters = 0, totalFuelCents = 0, totalServiceCents = 0;
-      for (let rowNumber = 13; rowNumber < 13 + Math.max(3, dates.length); rowNumber++)
-        for (let column = 1; column <= 17; column++) sheet.getRow(rowNumber).getCell(column).value = null;
+      for (let rowNumber = 13; rowNumber < 13 + Math.max(3, dates.length); rowNumber++) {
+        const dayRow = sheet.getRow(rowNumber);
+        dayRow.height = 19;
+        for (let column = 1; column <= 17; column++) {
+          const cell = dayRow.getCell(column);
+          cell.value = null;
+          if (column >= 3) cell.alignment = { ...cell.alignment, vertical: "middle" };
+        }
+      }
       for (let index = 0; index < dates.length; index++) {
         const day = dates[index], rowNumber = 13 + index;
         const entry: any = dailyByDate.get(day), fuel = fuelsByDate.get(day), services = servicesByDate.get(day) || [];
@@ -3891,8 +3898,11 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
         const liters = Number(fuel?.litersMilli || 0) / 1000, fuelCents = Number(fuel?.totalCents || 0);
         const serviceCents = services.reduce((sum: number, item: any) => sum + Number(item.totalCents || 0), 0);
         totalDistance = Math.round((totalDistance + distance) * 100) / 100; totalLiters = Math.round((totalLiters + liters) * 1000) / 1000; totalFuelCents += fuelCents; totalServiceCents += serviceCents;
-        set(`A${rowNumber}`, { formula: `WEEKDAY(C${rowNumber})` });
-        set(`B${rowNumber}`, { formula: `CONCATENATE($M$8,C${rowNumber})` });
+        // A e B são colunas auxiliares fora da área impressa. Não recriar as
+        // fórmulas do modelo: algumas versões do Excel/WPS avaliam essas
+        // referências como #VALOR! após inserir linhas no intervalo diário.
+        set(`A${rowNumber}`, null);
+        set(`B${rowNumber}`, null);
         set(`C${rowNumber}`, new Date(`${day}T12:00:00Z`), "dd/mm");
         set(`D${rowNumber}`, weekdays[new Date(`${day}T12:00:00Z`).getUTCDay()]);
         set(`E${rowNumber}`, entry?.status || "");

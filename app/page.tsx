@@ -3490,61 +3490,108 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
   }
   async function exportAppropriationExcel() {
     if (!data) return;
-window.location.href = `/api/appropriation/export?companyId=${encodeURIComponent(companyId)}&equipmentId=${encodeURIComponent(equipmentId)}&referenceMonth=${encodeURIComponent(referenceMonth)}&periodStart=${encodeURIComponent(periodStart)}&periodEnd=${encodeURIComponent(periodEnd)}&movementType=${encodeURIComponent(movementType)}&observation=${encodeURIComponent(generalObservation || "")}`;
-return;
-    const ExcelJS: any = await import("exceljs");
-    const dates: string[] = [], cursor = new Date(`${periodStart}T00:00:00Z`), last = new Date(`${periodEnd}T00:00:00Z`);
-    while (cursor <= last) { dates.push(cursor.toISOString().slice(0, 10)); cursor.setUTCDate(cursor.getUTCDate() + 1); }
-    const dailyByDate = new Map((data.dailyEntries || []).map((row: any) => [row.entryDate, row]));
-    const fuelsByDate = new Map<string, any>();
-    for (const row of data.fuel?.entries || []) { const current = fuelsByDate.get(row.entryDate) || { litersMilli: 0, totalCents: 0, stations: [] as string[] }; current.litersMilli += Number(row.litersMilli || 0); current.totalCents += Number(row.totalCents || 0); if (row.station && !current.stations.includes(row.station)) current.stations.push(row.station); fuelsByDate.set(row.entryDate, current); }
-    const servicesByDate = new Map<string, any[]>();
-    for (const row of data.maintenanceFinancial?.items || []) { if (!row.closedAt) continue; servicesByDate.set(row.closedAt, [...(servicesByDate.get(row.closedAt) || []), row]); }
-    const workbook = new ExcelJS.Workbook(), sheet = workbook.addWorksheet("MEDIÇÃO", { pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 1, margins: { left: 0.15, right: 0.15, top: 0.2, bottom: 0.2, header: 0, footer: 0 } } });
-    sheet.views = [{ showGridLines: false }];
-    const widths = [7, 7, 7, 10, 10, 10, 10, 10, 11, 18, 30, 12, 10, 13]; widths.forEach((width, index) => { sheet.getColumn(index + 1).width = width; });
-    const mergeValue = (range: string, value: any) => { sheet.mergeCells(range); sheet.getCell(range.split(":")[0]).value = value; };
-    mergeValue("A1:D2", "POWERCHINA\nSEPCO1 CONSTRUÇÕES DO BRASIL LTDA"); mergeValue("E1:N2", "CONTROLE DE APROPRIAÇÃO DE VEÍCULO E/OU EQUIPAMENTO 车辆和/或设备占用控制");
-    mergeValue("A3:B3", "OBRA 工作"); mergeValue("C3:J3", data.equipment.projectName || companies.find((row) => row.id === companyId)?.tradeName || "—"); mergeValue("K3:L3", "SUPERVISOR 导师"); mergeValue("M3:N3", "—");
-    mergeValue("A4:B4", "FRENTE DE TRABALHO 施工区域"); mergeValue("C4:J4", data.equipment.frontName || "—"); mergeValue("K4:L4", "ENCARREGADO 现任"); mergeValue("M4:N4", "—");
-    mergeValue("A5:D5", "DESCRIÇÃO DO EQUIPAMENTO 设备描述"); mergeValue("E5:H5", data.equipment.description); mergeValue("I5:J5", `COMB. TIPO 燃料类型\n${data.equipment.fuelType || "—"}`); mergeValue("K5:L5", `PERÍODO 月份\n${periodStart.split("-").reverse().join("/")} a ${periodEnd.split("-").reverse().join("/")}`); mergeValue("M5:N5", `DATA 打印日期\n${new Date().toLocaleDateString("pt-BR")}`);
-    mergeValue("A6:C6", "VALOR DA LOCAÇÃO 月租"); sheet.getCell("D6").value = ap.monthlyRentCents / 100; mergeValue("E6:F6", "VALOR UNI. 单位价值"); sheet.getCell("G6").value = ap.dailyValueCents / 100; mergeValue("H6:I6", "PLACA 车牌号"); sheet.getCell("J6").value = data.equipment.plate || "—"; mergeValue("K6:L6", "VALOR S. COMPRA 购买价值"); mergeValue("M6:N6", Number(data.totals.lessorInvoiceCents || 0) / 100);
-    mergeValue("A7:C7", "LOCADOR 公司"); mergeValue("D7:F7", data.contract?.supplierName || data.equipment.lessorName || "—"); mergeValue("G7:H7", "Nº FROTA 舰队数量"); mergeValue("I7:J7", data.equipment.fleetNumber); mergeValue("K7:L7", "CANTEIRO 工地"); mergeValue("M7:N7", data.equipment.costCenter || "—");
-    mergeValue("A8:C8", "MOTORISTA 司机/操作工"); mergeValue("D8:F8", data.equipment.operatorName || "—"); mergeValue("G8:H8", "INÍCIO CONTRATO 合同起始日"); mergeValue("I8:J8", data.contract?.itemStartsAt?.split("-").reverse().join("/") || "—"); mergeValue("K8:L8", "RESC. CONTRATO 合同终止"); mergeValue("M8:N8", data.contract?.itemEndsAt?.split("-").reverse().join("/") || "—");
-    mergeValue("A9:A10", "DIA\n天"); mergeValue("B9:B10", "SEM.\n星期"); mergeValue("C9:C10", "TRAB.\n工作"); mergeValue("D9:F9", "QUILOMETRAGEM / HORÍMETRO 公里数"); mergeValue("G9:J9", "ABASTECIMENTO 供应"); mergeValue("K9:N9", "OUTROS SERVIÇOS 其他服务");
-    ["INICIAL\n开始", "FINAL\n结束", "TOTAL\n公里/小时", "LITROS\n升", "UNIT.\n单位价值", "VALOR\n价格", "LOCAL\n地点", "DISCRIMINAÇÃO\n歧视", "VALOR\n价格", "NF\n帐户", "PAGTO\n支付"].forEach((value, index) => { sheet.getCell(10, index + 4).value = value; });
-    const weekdays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-    let rowNumber = 11, totalKm = 0, totalLiters = 0, totalFuel = 0, totalServices = 0;
-    for (const day of dates) {
-      const entry: any = dailyByDate.get(day), fuel = fuelsByDate.get(day), services = servicesByDate.get(day) || [];
-      const start = entry?.kilometerStart ?? entry?.hourmeterStart, end = entry?.kilometerEnd ?? entry?.hourmeterEnd;
-      const distance = start != null && end != null ? Number(end) - Number(start) : 0, liters = Number(fuel?.litersMilli || 0) / 1000, fuelValue = Number(fuel?.totalCents || 0) / 100, serviceValue = services.reduce((sum: number, row: any) => sum + Number(row.totalCents || 0), 0) / 100;
-      totalKm += distance; totalLiters += liters; totalFuel += fuelValue; totalServices += serviceValue;
-      sheet.addRow([day.slice(8,10) + "/" + day.slice(5,7), weekdays[new Date(`${day}T00:00:00Z`).getUTCDay()], entry?.status || "", start ?? "", end ?? "", distance || "", liters || "", liters ? fuelValue / liters : "", fuelValue || "", fuel?.stations?.join(", ") || "", services.map((row: any) => `${row.orderNumber} ${row.productService}`).join("; "), serviceValue || "", services.map((row: any) => row.invoiceNumber).filter(Boolean).join(", "), services.some((row: any) => row.paymentResponsibility === "lessor") ? "LOCADOR" : services.some((row: any) => row.paymentResponsibility === "company_charge_lessor") ? "DESCONTO LOCADOR" : services.length ? "POWERCHINA" : ""]);
-      rowNumber++;
-    }
-    sheet.addRow([`CÓD: ${data.equipment.fleetNumber}`, "", "", "TOTAL Km/Hr", "", totalKm, totalLiters, "", totalFuel, "", "TOTAL", totalServices, "", ""]); mergeValue(`A${rowNumber}:C${rowNumber}`, `CÓD: ${data.equipment.fleetNumber}`); mergeValue(`D${rowNumber}:E${rowNumber}`, "TOTAL Km/Hr");
-    const summaryStart = rowNumber + 1; mergeValue(`A${summaryStart}:N${summaryStart}`, "RESUMO DA MEDIÇÃO 测量摘要");
-    const reimbursement = (Number(financial?.reimbursementCents || 0) + Number(quickSummary?.reimbursementCents || 0)) / 100, osDiscount = Number(financial?.lessorChargeCents || 0) / 100, maintenanceDiscount = Number(ap.discountCents || 0) / 100;
-    const summaryRows = [
-      ["DIAS TRABALHADOS 工作天数", ap.counts.T, ap.counts.T * ap.dailyValueCents / 100, "RESUMO DE CONSUMO 消费总结", "", ""],
-      ["DIAS À DISPOSIÇÃO 可用天数", ap.counts.D, ap.counts.D * ap.dailyValueCents / 100, "QUILOMETRAGEM MÊS 每月里程数", "", totalKm],
-      ["DIAS EM MANUTENÇÃO 维护天数", ap.counts.M, maintenanceDiscount, "COMBUSTÍVEL / LITRO 燃料/升", "", totalLiters],
-      ["TOTAL DE DIAS", ap.paidDays, ap.payableCents / 100, "MÉDIA HO / KM", "", totalLiters ? totalKm / totalLiters : 0],
-      ["REEMBOLSO DE AVARIAS 维修报销", "", reimbursement, "VL CONSUMO COMBUSTÍVEL 燃油费", "", totalFuel],
-      ["MÃO DE OBRA 外包劳务", "", 0, "MÉDIA LITRO COMBUSTÍVEL 平均每升燃料", "", totalLiters ? totalFuel / totalLiters : 0],
-      ["BORRACHARIA / LAVAJATO / LUBRIFICAÇÃO", "", (Number(financial?.tireWashLubricationCents || 0) + Number(quickSummary?.tireCents || 0) + Number(quickSummary?.washCents || 0)) / 100, "CUSTO MÉDIO DIÁRIO 平均每日费用", "", 0],
-      ["MOBILIZAÇÃO / DESMOBILIZAÇÃO 动员/复员费", "", Number(data.movement?.valueCents || 0) / 100, "OBSERVAÇÕES GERAIS 一般观察", generalObservation, ""],
-      ["DESCONTOS 折扣", "", "", "", "", ""], ["OUTROS DESCONTOS 其他折扣", "", osDiscount, "", "", ""], ["PEÇAS / SERVIÇOS 零件/服务", "", Number(financial?.partsServicesCents || 0) / 100, "", "", ""], ["TOTAL DE DESCONTOS 总折扣", "", maintenanceDiscount + osDiscount, "", "", ""], ["TOTAL BRUTO 累计", "", 0, "VALOR TOTAL DO CONTRATO 合同总额", "", data.contract ? Number(data.contract.contractTotalCents || 0) / 100 : "—"], ["TOTAL LÍQUIDO A FATURAR 净值", "", Number(data.totals.lessorInvoiceCents || 0) / 100, "SALDO DO CONTRATO APÓS ESTA APROPRIAÇÃO 合同余额", "", data.contract ? Number(data.totals.contractBalanceAfterCents || 0) / 100 : "—"],
-    ];
-    summaryRows.forEach((values, index) => { const r = summaryStart + 1 + index; mergeValue(`A${r}:E${r}`, values[0]); sheet.getCell(r, 6).value = values[1]; mergeValue(`G${r}:H${r}`, values[2]); mergeValue(`I${r}:K${r}`, values[3]); mergeValue(`L${r}:M${r}`, values[4]); sheet.getCell(r, 14).value = values[5]; });
-    const lastRow = summaryStart + summaryRows.length;
-    for (let r = 1; r <= lastRow; r++) for (let c = 1; c <= 14; c++) { const cell = sheet.getCell(r, c); cell.font = { name: "Arial", size: r <= 10 ? 8 : 7, bold: r <= 10 || c === 1 }; cell.alignment = { vertical: "middle", horizontal: r >= 9 && r <= rowNumber ? "center" : "left", wrapText: true }; cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }; if (typeof cell.value === "number" && [4,7,8,9,12,13,14].includes(c)) cell.numFmt = 'R$ #,##0.00'; }
-    sheet.getCell("E1").font = { name: "Arial", size: 14, bold: true }; sheet.getCell("E1").alignment = { horizontal: "center", vertical: "middle", wrapText: true }; sheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle", wrapText: true }; sheet.getRow(1).height = 28; sheet.getRow(2).height = 16;
-    for (let r = 9; r <= 10; r++) sheet.getRow(r).height = 24; for (let r = 11; r < rowNumber; r++) sheet.getRow(r).height = 17;
-    sheet.getCell(`M6`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFFF00" } }; sheet.getCell(`M6`).font = { name: "Arial", size: 9, bold: true }; sheet.getCell(`G${lastRow}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFFF00" } }; sheet.getCell(`G${lastRow}`).font = { name: "Arial", size: 13, bold: true };
-    sheet.printArea = `A1:N${lastRow}`; sheet.headerFooter.oddFooter = "";
-    const buffer = await workbook.xlsx.writeBuffer(), blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), url = URL.createObjectURL(blob), anchor = document.createElement("a"); anchor.href = url; anchor.download = `Apropriacao_${data.equipment.fleetNumber}_${referenceMonth}.xlsx`; anchor.click(); URL.revokeObjectURL(url);
+    try {
+      const ExcelJS: any = await import("exceljs");
+      const templateResponse = await fetch("/templates/modelo-apropriacao.xlsx");
+      if (!templateResponse.ok) throw new Error("O modelo public/templates/modelo-apropriacao.xlsx não foi encontrado no projeto.");
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(await templateResponse.arrayBuffer());
+      const sheet = workbook.getWorksheet("MEDIÇÃO") || workbook.worksheets[0];
+      if (!sheet) throw new Error("A planilha MEDIÇÃO não foi encontrada no modelo de apropriação.");
+
+      const dates: string[] = [];
+      const cursor = new Date(`${periodStart}T12:00:00Z`), last = new Date(`${periodEnd}T12:00:00Z`);
+      while (cursor <= last) { dates.push(cursor.toISOString().slice(0, 10)); cursor.setUTCDate(cursor.getUTCDate() + 1); }
+      if (!dates.length || dates.length > 31) throw new Error("O período da apropriação deve conter de 1 a 31 dias.");
+      const totalRow = 14 + Math.max(3, dates.length);
+      const insertCount = totalRow - 16;
+      if (insertCount > 0) sheet.insertRows(16, Array.from({ length: insertCount }, () => []), "i");
+      const summaryOffset = totalRow + 2 - 18;
+      const summaryRow = (baseRow: number) => baseRow + summaryOffset;
+      const set = (address: string, value: any, format?: string) => { const cell = sheet.getCell(address); cell.value = value; if (format) cell.numFmt = format; };
+      const dailyByDate = new Map((data.dailyEntries || []).map((row: any) => [row.entryDate, row]));
+      const fuelsByDate = new Map<string, any>();
+      for (const item of data.fuel?.entries || []) {
+        const current = fuelsByDate.get(item.entryDate) || { litersMilli: 0, totalCents: 0, stations: [], invoices: [] };
+        current.litersMilli += Number(item.litersMilli || 0); current.totalCents += Number(item.totalCents || 0);
+        if (item.station && !current.stations.includes(item.station)) current.stations.push(item.station);
+        if (item.invoiceNumber && !current.invoices.includes(item.invoiceNumber)) current.invoices.push(item.invoiceNumber);
+        fuelsByDate.set(item.entryDate, current);
+      }
+      const servicesByDate = new Map<string, any[]>();
+      for (const item of data.maintenanceFinancial?.items || []) if (item.closedAt) servicesByDate.set(item.closedAt, [...(servicesByDate.get(item.closedAt) || []), item]);
+      for (const item of data.quickServices?.entries || []) servicesByDate.set(item.entryDate, [...(servicesByDate.get(item.entryDate) || []), { orderNumber: "", productService: `${item.category || "Serviço"} - ${item.serviceDescription || ""}`.trim(), totalCents: item.totalCents, invoiceNumber: item.invoiceNumber, paymentResponsibility: item.paymentResponsibility, supplierName: item.supplierName }]);
+
+      const weekdays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+      let totalDistance = 0, totalLiters = 0, totalFuelCents = 0, totalServiceCents = 0;
+      for (let rowNumber = 13; rowNumber < 13 + Math.max(3, dates.length); rowNumber++)
+        for (let column = 1; column <= 17; column++) sheet.getRow(rowNumber).getCell(column).value = null;
+      for (let index = 0; index < dates.length; index++) {
+        const day = dates[index], rowNumber = 13 + index;
+        const entry: any = dailyByDate.get(day), fuel = fuelsByDate.get(day), services = servicesByDate.get(day) || [];
+        const start = entry?.kilometerStart ?? entry?.hourmeterStart ?? null, end = entry?.kilometerEnd ?? entry?.hourmeterEnd ?? null;
+        const distance = start != null && end != null ? Math.round((Number(end) - Number(start) + Number.EPSILON) * 100) / 100 : 0;
+        const liters = Number(fuel?.litersMilli || 0) / 1000, fuelCents = Number(fuel?.totalCents || 0);
+        const serviceCents = services.reduce((sum: number, item: any) => sum + Number(item.totalCents || 0), 0);
+        totalDistance += distance; totalLiters += liters; totalFuelCents += fuelCents; totalServiceCents += serviceCents;
+        set(`A${rowNumber}`, { formula: `WEEKDAY(C${rowNumber})` });
+        set(`B${rowNumber}`, { formula: `CONCATENATE($M$8,C${rowNumber})` });
+        set(`C${rowNumber}`, new Date(`${day}T12:00:00Z`), "dd/mm");
+        set(`D${rowNumber}`, weekdays[new Date(`${day}T12:00:00Z`).getUTCDay()]);
+        set(`E${rowNumber}`, entry?.status || "");
+        set(`F${rowNumber}`, start ?? "", "#,##0.##"); set(`G${rowNumber}`, end ?? "", "#,##0.##"); set(`H${rowNumber}`, distance || "", "#,##0.##");
+        set(`I${rowNumber}`, liters || "", "#,##0.000"); set(`J${rowNumber}`, liters ? fuelCents / 100 / liters : "", 'R$ #,##0.00'); set(`K${rowNumber}`, fuelCents ? fuelCents / 100 : "", 'R$ #,##0.00');
+        set(`L${rowNumber}`, fuel?.invoices?.join(", ") || ""); set(`M${rowNumber}`, fuel?.stations?.join(", ") || "");
+        set(`N${rowNumber}`, services.map((item: any) => [item.orderNumber, item.productService, item.supplierName].filter(Boolean).join(" ")).join("; "));
+        set(`O${rowNumber}`, serviceCents ? serviceCents / 100 : "", 'R$ #,##0.00');
+        set(`P${rowNumber}`, services.map((item: any) => item.invoiceNumber).filter(Boolean).join(", "));
+        set(`Q${rowNumber}`, services.some((item: any) => item.paymentResponsibility === "lessor") ? "LOCADOR" : services.some((item: any) => item.paymentResponsibility === "company_charge_lessor") ? "DESCONTO LOCADOR" : services.length ? "POWERCHINA" : "");
+      }
+      const spacerRow = totalRow - 1;
+      for (let col = 1; col <= 17; col++) { const cell = sheet.getRow(spacerRow).getCell(col); cell.value = null; cell.border = {}; cell.fill = {}; }
+      const allFuelLiters = totalLiters;
+      const totalGrossCents = Number(ap.payableCents || 0) + Number(data.movement?.valueCents || 0) + Number(financial?.reimbursementCents || 0) + Number(quickSummary?.reimbursementCents || 0) + Number(data.fuel?.totalCents || 0) + Number(financial?.tireWashLubricationCents || 0) + Number(quickSummary?.tireCents || 0) + Number(quickSummary?.washCents || 0) + Number(financial?.partsServicesCents || 0) + Number(quickSummary?.otherCents || 0);
+      const reimbursementCents = Number(financial?.reimbursementCents || 0) + Number(quickSummary?.reimbursementCents || 0);
+      const tireWashCents = Number(financial?.tireWashLubricationCents || 0) + Number(quickSummary?.tireCents || 0) + Number(quickSummary?.washCents || 0);
+      const otherDiscountCents = Number(financial?.lessorChargeCents || 0);
+      const totalDiscountCents = Number(ap.discountCents || 0) + otherDiscountCents;
+      const company = companies.find((row) => row.id === companyId);
+      set("E5", data.equipment.projectName || company?.tradeName || "-"); set("G6", data.equipment.frontName || "-");
+      set("G7", data.equipment.description || "-"); set("J7", data.equipment.fuelType || "-");
+      set("M7", `${periodStart.split("-").reverse().join("/")} a ${periodEnd.split("-").reverse().join("/")}`); set("O7", new Date().toLocaleDateString("pt-BR"));
+      set("G8", Number(ap.monthlyRentCents || 0) / 100, 'R$ #,##0.00'); set("J8", Number(ap.dailyValueCents || 0) / 100, 'R$ #,##0.00');
+      set("M8", data.equipment.plate || "-"); set("O8", Number(data.totals.lessorInvoiceCents || 0) / 100, 'R$ #,##0.00');
+      set("E9", data.contract?.supplierName || data.equipment.lessorName || "-"); set("L9", data.equipment.fleetNumber || "-"); set("O9", data.equipment.costCenter || "-");
+      set("E10", data.equipment.operatorName || "-"); set("L10", data.contract?.itemStartsAt?.split("-").reverse().join("/") || "-"); set("O10", data.contract?.itemEndsAt?.split("-").reverse().join("/") || "-");
+      set(`A${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "#,##0.##");
+      set(`I${totalRow}`, totalLiters, "#,##0.000"); set(`K${totalRow}`, totalFuelCents / 100, 'R$ #,##0.00'); set(`N${totalRow}`, "TOTAL"); set(`O${totalRow}`, totalServiceCents / 100, 'R$ #,##0.00');
+      const r = (baseRow: number) => summaryRow(baseRow);
+      const leftSummary = [
+        ["D", 0, ap.counts.T], ["I", 0, ap.counts.T * Number(ap.dailyValueCents || 0) / 100],
+        ["D", 1, ap.counts.D], ["I", 1, ap.counts.D * Number(ap.dailyValueCents || 0) / 100],
+        ["D", 2, ap.counts.M], ["I", 2, -Number(ap.discountCents || 0) / 100],
+        ["D", 3, ap.paidDays], ["I", 3, Number(ap.payableCents || 0) / 100],
+        ["I", 4, reimbursementCents / 100], ["I", 5, 0], ["I", 6, tireWashCents / 100],
+        ["I", 7, data.movement?.type === "mobilization" ? Number(data.movement.valueCents || 0) / 100 : 0],
+        ["I", 8, data.movement?.type === "demobilization" ? Number(data.movement.valueCents || 0) / 100 : 0],
+      ] as [string, number, number][];
+      for (const [column, offset, value] of leftSummary) set(`${column}${r(19 + offset)}`, value, column === "I" ? 'R$ #,##0.00' : undefined);
+      set(`H${r(29)}`, otherDiscountCents / 100, 'R$ #,##0.00');
+      set(`H${r(30)}`, Number(financial?.partsServicesCents || 0) / 100, 'R$ #,##0.00');
+      set(`H${r(31)}`, totalDiscountCents / 100, 'R$ #,##0.00');
+      set(`H${r(32)}`, totalGrossCents / 100, 'R$ #,##0.00');
+      set(`H${r(33)}`, Number(data.totals.lessorInvoiceCents || 0) / 100, 'R$ #,##0.00');
+      set(`N${r(20)}`, totalDistance, "#,##0.##"); set(`N${r(21)}`, allFuelLiters, "#,##0.000");
+      set(`N${r(22)}`, allFuelLiters ? totalDistance / allFuelLiters : 0, "#,##0.##"); set(`N${r(23)}`, Number(data.fuel?.totalCents || 0) / 100, 'R$ #,##0.00');
+      set(`N${r(24)}`, allFuelLiters ? Number(data.fuel?.totalCents || 0) / 100 / allFuelLiters : 0, 'R$ #,##0.00'); set(`N${r(25)}`, totalGrossCents / 100 / 30, 'R$ #,##0.00');
+      set(`K${r(29)}`, generalObservation || "");
+      sheet.pageSetup = { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 1, margins: { left: 0.15, right: 0.15, top: 0.2, bottom: 0.2, header: 0, footer: 0 } };
+      sheet.printArea = `A1:Q${r(33)}`;
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob), anchor = document.createElement("a"); anchor.href = url; anchor.download = `Apropriacao_${data.equipment.fleetNumber}_${referenceMonth}.xlsx`; anchor.click(); URL.revokeObjectURL(url);
+      setMessage("Apropriação exportada usando o modelo oficial de public/templates.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível gerar o Excel com o modelo de apropriação."); }
   }
   return <div className="space-y-5">
     <section className="panel p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7"><FuelField label="Empresa"><select className="input mt-1" value={companyId} onChange={(e) => { setCompanyId(e.target.value); loadEquipment(e.target.value); loadMaintenanceRule(e.target.value); }}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select></FuelField>

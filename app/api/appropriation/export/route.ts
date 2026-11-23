@@ -232,8 +232,9 @@ export async function GET(request: Request) {
     const periodLabel = `${periodStart.split("-").reverse().join("/")} a ${periodEnd.split("-").reverse().join("/")}`;
     const printDate = new Date().toLocaleDateString("pt-BR");
 
-       let headerRow = 0;
-    let dayCol = 1;
+          sheet.getCell("A1").value = null;
+
+    let headerRow = 0;
     let totalKmRow = 0;
 
     sheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
@@ -259,12 +260,8 @@ export async function GET(request: Request) {
         else if (txt.startsWith("COMB. TIPO") || txt.startsWith("COMB.TIPO")) cell.value = `COMB. TIPO 燃料类型\n${asset.fuelType || "—"}`;
         else if (txt.startsWith("PERIODO")) cell.value = `PERÍODO 月份\n${periodLabel}`;
         else if (txt.startsWith("DATA")) cell.value = `DATA 打印日期\n${printDate}`;
-        else if (txt === "DIA" || txt.startsWith("DIA\n") || txt.startsWith("DIA ")) {
-          headerRow = rowNumber;
-          dayCol = c;
-        } else if (txt.includes("TOTAL KM") || txt.includes("TOTAL HR") || txt.startsWith("COD:")) {
-          totalKmRow = rowNumber;
-        }
+        else if (txt === "DIA" || txt.startsWith("DIA\n") || txt.startsWith("DIA ")) headerRow = rowNumber;
+        else if (txt.includes("TOTAL KM") || txt.includes("TOTAL HR")) totalKmRow = rowNumber;
       }
     });
 
@@ -291,12 +288,15 @@ export async function GET(request: Request) {
       servicesByDate.set(row.closedAt, [...(servicesByDate.get(row.closedAt) || []), row]);
     }
 
-    let firstDayRow = headerRow > 0 ? headerRow + 2 : 12;
-    while (firstDayRow < (totalKmRow || 50)) {
-      const probe = norm(sheet.getRow(firstDayRow).getCell(dayCol + 3).value);
-      if (!probe.includes("INICIAL") && !probe.includes("FINAL")) break;
-      firstDayRow++;
-    }
+    const subHeaderRow = headerRow > 0 ? headerRow + 1 : 10;
+    const hasFuelNf = norm(sheet.getRow(subHeaderRow).getCell(10).value).includes("NF");
+    const localCol = hasFuelNf ? 11 : 10;
+    const discCol = hasFuelNf ? 12 : 11;
+    const srvValCol = hasFuelNf ? 13 : 12;
+    const srvNfCol = hasFuelNf ? 14 : 13;
+    const pagtoCol = hasFuelNf ? 15 : 14;
+
+    const firstDayRow = headerRow > 0 ? headerRow + 2 : 11;
     const maxDaySlots = totalKmRow > firstDayRow ? totalKmRow - firstDayRow : 31;
     const weekdays = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
@@ -309,9 +309,11 @@ export async function GET(request: Request) {
       const r = sheet.getRow(firstDayRow + i);
       const day = dates[i];
       if (!day) {
-        for (let c = dayCol; c <= dayCol + 13; c++) r.getCell(c).master.value = null;
+        r.hidden = true;
         continue;
       }
+      r.hidden = false;
+      if (!r.height || r.height < 14) r.height = 16;
 
       const entry = dailyByDate.get(day);
       const fuel = fuelsByDate.get(day);
@@ -329,20 +331,21 @@ export async function GET(request: Request) {
       totalFuel = Math.round((totalFuel + fuelValue) * 100) / 100;
       totalServices = Math.round((totalServices + serviceValue) * 100) / 100;
 
-      r.getCell(dayCol).master.value = `${day.slice(8, 10)}/${day.slice(5, 7)}`;
-      r.getCell(dayCol + 1).master.value = weekdays[new Date(`${day}T00:00:00Z`).getUTCDay()];
-      r.getCell(dayCol + 2).master.value = entry?.status || "";
-      r.getCell(dayCol + 3).master.value = start != null ? Number(start) : null;
-      r.getCell(dayCol + 4).master.value = end != null ? Number(end) : null;
-      r.getCell(dayCol + 5).master.value = distance || null;
-      r.getCell(dayCol + 6).master.value = liters || null;
-      r.getCell(dayCol + 7).master.value = liters ? Math.round((fuelValue / liters) * 1000) / 1000 : null;
-      r.getCell(dayCol + 8).master.value = fuelValue || null;
-      r.getCell(dayCol + 9).master.value = fuel?.stations?.join(", ") || "";
-      r.getCell(dayCol + 10).master.value = services.map((item) => `${item.orderNumber} ${item.productService}`).join("; ");
-      r.getCell(dayCol + 11).master.value = serviceValue || null;
-      r.getCell(dayCol + 12).master.value = services.map((item) => item.invoiceNumber).filter(Boolean).join(", ");
-      r.getCell(dayCol + 13).master.value = services.some((item) => item.paymentResponsibility === "lessor")
+      r.getCell(1).master.value = `${day.slice(8, 10)}/${day.slice(5, 7)}`;
+      r.getCell(2).master.value = weekdays[new Date(`${day}T00:00:00Z`).getUTCDay()];
+      r.getCell(3).master.value = entry?.status || "";
+      r.getCell(4).master.value = start != null ? Number(start) : null;
+      r.getCell(5).master.value = end != null ? Number(end) : null;
+      r.getCell(6).master.value = distance || null;
+      r.getCell(7).master.value = liters || null;
+      r.getCell(8).master.value = liters ? Math.round((fuelValue / liters) * 1000) / 1000 : null;
+      r.getCell(9).master.value = fuelValue || null;
+      if (hasFuelNf) r.getCell(10).master.value = "";
+      r.getCell(localCol).master.value = fuel?.stations?.join(", ") || "";
+      r.getCell(discCol).master.value = services.map((item) => `${item.orderNumber} ${item.productService}`).join("; ");
+      r.getCell(srvValCol).master.value = serviceValue || null;
+      r.getCell(srvNfCol).master.value = services.map((item) => item.invoiceNumber).filter(Boolean).join(", ");
+      r.getCell(pagtoCol).master.value = services.some((item) => item.paymentResponsibility === "lessor")
         ? "LOCADOR"
         : services.some((item) => item.paymentResponsibility === "company_charge_lessor")
           ? "DESCONTO LOCADOR"
@@ -353,11 +356,12 @@ export async function GET(request: Request) {
 
     if (totalKmRow > 0) {
       const tr = sheet.getRow(totalKmRow);
-      tr.getCell(dayCol).master.value = `CÓD: ${asset.fleetNumber}`;
-      tr.getCell(dayCol + 5).master.value = totalKm;
-      tr.getCell(dayCol + 6).master.value = totalLiters;
-      tr.getCell(dayCol + 8).master.value = totalFuel;
-      tr.getCell(dayCol + 11).master.value = totalServices;
+      tr.hidden = false;
+      tr.getCell(1).master.value = `CÓD: ${asset.fleetNumber}`;
+      tr.getCell(6).master.value = totalKm;
+      tr.getCell(7).master.value = totalLiters;
+      tr.getCell(9).master.value = totalFuel;
+      tr.getCell(srvValCol).master.value = totalServices;
     }
 
     const reimbursement = (financial.reimbursementCents + quick.reimbursementCents) / 100;

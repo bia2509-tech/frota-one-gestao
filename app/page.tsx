@@ -768,22 +768,174 @@ const zh: Record<string, string> = {
   "Alternar ordem": "切换排序方向",
 };
 
+Object.assign(zh, {
+  "Contratos ativos": "有效合同",
+  "Próximos do vencimento": "即将到期",
+  "Contratos vencidos": "已到期合同",
+  "Valor contratado": "合同金额",
+  "Valor realizado": "已执行金额",
+  "Saldo contratual": "合同余额",
+  "Vigências atuais": "当前有效期",
+  "Até 30 dias": "30天内",
+  "Revisar situação": "请检查状态",
+  "Contratos": "合同",
+  "Aditivos": "补充协议",
+  "Vigências": "有效期",
+  "Financeiro": "财务",
+  "Documentos": "文件",
+  "Histórico": "历史记录",
+  "Buscar número, locador ou objeto...": "搜索合同编号、出租方或标的...",
+  "Novo contrato": "新建合同",
+  "Novo aditivo": "新建补充协议",
+  "Contrato inicial": "主合同",
+  "Aditivo": "补充协议",
+  "Locador / objeto": "出租方 / 标的",
+  "Obra": "项目",
+  "Equipamentos": "设备",
+  "Vigência geral": "总体有效期",
+  "Saldo": "余额",
+  "Status": "状态",
+  "Ações": "操作",
+  "Abrir / Detalhes": "打开 / 详情",
+  "Imprimir Anexo I": "打印附件一",
+  "Baixar Excel": "下载 Excel",
+  "Editar contrato": "编辑合同",
+  "Nº do contrato": "合同编号",
+  "Nº do aditivo": "补充协议编号",
+  "Contrato principal": "主合同",
+  "Modalidade": "合同类型",
+  "Locadora / fornecedora": "出租方 / 供应商",
+  "Locação sem mão de obra": "无人工租赁",
+  "Locação com mão de obra": "含人工租赁",
+  "Obra / projeto": "项目 / 工程",
+  "Objeto": "合同标的",
+  "Início da vigência": "生效日期",
+  "Fim da vigência": "到期日期",
+  "Equipamento cadastrado na Frota": "车队中已登记的设备",
+  "Valor mensal do equipamento": "设备月租金额",
+  "Valor mensal do operador": "操作员月费",
+  "Mobilização (uma vez)": "进场费（一次性）",
+  "Desmobilização (uma vez)": "退场费（一次性）",
+  "Código": "编号",
+  "Data / Hora": "日期 / 时间",
+  "ID / Placa": "车队编号 / 车牌",
+  "Origem": "来源",
+  "Litros": "升数",
+  "Valor": "金额",
+  "Req. / Cupom": "申请单 / 小票",
+  "Situação": "状态",
+  "Comprovante": "凭证",
+  "Novo abastecimento": "新建加油记录",
+  "Código automático": "自动编号",
+  "Requisição / Cupom": "申请单 / 加油小票",
+  "Local de manutenção": "维修地点",
+  "Data": "日期",
+  "Hora": "时间",
+  "Canteiro": "工地",
+  "Posto / Fornecedor": "加油站 / 供应商",
+  "Nota fiscal existente (opcional)": "已有发票（可选）",
+  "Sem vínculo": "不关联",
+  "Combustível": "燃料",
+  "Valor por litro": "每升单价",
+  "Valor total:": "总金额：",
+  "Anexar comprovante": "附加凭证",
+  "Salvar abastecimento": "保存加油记录",
+  "Histórico de abastecimentos": "加油记录历史",
+  "Evolução mensal · compras": "月度采购趋势",
+  "Total Comboio (saldo atual)": "油罐车总量（当前余额）",
+  "Saldo em alerta": "低油量警报",
+  "Detalhamento dos comboios": "油罐车详情",
+  "Comboios": "油罐车",
+  "Saldo calculado por movimentação": "按库存变动计算余额",
+  "Configurar": "设置",
+  "Configurar capacidade": "设置容量",
+  "Capacidade": "容量",
+  "Saldo atual": "当前余额",
+  "Saldo percentual": "余额百分比",
+  "Crítico": "危急",
+  "Atenção": "注意",
+  "Normal": "正常",
+  "Movimentação": "库存变动",
+  "Distribuição": "发放",
+  "Entrada de estoque": "库存入库",
+  "Equipamento destino": "目标设备",
+  "Nota de crédito disponível": "可用贷项通知单",
+  "Valor original": "原始金额",
+  "Valor já utilizado": "已使用金额",
+  "Saldo disponível": "可用余额",
+  "Ver detalhes": "查看详情",
+  "Deseja utilizar a Nota de Crédito neste abastecimento?": "是否在本次加油中使用贷项通知单？",
+  "Sim": "是",
+  "Não": "否",
+  "Prévia do próximo número; o código confirmado aparece no histórico.": "下一个编号预览；确认后的编号会显示在历史记录中。",
+  "Horímetro inicial": "初始小时表读数",
+  "Horímetro final": "结束小时表读数",
+  "Total horímetro": "小时表总计",
+  "KM inicial": "起始里程",
+  "KM final": "结束里程",
+  "Total KM": "总公里数",
+  "Total diário": "每日总计",
+  "Informe o ID ou a placa; o outro campo será preenchido automaticamente.": "输入车队编号或车牌；另一个字段将自动填写。",
+  "Digite o ID ou a placa": "输入车队编号或车牌",
+  "Gestão de contratos, vigência, aditivos, valores e documentos.": "合同管理、有效期、补充协议、金额和文件。",
+  "Volume total (LT)": "燃油总量（升）",
+  "Valor total (R$)": "总金额（雷亚尔）",
+  "Total Comboio": "油罐车总量",
+  "Gastos por canteiro": "按工地统计支出",
+  "Equipamentos com maior gasto": "支出最高的设备",
+  "Equipamentos com maior consumo": "油耗最高的设备",
+  "Evolução mensal de valores e litros": "金额和升数月度趋势",
+  "Registros importados": "已导入记录",
+  "Registros rejeitados": "已拒绝记录",
+  "Possíveis duplicidades": "可能重复记录",
+  "Nenhum comboio configurado.": "尚未配置油罐车。",
+  "Nenhum comboio abaixo de 40%.": "没有低于40%的油罐车。",
+  "Confirmado": "已确认",
+  "Sem dados no período.": "所选期间无数据。",
+  "Baixar": "下载",
+  "Editar": "编辑",
+  "Salvar": "保存",
+  "Cancelar": "取消",
+  "Pesquisar": "搜索",
+  "Consultar": "查询",
+  "Selecione": "请选择",
+  "Painel de abastecimento": "加油管理面板",
+  "Compras, estoque individual dos comboios e histórico rastreável.": "采购、油罐车独立库存和可追溯历史。",
+  "Período inicial": "开始日期",
+  "Período final": "结束日期",
+  "Fornecedor": "供应商",
+  "Comboio": "油罐车",
+  "Equipamento": "设备",
+  "VOLUME TOTAL (LT)": "燃油总量（升）",
+  "VALOR TOTAL (R$)": "总金额（雷亚尔）",
+  "TOTAL COMBOIO (SALDO ATUAL)": "油罐车总量（当前余额）",
+  "SALDO EM ALERTA": "低油量警报",
+  "Entradas de combustível no período": "所选期间的燃油入库量",
+  "Compras sem somar distribuições novamente": "采购金额不重复计算发放",
+  "Clique para detalhar os comboios": "点击查看油罐车详情",
+  "Comboios abaixo de 40% da capacidade": "低于容量40%的油罐车",
+  "Configurar comboio": "设置油罐车",
+  "A identificação é criada pelo sistema e preservada no cadastro.": "编号由系统生成并保存在档案中。",
+  "Salvar comboio": "保存油罐车",
+  "Importar abastecimentos": "导入加油记录",
+  "Todas as linhas são validadas antes da gravação; números externos de comboio ficam apenas para rastreabilidade.": "保存前验证所有行；外部油罐车编号仅用于追溯。",
+  "Escolher XLSX/CSV": "选择 XLSX/CSV",
+  "Importados:": "已导入：",
+  "Rejeitados:": "已拒绝：",
+  "Possíveis duplicidades:": "可能重复：",
+  "Créditos disponíveis": "可用贷项通知单",
+  "Utilizado:": "已使用：",
+  "Saldo disponível:": "可用余额：",
+  "Horímetro": "小时表",
+  "KM": "公里数"
+});;
+
 const originalText = new WeakMap<Text, string>();
 const originalAttributes = new WeakMap<Element, Record<string, string>>();
 
 function dynamicChinese(value: string) {
   return value
     .replace(/Contrato vence em (\d+) dias/gi, "合同将在 $1 天后到期")
-    .replace(/Contratos vencidos/gi, "已到期合同")
-    .replace(/Próximos do vencimento/gi, "即将到期")
-    .replace(/Vigências atuais/gi, "当前有效期")
-    .replace(/Valor contratado/gi, "合同金额")
-    .replace(/Valor realizado/gi, "已执行金额")
-    .replace(/Saldo contratual/gi, "合同余额")
-    .replace(/Saldo por vigência/gi, "按有效期余额")
-    .replace(/Saldo global/gi, "总余额")
-    .replace(/Total horímetro/gi, "小时表总计")
-    .replace(/Total KM/gi, "里程总计")
     .replace(/Tacógrafo vence em (\d+) dias/gi, "行车记录仪将在 $1 天后到期")
     .replace(/(\d+)\s+registro\(s\)/gi, "$1 条记录")
     .replace(/(\d+)\s+resultado\(s\)/gi, "$1 个结果")
@@ -838,7 +990,7 @@ function applyLanguage(root: HTMLElement, language: Language) {
     );
     const stored = originalText.get(node);
     const lastRendered = stored ? translatedValue(stored, language) : "";
-    if (!stored || (detected && detected !== stored) || (current !== lastRendered && language === "pt"))
+    if (!stored || (detected && detected !== stored) || (stored && current !== lastRendered))
       originalText.set(node, detected || current);
     const pt = originalText.get(node)!;
     const translated = translatedValue(pt, language);
@@ -981,7 +1133,7 @@ export default function Home() {
     applyLanguage(root, language);
     localStorage.setItem("frota-language", language);
     const observer = new MutationObserver(() => applyLanguage(root, language));
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(root, { childList: true, characterData: true, subtree: true });
     return () => observer.disconnect();
   }, [language, screen, modal]);
   const selectedCompanyId = companyOptions.find((row) => row.tradeName === company)?.id || companyOptions[0]?.id || "";
@@ -2368,8 +2520,8 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   async function load(id = companyId) { if (!id) return; const [response, optionsResponse] = await Promise.all([fetch(`/api/contracts?companyId=${encodeURIComponent(id)}`), fetch(`/api/contracts?companyId=${encodeURIComponent(id)}&options=1`)]), data = await response.json(), options = await optionsResponse.json(); if (response.ok) setRows(data.contracts || []); else setMessage(data.error || "Não foi possível carregar os contratos."); if (optionsResponse.ok) { setEquipmentOptions(options.equipment || []); setSupplierOptions((options.suppliers || []).filter((row: any) => row.id && row.name && Object.prototype.hasOwnProperty.call(row, "tradeName"))); } }
   async function createContract(event: React.FormEvent) {
     event.preventDefault();
-    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;   const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
-    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");   if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
+    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;\n    const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
+    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");\n    if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
     if (!createDraft.equipmentId) return setMessage("Selecione o equipamento já cadastrado na Frota.");
     setSaving(true); setMessage("");
     const normalizedType = /com.*(mão|operador)/i.test(String(parent?.contractType || createDraft.contractType)) ? "Locação com mão de obra" : "Locação sem mão de obra";
@@ -3079,6 +3231,8 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
   const [historyFrom, setHistoryFrom] = useState(today.slice(0, 8) + "01");
   const [historyTo, setHistoryTo] = useState(today);
   const [historyDetailDate, setHistoryDetailDate] = useState("");
+  const [historyEquipmentFilter, setHistoryEquipmentFilter] = useState("");
+  const [historyWorksiteFilter, setHistoryWorksiteFilter] = useState("");
   const [equipmentOptions, setEquipmentOptions] = useState<{ id: string; fleetNumber: string; plate: string | null; description: string; currentKilometer?: number | null; currentHourmeter?: number | null }[]>([]);
   const [operationalOrders, setOperationalOrders] = useState<any[]>([]);
   const [editingDailyId, setEditingDailyId] = useState("");
@@ -3087,17 +3241,30 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [importErrors, setImportErrors] = useState<{ row: number; error: string }[]>([]);
   const day31 = form.entryDate.endsWith("-31");
-  const totalHourmeter = form.hourmeterStart !== "" && form.hourmeterEnd !== "" ? Number(form.hourmeterEnd) - Number(form.hourmeterStart) : 0;
-  const totalKilometer = form.kilometerStart !== "" && form.kilometerEnd !== "" ? Number(form.kilometerEnd) - Number(form.kilometerStart) : 0;
-  const historyDays = Object.entries(history.reduce((groups: Record<string, any[]>, row) => { (groups[row.entryDate] ||= []).push(row); return groups; }, {})).sort(([a], [b]) => b.localeCompare(a)) as [string, any[]][];
+  const roundReading = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+  const readingTotal = (start: number | string | null | undefined, end: number | string | null | undefined) => start == null || end == null || start === "" || end === "" ? null : roundReading(Number(end) - Number(start));
+  const formatReading = (value: number | null) => value == null ? "-" : value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  const totalHourmeter = readingTotal(form.hourmeterStart, form.hourmeterEnd) ?? 0;
+  const totalKilometer = readingTotal(form.kilometerStart, form.kilometerEnd) ?? 0;
+  const historyFiltered = history.filter((row) =>
+    (!historyEquipmentFilter || row.equipmentId === historyEquipmentFilter) &&
+    (!historyWorksiteFilter || (row.projectName || "") === historyWorksiteFilter)
+  );
+  const historyFilteredDays = Object.entries(historyFiltered.reduce((groups: Record<string, any[]>, row) => { (groups[row.entryDate] ||= []).push(row); return groups; }, {})).sort(([a], [b]) => b.localeCompare(a)) as [string, any[]][];
+  const historyWorksites = [...new Set(history.map((row) => String(row.projectName || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   async function identifyEquipment(field: "fleetNumber" | "plate") {
     const value = form[field].trim();
     if (!value || !companyId || !navigator.onLine) return;
-    const response = await fetch(`/api/equipment?companyId=${encodeURIComponent(companyId)}&${field}=${encodeURIComponent(value)}`);
-    const data = await response.json();
-    if (!response.ok) return setMessage(data.error || "Equipamento não encontrado.");
-    await applyLastReading(data.equipment);
+    const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    const localMatch = equipmentOptions.find((item) => item.fleetNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === normalized || (item.plate || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === normalized);
+    if (localMatch) return applyLastReading(localMatch);
+    for (const lookupField of [field, field === "fleetNumber" ? "plate" : "fleetNumber"] as const) {
+      const response = await fetch(`/api/equipment?companyId=${encodeURIComponent(companyId)}&${lookupField}=${encodeURIComponent(value)}`);
+      const data = await response.json();
+      if (response.ok && data.equipment) return applyLastReading(data.equipment);
+    }
+    setMessage("Equipamento não encontrado. Informe o ID ou a placa cadastrada.");
   }
   async function applyLastReading(asset: any) {
     let last: any = null;
@@ -3107,7 +3274,13 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
     try { const response=await fetch(`/api/daily-parts?companyId=${encodeURIComponent(companyId)}&equipmentId=${encodeURIComponent(asset.id)}&to=${encodeURIComponent(previousDate)}`), data=await response.json(); if(response.ok) last=(data.entries||[])[0]||null; } catch {}
     const lastHourmeter = last?.hourmeterEnd ?? last?.hourmeterStart ?? asset.currentHourmeter ?? "";
     const lastKilometer = last?.kilometerEnd ?? last?.kilometerStart ?? asset.currentKilometer ?? "";
-    setForm((current) => current.fleetNumber !== asset.fleetNumber ? current : ({ ...current, plate: asset.plate || "", hourmeterStart: current.hourmeterStart === "" && lastHourmeter !== null ? String(lastHourmeter) : current.hourmeterStart, kilometerStart: current.kilometerStart === "" && lastKilometer !== null ? String(lastKilometer) : current.kilometerStart }));
+    setForm((current) => {
+      const normalize = (value: string) => value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const entered = [current.fleetNumber, current.plate].map(normalize).filter(Boolean);
+      const registered = [asset.fleetNumber, asset.plate || ""].map(normalize).filter(Boolean);
+      if (!entered.some((value) => registered.includes(value))) return current;
+      return { ...current, fleetNumber: asset.fleetNumber, plate: asset.plate || "", hourmeterStart: current.hourmeterStart === "" && lastHourmeter !== null ? String(lastHourmeter) : current.hourmeterStart, kilometerStart: current.kilometerStart === "" && lastKilometer !== null ? String(lastKilometer) : current.kilometerStart };
+    });
     await loadOperationalOrders(asset, form.entryDate);
     setMessage(`${asset.fleetNumber} • ${asset.description} selecionado. Última leitura carregada automaticamente.`);
   }
@@ -3154,8 +3327,8 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
   }
   function selectRegisteredEquipment(field: "fleetNumber" | "plate", value: string) {
     const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-    const found = equipmentOptions.find((item) => field === "fleetNumber" ? item.fleetNumber === value : (item.plate || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === normalized);
-    setForm((current) => ({ ...current, [field]: field === "plate" ? value.toUpperCase() : value, ...(found ? { fleetNumber: found.fleetNumber, plate: found.plate || "", hourmeterStart: "", hourmeterEnd: "", kilometerStart: "", kilometerEnd: "" } : {}) }));
+    const found = equipmentOptions.find((item) => item.fleetNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === normalized || (item.plate || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() === normalized);
+    setForm((current) => ({ ...current, [field]: field === "plate" ? value.toUpperCase() : value, ...(found ? { fleetNumber: found.fleetNumber, plate: found.plate || "", hourmeterStart: "", hourmeterEnd: "", kilometerStart: "", kilometerEnd: "" } : field === "plate" ? { fleetNumber: "" } : { plate: "" }) }));
     if (found) applyLastReading(found);
     else setOperationalOrders([]);
   }
@@ -3197,10 +3370,10 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
     event.preventDefault(); setBusy(true); setMessage("");
     const payload = {
       ...form, companyId, source: "manual",
-      hourmeterStart: form.hourmeterStart === "" ? null : Number(form.hourmeterStart),
-      hourmeterEnd: form.hourmeterEnd === "" ? null : Number(form.hourmeterEnd),
-      kilometerStart: form.kilometerStart === "" ? null : Number(form.kilometerStart),
-      kilometerEnd: form.kilometerEnd === "" ? null : Number(form.kilometerEnd),
+      hourmeterStart: form.hourmeterStart === "" ? null : roundReading(Number(form.hourmeterStart)),
+      hourmeterEnd: form.hourmeterEnd === "" ? null : roundReading(Number(form.hourmeterEnd)),
+      kilometerStart: form.kilometerStart === "" ? null : roundReading(Number(form.kilometerStart)),
+      kilometerEnd: form.kilometerEnd === "" ? null : roundReading(Number(form.kilometerEnd)),
     };
     const response = await offlineRequest("/api/daily-parts", { method: editingDailyId ? "PATCH" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...payload, id: editingDailyId || undefined }) });
     const data = await response.json(); setBusy(false);
@@ -3244,7 +3417,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
     downloadStandardTemplate("/templates/modelo-parte-diaria.xlsx", "2.LANÇAMENTO DE PARTE DIARIA.xlsx");
   }
 
-  async function importDailyFile(file?: File) {
+  async function importDailyFile(file?: File, operationalMaintenance = false) {
     if (!file || !companyId) return;
     setBusy(true); setMessage(""); setImportErrors([]);
     try {
@@ -3255,7 +3428,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const normalize = (value: any) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
       const aliases = {
         date: ["DATA", "DATAPARTE", "DATADOLANCAMENTO"], fleet: ["ID", "FROTA", "NUMEROFROTA", "NID", "EQUIPAMENTO"], plate: ["PLACA", "PLACASERIE", "SERIE"],
-        status: ["SITUACAO", "STATUS", "TIPOMANUT", "TIPOMANUTENCAO", "CONDICAO"], order: ["OS", "NUMEROOS", "ORDEMSERVICO"],
+        status: ["SITUACAO", "STATUS", "TIPOMANUT", "TIPOMANUTENCAO", "CONDICAO"], order: ["OS", "NUMEROOS", "ORDEMSERVICO", "ORDEMDESERVICO", "NUMERODAOS", "CODIGOOS"],
         hs: ["HORIMETROINICIAL", "HORIMINIC", "HORIMINICIAL", "HOINICIAL"], he: ["HORIMETROFINAL", "HORIMFIM", "HORIMFINAL", "HOFINAL"],
         ks: ["KMINICIAL", "KMINICIAL2", "KMINIC"], ke: ["KMFINAL", "KMFINAL2", "KMFIM"], obs: ["OBSERVACAO", "OBS", "DESCRICAO"],
       };
@@ -3274,8 +3447,8 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const value = (row: any[], keys: string[], forcedColumn = -1) => { const index = forcedColumn >= 0 ? forcedColumn : column(keys); return index >= 0 ? row[index] : ""; };
       const identifier = (raw: any) => { const text = String(raw ?? "").trim(); return /^[-–—.\s]*$/.test(text) ? "" : text; };
       const dateValue = (raw: any) => { if (raw instanceof Date) return raw.toISOString().slice(0, 10); if (typeof raw === "number") return XLSX.SSF.parse_date_code(raw) ? new Date(Date.UTC(XLSX.SSF.parse_date_code(raw).y, XLSX.SSF.parse_date_code(raw).m - 1, XLSX.SSF.parse_date_code(raw).d)).toISOString().slice(0, 10) : ""; const text = String(raw || "").trim(); if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10); const parts = text.split(/[\/.-]/); return parts.length === 3 ? `${parts[2].padStart(4, "20")}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}` : ""; };
-      const statusValue = (raw: any) => { const text = normalize(raw); if (text === "AB" || text.includes("ABONO")) return "AB"; if (text === "M" || text.includes("MANUT")) return "M"; if (text === "D" || text.includes("DISPOS")) return "D"; return "T"; };
-      const rows = matrix.slice(headerIndex + 1).map((row, index) => ({ row: headerIndex + index + 2, payload: { companyId, source: "spreadsheet", entryDate: dateValue(value(row, aliases.date)), fleetNumber: identifier(value(row, aliases.fleet, fleetColumn)), plate: identifier(value(row, aliases.plate, plateColumn)), status: statusValue(value(row, aliases.status)), maintenanceOrderNumber: identifier(value(row, aliases.order)), hourmeterStart: value(row, aliases.hs) === "" ? null : Number(value(row, aliases.hs)), hourmeterEnd: value(row, aliases.he) === "" ? null : Number(value(row, aliases.he)), kilometerStart: value(row, aliases.ks) === "" ? null : Number(value(row, aliases.ks)), kilometerEnd: value(row, aliases.ke) === "" ? null : Number(value(row, aliases.ke)), observation: String(value(row, aliases.obs) || "").trim() } })).filter(({ payload }) => payload.entryDate || payload.fleetNumber || payload.plate);
+      const statusValue = (raw: any) => { if (operationalMaintenance) return "M"; const text = normalize(raw); if (text === "AB" || text.includes("ABONO")) return "AB"; if (text === "M" || text.includes("MANUT")) return "M"; if (text === "D" || text.includes("DISPOS")) return "D"; return "T"; };
+      const rows = matrix.slice(headerIndex + 1).map((row, index) => ({ row: headerIndex + index + 2, payload: { companyId, source: "spreadsheet", entryDate: dateValue(value(row, aliases.date)), fleetNumber: identifier(value(row, aliases.fleet, fleetColumn)), plate: identifier(value(row, aliases.plate, plateColumn)), status: statusValue(value(row, aliases.status)), maintenanceOrderNumber: identifier(value(row, aliases.order)), hourmeterStart: value(row, aliases.hs) === "" ? null : Number(value(row, aliases.hs)), hourmeterEnd: value(row, aliases.he) === "" ? null : Number(value(row, aliases.he)), kilometerStart: value(row, aliases.ks) === "" ? null : Number(value(row, aliases.ks)), kilometerEnd: value(row, aliases.ke) === "" ? null : Number(value(row, aliases.ke)), observation: String(value(row, aliases.obs) || (operationalMaintenance ? "Importado do FrotaManu.com" : "")).trim() } })).filter(({ payload }) => payload.entryDate || payload.fleetNumber || payload.plate);
       if (!rows.length) throw new Error("A planilha não possui lançamentos para importar.");
       const errors: { row: number; error: string }[] = []; let imported = 0;
       for (const item of rows) {
@@ -3294,6 +3467,103 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível ler a planilha."); }
     setBusy(false);
   }
+  async function exportDailyReport() {
+    const XLSX = await import("xlsx");
+    const rows = (historyDetailDate ? historyFiltered.filter((row) => row.entryDate === historyDetailDate) : historyFiltered)
+      .slice().sort((a, b) => a.entryDate.localeCompare(b.entryDate) || String(a.fleetNumber).localeCompare(String(b.fleetNumber), "pt-BR", { numeric: true }))
+      .map((row) => ({
+        Data: row.entryDate.split("-").reverse().join("/"),
+        "Nº Frota / ID": row.fleetNumber || "",
+        Placa: row.plate || "",
+        Equipamento: row.description || "",
+        Canteiro: row.projectName || "",
+        "Frente de serviço": row.frontName || "",
+        "Centro de custo": row.costCenter || "",
+        Situação: row.status || "",
+        "Nº da O.S.": row.maintenanceOrderNumber || "",
+        "Horímetro inicial": row.hourmeterStart ?? "",
+        "Horímetro final": row.hourmeterEnd ?? "",
+        "Total horímetro": readingTotal(row.hourmeterStart, row.hourmeterEnd) ?? "",
+        "KM inicial": row.kilometerStart ?? "",
+        "KM final": row.kilometerEnd ?? "",
+        "Total KM": readingTotal(row.kilometerStart, row.kilometerEnd) ?? "",
+        Observação: row.observation || "",
+      }));
+    const sheet = XLSX.utils.json_to_sheet(rows);
+    sheet["!cols"] = [{ wch: 13 }, { wch: 16 }, { wch: 12 }, { wch: 38 }, { wch: 28 }, { wch: 24 }, { wch: 20 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 42 }];
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, "Partes Diárias");
+    const suffix = historyDetailDate || `${historyFrom}_${historyTo}`;
+    XLSX.writeFile(book, `relatorio_parte_diaria_${suffix}.xlsx`);
+  }
+  async function importFrotaManuFile(file?: File) {
+    if (!file || !companyId) return;
+    if (!navigator.onLine) { setMessage("A importação do FrotaManu.com precisa de conexão com a internet."); return; }
+    setBusy(true); setMessage(""); setImportErrors([]);
+    try {
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
+      const normalize = (value: any) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      let matrix: any[][] = [];
+      let headerIndex = -1;
+      for (const sheetName of workbook.SheetNames) {
+        const candidate = XLSX.utils.sheet_to_json<any[]>(workbook.Sheets[sheetName], { header: 1, defval: "", raw: true });
+        const found = candidate.findIndex((row) => {
+          const cells = row.map(normalize);
+          return cells.includes("CANTEIRO") && cells.some((cell) => cell.includes("IDPLACA")) && cells.includes("ENTRADA") && cells.some((cell) => cell.includes("DESCRICAODAMANUTENCAO"));
+        });
+        if (found >= 0) { matrix = candidate; headerIndex = found; break; }
+      }
+      if (headerIndex < 0) throw new Error("Não encontrei a tabela do relatório de manutenção operacional do FrotaManu.com.");
+      const headers = matrix[headerIndex].map(normalize);
+      const col = (...names: string[]) => headers.findIndex((header) => names.some((name) => header === name || header.includes(name)));
+      const columns = {
+        item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
+        entry: col("ENTRADA"), actualExit: col("DATADESAIDA", "SAIDAREAL"), totalHours: col("TOTALHORAS"), cause: col("CAUSADAMANUTENCAO"),
+        description: col("DESCRICAODAMANUTENCAO"), status: col("STATUSANDAMENTO", "STATUS"),
+      };
+      const cell = (row: any[], index: number) => index >= 0 ? row[index] : "";
+      const parseDate = (raw: any) => {
+        if (raw instanceof Date && !Number.isNaN(raw.valueOf())) return raw.toISOString().slice(0, 10);
+        if (typeof raw === "number") { const parsed = XLSX.SSF.parse_date_code(raw); return parsed ? new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d)).toISOString().slice(0, 10) : ""; }
+        const value = String(raw ?? "").trim();
+        if (!value || /^[-—–]+$/.test(value)) return "";
+        if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+        const match = value.match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
+        return match ? `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}` : "";
+      };
+      const parseNumber = (raw: any) => { if (typeof raw === "number") return raw; const value = String(raw ?? "").trim().replace(/\./g, "").replace(",", "."); const result = Number(value); return value && Number.isFinite(result) ? result : null; };
+      const rows = matrix.slice(headerIndex + 1).map((row, index) => {
+        const identity = String(cell(row, columns.identity) ?? "").trim();
+        const pieces = identity.split(/[\/|]/).map((value) => value.trim()).filter(Boolean);
+        const state = String(cell(row, columns.status) ?? "").trim();
+        const actualExitDate = parseDate(cell(row, columns.actualExit));
+        return {
+          itemNumber: String(cell(row, columns.item) || index + 1),
+          fleetNumber: pieces[0] || "",
+          plate: pieces[1] || (pieces.length === 1 && /^[A-Z]{3}[- ]?\d[A-Z0-9]\d{2}$/i.test(pieces[0]) ? pieces[0] : ""),
+          worksite: String(cell(row, columns.worksite) || "").trim(),
+          maintenanceType: String(cell(row, columns.type) || "Manutenção operacional").trim(),
+          entryDate: parseDate(cell(row, columns.entry)), actualExitDate,
+          isClosed: /ENCERR|CONCLUID|FINALIZ|FECHAD/i.test(state), maintenanceStatus: state,
+          cause: String(cell(row, columns.cause) || "").trim(), description: String(cell(row, columns.description) || "").trim(),
+          totalHours: parseNumber(cell(row, columns.totalHours)),
+        };
+      }).filter((row) => row.entryDate || row.fleetNumber || row.plate);
+      if (!rows.length) throw new Error("A planilha não tem linhas de manutenção para importar.");
+      if (!window.confirm(`Importar ${rows.length} registro(s) de manutenção operacional? A importação criará as O.S. operacionais; a Parte Diária consultará essas O.S. ao lançar o equipamento e a data.`)) return;
+      const response = await fetch("/api/maintenance/import-frotamanu", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, rows }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível importar as manutenções.");
+      const result = data.result || {};
+      const errors = (result.rejected || []).map((item: any) => ({ row: item.row, error: item.reason }));
+      setImportErrors(errors);
+      setMessage(`FrotaManu: ${result.created || 0} O.S. criada(s), ${result.duplicates || 0} duplicidade(s) ignorada(s) e ${errors.length} registro(s) rejeitado(s). A Parte Diária consultará as O.S. pelo equipamento e pela data.`);
+      await loadEquipmentOptions(companyId);
+      await loadHistoryRange(companyId);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível ler o relatório do FrotaManu.com."); }
+    finally { setBusy(false); }
+  }
   return (
     <div className="space-y-5">
       <div className="grid gap-3 md:grid-cols-3">
@@ -3301,7 +3571,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         <button onClick={() => { setMode("import"); setMessage(""); setImportErrors([]); }} className={`panel flex items-center gap-4 p-5 text-left ${mode === "import" ? "border-emerald-400 ring-2 ring-emerald-100" : "hover:border-blue-300"}`}><div className="iconbox green"><Upload size={21} /></div><div><div className="font-bold">Importar planilha</div><div className="text-sm text-slate-500">Enviar vários equipamentos de uma vez</div></div><ChevronRight className="ml-auto" /></button>
         <button onClick={() => { setMode("history"); setHistoryDetailDate(""); loadHistoryRange(); }} className={`panel flex items-center gap-4 p-5 text-left ${mode === "history" ? "border-red-400 ring-2 ring-red-100" : "hover:border-red-300"}`}><div className="iconbox red"><FileText size={21} /></div><div><div className="font-bold">Total por dia</div><div className="text-sm text-slate-500">Quantidade de partes diárias lançadas</div></div><ChevronRight className="ml-auto" /></button>
       </div>
-      {mode === "import" && <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">Importação de Parte Diária</h3><p className="mt-1 text-sm text-slate-500">Aceita XLSX, XLS ou CSV. Localiza o equipamento pelo ID/Frota ou pela placa.</p></div><button type="button" onClick={downloadDailyTemplate} className="btn-secondary"><Download size={17}/>Baixar modelo padrão</button></div><label className="mt-4 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-400"><Upload className="text-blue-700"/><span className="mt-2 font-semibold">Selecionar a planilha preenchida</span><span className="text-xs text-slate-500">Colunas reconhecidas: Data, ID/Frota, Placa, Situação, O.S., horímetro e KM</span><input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importDailyFile(e.target.files?.[0])}/></label>{message && <div className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{message}</div>}{importErrors.slice(0, 20).map((item) => <div key={`${item.row}-${item.error}`} className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Linha {item.row}: {item.error}</div>)}<div className="mt-4 flex justify-end"><button type="button" className="btn-secondary" onClick={() => setMode("manual")}>Voltar ao lançamento manual</button></div></section>}
+      {mode === "import" && <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">Importação de Parte Diária</h3><p className="mt-1 text-sm text-slate-500">Aceita XLSX, XLS ou CSV. Localiza o equipamento pelo ID/Frota ou pela placa.</p></div><button type="button" onClick={downloadDailyTemplate} className="btn-secondary"><Download size={17}/>Baixar modelo padrão</button></div><label className="mt-4 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-400"><Upload className="text-blue-700"/><span className="mt-2 font-semibold">Selecionar a planilha preenchida</span><span className="text-xs text-slate-500">Colunas reconhecidas: Data, ID/Frota, Placa, Situação, O.S., horímetro e KM</span><input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importDailyFile(e.target.files?.[0])}/></label><div className="mt-3 flex justify-end"><label className={`btn-secondary cursor-pointer ${busy ? "pointer-events-none opacity-60" : ""}`}><Upload size={17}/>Importar manutenção operacional do FrotaManu.com<input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importFrotaManuFile(e.target.files?.[0])}/></label></div>{message && <div className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{message}</div>}{importErrors.slice(0, 20).map((item) => <div key={`${item.row}-${item.error}`} className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Linha {item.row}: {item.error}</div>)}<div className="mt-4 flex justify-end"><button type="button" className="btn-secondary" onClick={() => setMode("manual")}>Voltar ao lançamento manual</button></div></section>}
       {mode !== "import" && <section className="panel overflow-hidden">
         <div className="panel-head"><div><h3>{editingDailyId ? "Editar parte diária" : "Novo lançamento manual"}</h3><p>{editingDailyId ? "Corrija os dados do lançamento existente" : "Localize o equipamento pelo número da frota ou pela placa"}</p></div><button onClick={() => { setMode("history"); loadHistory(); }} className="btn-secondary"><FileText size={17} />Ver lançamentos do dia</button></div>
         <form onSubmit={save} className="space-y-5 p-5">
@@ -3311,17 +3581,17 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
             <label className="text-sm font-semibold">Situação<select className="input mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="T">T • Trabalhando</option><option value="D">D • À disposição</option><option value="M">M • Manutenção</option><option value="AB">AB • Abono</option></select></label>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            <label className="text-sm font-semibold">Nº da frota / ID<input list="daily-fleet-options" className="input mt-1" value={form.fleetNumber} onChange={(e) => selectRegisteredEquipment("fleetNumber", e.target.value)} placeholder="Digite ou selecione" /><datalist id="daily-fleet-options">{equipmentOptions.map((item) => <option key={item.id} value={item.fleetNumber}>{item.plate || "Sem placa"} • {item.description}</option>)}</datalist><span className="mt-1 block text-xs font-normal text-slate-500">{equipmentOptions.length} equipamento(s) disponível(is)</span></label>
-            <label className="text-sm font-semibold">Placa<input list="daily-plate-options" className="input mt-1 uppercase" value={form.plate} onChange={(e) => selectRegisteredEquipment("plate", e.target.value)} placeholder="Digite ou selecione" /><datalist id="daily-plate-options">{equipmentOptions.filter((item) => item.plate).map((item) => <option key={item.id} value={item.plate || ""}>{item.fleetNumber} • {item.description}</option>)}</datalist><span className="mt-1 block text-xs font-normal text-slate-500">Selecione uma placa cadastrada</span></label>
+            <label className="text-sm font-semibold">Nº da frota / ID<input list="daily-fleet-options" className="input mt-1" value={form.fleetNumber} onChange={(e) => selectRegisteredEquipment("fleetNumber", e.target.value)} placeholder="Digite o ID ou a placa" /><datalist id="daily-fleet-options">{equipmentOptions.map((item) => <option key={item.id} value={item.fleetNumber}>{item.plate || "Sem placa"} • {item.description}</option>)}</datalist><span className="mt-1 block text-xs font-normal text-slate-500">{equipmentOptions.length} equipamento(s) disponível(is)</span></label>
+            <label className="text-sm font-semibold">Placa<input list="daily-plate-options" className="input mt-1 uppercase" value={form.plate} onChange={(e) => selectRegisteredEquipment("plate", e.target.value)} placeholder="Digite o ID ou a placa" /><datalist id="daily-plate-options">{equipmentOptions.filter((item) => item.plate).map((item) => <option key={item.id} value={item.plate || ""}>{item.fleetNumber} • {item.description}</option>)}</datalist><span className="mt-1 block text-xs font-normal text-slate-500">Informe o ID ou a placa; o outro campo será preenchido automaticamente.</span></label>
             <label className="text-sm font-semibold">Número da O.S. {form.status === "M" && <span className="text-red-600">*</span>}<input required={form.status === "M"} disabled={form.status !== "M"} className="input mt-1 disabled:bg-slate-100" value={form.maintenanceOrderNumber} onChange={(e) => setForm({ ...form, maintenanceOrderNumber: e.target.value })} placeholder={form.status === "M" ? "Digite a O.S. cadastrada ou avulsa" : "Somente para manutenção"} />{form.status === "M" && <span className="mt-1 block text-xs font-normal text-slate-500">Se ainda não existir, será criada como referência operacional para posterior ficha de aprovação.</span>}</label>
           </div>
           {operationalOrders.length > 0 && <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 shrink-0 text-amber-700"/><div><h4 className="font-black text-amber-950">Existe O.S. operacional neste período</h4><p className="text-sm text-amber-800">Confira os dados e confirme se esta Parte Diária deve ser lançada como M — Manutenção.</p></div></div><div className="mt-4 grid gap-3">{operationalOrders.map((order) => <div key={order.id} className="rounded-xl border border-amber-200 bg-white p-4"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"><MaintenanceInfo label="Número da O.S." value={order.orderNumber}/><MaintenanceInfo label="Abertura" value={order.startedAt}/><MaintenanceInfo label="Defeito / descrição" value={order.description || "—"}/><MaintenanceInfo label="Tipo" value={order.maintenanceType || "—"}/><MaintenanceInfo label="Situação" value={order.maintenanceStatus || (order.status === "closed" ? "Concluída" : "Em aberto")}/></div><div className="mt-3 flex justify-end"><button type="button" className="btn-primary" onClick={() => { setForm((current) => ({ ...current, status: "M", maintenanceOrderNumber: order.orderNumber })); setMessage(`O.S. ${order.orderNumber} confirmada. Situação alterada para M — Manutenção.`); }}>Confirmar M e vincular O.S. {order.orderNumber}</button></div></div>)}</div></div>}
           <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
-            <label className="text-sm font-semibold">Horímetro inicial<input type="number" className="input mt-1" value={form.hourmeterStart} onChange={(e) => setForm({ ...form, hourmeterStart: e.target.value })} /></label>
-            <label className="text-sm font-semibold">Horímetro final<input type="number" className="input mt-1" value={form.hourmeterEnd} onChange={(e) => setForm({ ...form, hourmeterEnd: e.target.value })} /></label>
+            <label className="text-sm font-semibold">Horímetro inicial<input type="number" step="0.01" className="input mt-1" value={form.hourmeterStart} onChange={(e) => setForm({ ...form, hourmeterStart: e.target.value })} /></label>
+            <label className="text-sm font-semibold">Horímetro final<input type="number" step="0.01" className="input mt-1" value={form.hourmeterEnd} onChange={(e) => setForm({ ...form, hourmeterEnd: e.target.value })} /></label>
             <label className="text-sm font-semibold text-blue-800">Total horímetro<input readOnly className="input mt-1 bg-blue-50 font-bold text-blue-900" value={totalHourmeter} /></label>
-            <label className="text-sm font-semibold">KM inicial<input type="number" className="input mt-1" value={form.kilometerStart} onChange={(e) => setForm({ ...form, kilometerStart: e.target.value })} /></label>
-            <label className="text-sm font-semibold">KM final<input type="number" className="input mt-1" value={form.kilometerEnd} onChange={(e) => setForm({ ...form, kilometerEnd: e.target.value })} /></label>
+            <label className="text-sm font-semibold">KM inicial<input type="number" step="0.01" className="input mt-1" value={form.kilometerStart} onChange={(e) => setForm({ ...form, kilometerStart: e.target.value })} /></label>
+            <label className="text-sm font-semibold">KM final<input type="number" step="0.01" className="input mt-1" value={form.kilometerEnd} onChange={(e) => setForm({ ...form, kilometerEnd: e.target.value })} /></label>
             <label className="text-sm font-semibold text-blue-800">Total KM<input readOnly className="input mt-1 bg-blue-50 font-bold text-blue-900" value={totalKilometer} /></label>
           </div>
           <label className="block text-sm font-semibold">Observação<textarea className="input mt-1 min-h-20" value={form.observation} onChange={(e) => setForm({ ...form, observation: e.target.value })} /></label>
@@ -3330,7 +3600,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
           <div className="flex justify-end gap-2">{editingDailyId && <button type="button" onClick={cancelDailyEdit} className="btn-secondary">Cancelar edição</button>}<button disabled={busy || !companyId || (!form.fleetNumber && !form.plate)} className="btn-primary disabled:opacity-50"><CheckCircle2 size={17} />{busy ? "Salvando..." : editingDailyId ? "Salvar alterações" : "Salvar parte diária"}</button></div>
         </form>
       </section>}
-      {mode === "history" && <section className="panel overflow-hidden"><div className="panel-head flex-wrap"><div><h3>{historyDetailDate ? `Detalhes de ${historyDetailDate.split("-").reverse().join("/")}` : "Lançamento de Partes Diárias"}</h3><p>{historyDetailDate ? `${history.filter((row) => row.entryDate === historyDetailDate).length} lançamento(s) no dia` : `${historyDays.length} dia(s) • ${history.length} lançamento(s) no período`}</p></div><div className="flex flex-wrap items-end gap-2">{!historyDetailDate && <><label className="text-xs font-semibold">De<input type="date" className="input mt-1" value={historyFrom} onChange={(e) => setHistoryFrom(e.target.value)}/></label><label className="text-xs font-semibold">Até<input type="date" className="input mt-1" value={historyTo} onChange={(e) => setHistoryTo(e.target.value)}/></label><button onClick={() => { setHistoryDetailDate(""); loadHistoryRange(); }} className="btn-secondary"><Search size={17}/>Consultar</button></>}{historyDetailDate && <button onClick={() => setHistoryDetailDate("")} className="btn-secondary"><ChevronLeft size={17}/>Voltar aos dias</button>}<button onClick={() => { setEditingDailyId(""); setMode("manual"); }} className="btn-primary"><Plus size={17}/>Novo lançamento</button></div></div>{!historyDetailDate ? <div className="overflow-x-auto"><table><thead><tr><th>Data</th><th>Total diário</th><th>Detalhes</th></tr></thead><tbody>{historyDays.map(([date, rows]) => <tr key={date}><td className="whitespace-nowrap text-lg font-semibold">{date.split("-").reverse().join("/")}</td><td className="text-lg font-bold">{rows.length}</td><td><button className="row-action" onClick={() => setHistoryDetailDate(date)}>Detalhes <ChevronRight size={15}/></button></td></tr>)}{!historyDays.length && <tr><td colSpan={3} className="py-8 text-center text-slate-500">Nenhum lançamento neste período.</td></tr>}</tbody></table></div> : <div className="overflow-x-auto"><table><thead><tr><th>Frota</th><th>Placa</th><th>Equipamento</th><th>Status</th><th>Horímetro</th><th>KM</th><th>Ações</th></tr></thead><tbody>{history.filter((row) => row.entryDate === historyDetailDate).map((row) => <tr key={row.id}><td className="font-semibold">{row.fleetNumber}</td><td>{row.plate || "—"}</td><td>{row.description}</td><td><Badge tone={row.status === "M" ? "amber" : row.status === "AB" ? "blue" : "green"}>{row.status}</Badge></td><td>{row.hourmeterStart ?? "—"} → {row.hourmeterEnd ?? "—"}</td><td>{row.kilometerStart ?? "—"} → {row.kilometerEnd ?? "—"}</td><td><div className="flex flex-wrap gap-2"><button type="button" onClick={() => editDaily(row)} className="row-action"><Pencil size={14}/> Editar</button><DeletionRequestButton companyId={companyId} module="daily_parts" entityType="daily_part" entityId={row.id} label={`Parte diária ${row.fleetNumber} • ${row.entryDate}`} snapshot={row} onSent={setMessage}/></div></td></tr>)}</tbody></table></div>}</section>}
+      {mode === "history" && <section className="panel overflow-hidden"><div className="mb-4 grid gap-3 p-4 md:grid-cols-2"><label className="text-sm font-semibold">Equipamento<select className="input mt-1" value={historyEquipmentFilter} onChange={(e) => setHistoryEquipmentFilter(e.target.value)}><option value="">Todos os equipamentos</option>{Array.from(new Map(history.map((row) => [row.equipmentId, row])).values()).map((row) => <option key={row.equipmentId} value={row.equipmentId}>{row.fleetNumber} / {row.plate || "sem placa"} - {row.description}</option>)}</select></label><label className="text-sm font-semibold">Canteiro<select className="input mt-1" value={historyWorksiteFilter} onChange={(e) => setHistoryWorksiteFilter(e.target.value)}><option value="">Todos os canteiros</option>{historyWorksites.map((site) => <option key={site} value={site}>{site}</option>)}</select></label></div><div className="panel-head flex-wrap"><div><h3>{historyDetailDate ? `Detalhes de ${historyDetailDate.split("-").reverse().join("/")}` : "Lançamento de Partes Diárias"}</h3><p>{historyDetailDate ? `${historyFiltered.filter((row) => row.entryDate === historyDetailDate).length} lançamento(s) no dia` : `${historyFilteredDays.length} dia(s) • ${historyFiltered.length} lançamento(s) no período`}</p></div><div className="flex flex-wrap items-end gap-2">{!historyDetailDate && <><label className="text-xs font-semibold">De<input type="date" className="input mt-1" value={historyFrom} onChange={(e) => setHistoryFrom(e.target.value)}/></label><label className="text-xs font-semibold">Até<input type="date" className="input mt-1" value={historyTo} onChange={(e) => setHistoryTo(e.target.value)}/></label><button onClick={() => { setHistoryDetailDate(""); loadHistoryRange(); }} className="btn-secondary"><Search size={17}/>Consultar</button></>}<button onClick={exportDailyReport} className="btn-secondary"><Download size={17}/>Exportar Excel</button>{historyDetailDate && <button onClick={() => setHistoryDetailDate("")} className="btn-secondary"><ChevronLeft size={17}/>Voltar aos dias</button>}<button onClick={() => { setEditingDailyId(""); setMode("manual"); }} className="btn-primary"><Plus size={17}/>Novo lançamento</button></div></div>{!historyDetailDate ? <div className="overflow-x-auto"><table><thead><tr><th>Data</th><th>Total diário</th><th>Detalhes</th></tr></thead><tbody>{historyFilteredDays.map(([date, rows]) => <tr key={date}><td className="whitespace-nowrap text-lg font-semibold">{date.split("-").reverse().join("/")}</td><td className="text-lg font-bold">{rows.length}</td><td><button className="row-action" onClick={() => setHistoryDetailDate(date)}>Detalhes <ChevronRight size={15}/></button></td></tr>)}{!historyFilteredDays.length && <tr><td colSpan={3} className="py-8 text-center text-slate-500">Nenhum lançamento neste período.</td></tr>}</tbody></table></div> : <div className="overflow-x-auto"><table><thead><tr><th>Frota</th><th>Placa</th><th>Equipamento</th><th>Status</th><th>Horímetro</th><th>KM</th><th>Total horímetro</th><th>Total KM</th><th>Ações</th></tr></thead><tbody>{historyFiltered.filter((row) => row.entryDate === historyDetailDate).map((row) => <tr key={row.id}><td className="font-semibold">{row.fleetNumber}</td><td>{row.plate || "—"}</td><td>{row.description}</td><td><Badge tone={row.status === "M" ? "amber" : row.status === "AB" ? "blue" : "green"}>{row.status}</Badge></td><td>{row.hourmeterStart ?? "—"} → {row.hourmeterEnd ?? "—"}</td><td>{row.kilometerStart ?? "—"} → {row.kilometerEnd ?? "—"}</td><td className="font-semibold">{formatReading(readingTotal(row.hourmeterStart, row.hourmeterEnd))}</td><td className="font-semibold">{formatReading(readingTotal(row.kilometerStart, row.kilometerEnd))}</td><td><div className="flex flex-wrap gap-2"><button type="button" onClick={() => editDaily(row)} className="row-action"><Pencil size={14}/> Editar</button><DeletionRequestButton companyId={companyId} module="daily_parts" entityType="daily_part" entityId={row.id} label={`Parte diária ${row.fleetNumber} • ${row.entryDate}`} snapshot={row} onSent={setMessage}/></div></td></tr>)}</tbody></table></div>}</section>}
       {mode === "history" && historyDetailDate && <div className="flex justify-end"><button onClick={() => { setForm((current) => ({ ...current, entryDate: historyDetailDate, fleetNumber: "", plate: "", maintenanceOrderNumber: "", hourmeterStart: "", hourmeterEnd: "", kilometerStart: "", kilometerEnd: "", observation: "" })); setMode("manual"); setMessage(`Novo veículo para ${historyDetailDate.split("-").reverse().join("/")}.`); }} className="btn-primary"><Plus size={17}/>Adicionar veículo neste dia</button></div>}
       <div className="grid gap-3 panel p-4 md:grid-cols-4">
         <Mini value="T" label="Trabalhando • pago" />
@@ -3505,7 +3775,18 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       if (!dates.length || dates.length > 31) throw new Error("O período da apropriação deve conter de 1 a 31 dias.");
       const totalRow = 14 + Math.max(3, dates.length);
       const insertCount = totalRow - 16;
+      const originalMerges: string[] = [...(sheet.model?.merges || Object.keys(sheet._merges || {}))];
+      for (const merge of originalMerges) sheet.unMergeCells(merge);
       if (insertCount > 0) sheet.insertRows(16, Array.from({ length: insertCount }, () => []), "i");
+      for (const merge of originalMerges) {
+        const match = merge.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+        if (!match) throw new Error(`N\u00e3o foi poss\u00edvel preservar a c\u00e9lula mesclada ${merge} do modelo.`);
+        const [, startColumn, startRowText, endColumn, endRowText] = match;
+        const startRow = Number(startRowText), endRow = Number(endRowText);
+        const shiftedStart = startRow >= 16 ? startRow + insertCount : startRow;
+        const shiftedEnd = startRow < 16 && endRow >= 16 ? endRow + insertCount : endRow >= 16 ? endRow + insertCount : endRow;
+        sheet.mergeCells(`${startColumn}${shiftedStart}:${endColumn}${shiftedEnd}`);
+      }
       const summaryOffset = totalRow + 2 - 18;
       const summaryRow = (baseRow: number) => baseRow + summaryOffset;
       const set = (address: string, value: any, format?: string) => { const cell = sheet.getCell(address); cell.value = value; if (format) cell.numFmt = format; };
@@ -3589,7 +3870,14 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       sheet.printArea = `A1:Q${r(33)}`;
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const url = URL.createObjectURL(blob), anchor = document.createElement("a"); anchor.href = url; anchor.download = `Apropriacao_${data.equipment.fleetNumber}_${referenceMonth}.xlsx`; anchor.click(); URL.revokeObjectURL(url);
+      const url = URL.createObjectURL(blob), anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `Apropriacao_${data.equipment.fleetNumber}_${referenceMonth}.xlsx`;
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Apropriação exportada usando o modelo oficial de public/templates.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível gerar o Excel com o modelo de apropriação."); }
   }
@@ -4100,41 +4388,7 @@ function BackupSyncPage() {
     anchor.href = url; anchor.download = fileName; anchor.click();
     URL.revokeObjectURL(url);
   }
-  async function importBackupFile(event: React.ChangeEvent<HTMLInputElement>) {
-  const file = event.target.files?.[0];
-  event.target.value = "";
-  if (!file) return;
-  setWorking(true);
-  setMessage("");
-  try {
-    const text = await file.text();
-    const backupPayload = JSON.parse(text);
-    const response = await fetch("/api/backups", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        action: "import",
-        companyId,
-        backupPayload,
-      }),
-    });
-    const data = await response.json();
-    setWorking(false);
-    if (!response.ok) {
-      return setMessage(data.error || data.erro || "Não foi possível importar o backup.");
-    }
-    setMessage(`Backup restaurado com sucesso! ${data.restoredCount ?? 0} registros importados.`);
-    if (data.companyId) {
-      setCompanyId(data.companyId);
-      await loadBackups(data.companyId);
-    }
-    setTimeout(() => window.location.reload(), 1200);
-  } catch {
-    setWorking(false);
-    setMessage("Arquivo de backup inválido. Selecione o arquivo .json gerado pelo sistema.");
-  }
-  }  
-    return (
+  return (
     <div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
       <section className="panel p-5">
         <div className="flex items-center gap-3">
@@ -4169,23 +4423,9 @@ function BackupSyncPage() {
               <option value="">Selecione</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.tradeName}</option>)}
             </select>
           </label>
-          <div className="flex flex-wrap items-center gap-3">
-  <button disabled={!online || working || !companyId} onClick={createBackup} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
-    <DatabaseBackup size={17} />{working ? "Processando..." : "Criar backup agora"}
-  </button>
-  <label className={`btn-secondary cursor-pointer ${!online || working ? "pointer-events-none opacity-50" : ""}`}>
-    <DatabaseBackup size={17} />
-    {working ? "Importando..." : "Importar backup (.json)"}
-    <input
-      type="file"
-      accept=".json,application/json"
-      className="hidden"
-      disabled={!online || working}
-      onChange={importBackupFile}
-    />
-  </label>
-</div>
-
+          <button disabled={!online || working || !companyId} onClick={createBackup} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+            <DatabaseBackup size={17} />{working ? "Processando..." : "Criar backup agora"}
+          </button>
           {message && <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{message}</div>}
           <div className="divide-y divide-slate-100 rounded-xl border border-slate-200">
             {backups.length ? backups.map((backup) => (

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FuelManagementPage from "@/components/fuel-management-page";
-import { countContractMonthsInclusive } from "@/lib/contracts-finance";
+import { countContractMonthsInclusive, countContractBillableDays } from "@/lib/contracts-finance";
 import {
   BarChart3,
   AlertTriangle,
@@ -769,6 +769,68 @@ const zh: Record<string, string> = {
 };
 
 Object.assign(zh, {
+  "Empresa": "\u516c\u53f8",
+  "Documento": "\u6587\u4ef6",
+  "Número": "\u7f16\u53f7",
+  "Número do contrato": "\u5408\u540c\u7f16\u53f7",
+  "Locador": "\u51fa\u79df\u65b9",
+  "Objeto": "\u6807\u7684",
+  "Projeto": "\u5de5\u7a0b",
+  "Status": "\u72b6\u6001",
+  "Situação": "\u72b6\u6001",
+  "Valor total": "\u603b\u4ef7",
+  "Valor mensal": "\u6708\u79df\u91d1",
+  "Tipo de contrato": "\u5408\u540c\u7c7b\u578b",
+  "Locação de equipamento sem operador": "\u4e0d\u542b\u64cd\u4f5c\u5458\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locação de equipamento com operador": "\u542b\u64cd\u4f5c\u5458\u7684\u8bbe\u5907\u79df\u8d41",
+  "Selecione uma obra cadastrada": "\u9009\u62e9\u5df2\u767b\u8bb0\u7684\u5de5\u7a0b",
+  "Selecione ID ou placa": "\u9009\u62e9 ID \u6216\u8f66\u724c",
+  "Data de entrada": "\u5165\u573a\u65e5\u671f",
+  "Data final": "\u7ed3\u675f\u65e5\u671f",
+  "Valor equipamento": "\u8bbe\u5907\u4ef7\u683c",
+  "Valor operador": "\u64cd\u4f5c\u5458\u8d39\u7528",
+  "Mobilização": "\u8c03\u8fd0\u8d39",
+  "Desmobilização": "\u9000\u573a\u8d39",
+  "Mensal": "\u6708\u79df",
+  "Mobilizado": "\u5df2\u8fdb\u573a",
+  "Adicionar equipamento": "\u6dfb\u52a0\u8bbe\u5907",
+  "Equipamentos do contrato / aditivo": "\u5408\u540c / \u8865\u5145\u534f\u8bae\u8bbe\u5907",
+  "Regra": "\u89c4\u5219",
+  "Contrato": "\u5408\u540c",
+  "Aditivo": "\u8865\u充\u534f\u8bae",
+  "Objeto do contrato": "\u5408\u540c\u6807\u7684",
+  "Contrato inicial": "\u521d\u59cb\u5408\u540c",
+  "Obra / projeto": "\u9879\u76ee / \u5de5\u7a0b",
+  "Item": "\u9879\u76ee",
+  "Quantidade": "\u6570\u91cf",
+  "Equipamento": "\u8bbe\u5907",
+  "Equipamentos": "\u8bbe\u5907",
+  "Novo contrato": "\u65b0\u5efa\u5408\u540c",
+  "Novo aditivo": "\u65b0\u5efa\u8865\u5145\u534f\u8bae",
+  "Contratos": "\u5408\u540c",
+  "Aditivos": "\u8865\u5145\u534f\u8bae",
+  "Vigências": "\u6709\u6548\u671f",
+  "Financeiro": "\u8d22\u52a1",
+  "Documentos": "\u6587\u4ef6",
+  "Histórico": "\u5386\u53f2\u8bb0\u5f55",
+  "Editar contrato": "\u7f16\u8f91\u5408\u540c",
+  "Imprimir Anexo I": "\u6253\u5370\u9644\u4ef6 I",
+  "Baixar Excel": "\u4e0b\u8f7d Excel",
+  "Voltar aos contratos": "\u8fd4\u56de\u5408\u540c\u5217\u8868",
+  "Sem placa": "\u65e0\u8f66\u724c",
+  "Regra:": "\u89c4\u5219\uff1a",
+  "Com operador": "\u542b\u64cd\u4f5c\u5458",
+  "com mão de obra": "\u542b\u4eba\u5de5",
+  "Contrato sem mão de obra": "\u4e0d\u542b\u4eba\u5de5\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locação com mão de obra": "\u542b\u4eba\u5de5\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locador / fornecedor": "\u51fa\u79df\u65b9 / \u4f9b\u5e94\u5546",
+  "Locadora / fornecedora": "\u51fa\u79df\u65b9 / \u4f9b\u5e94\u5546",
+  "Equipamentos do contrato": "\u5408\u540c\u8bbe\u5907",
+  "Fechar inclusão": "\u5173\u95ed\u6dfb\u52a0",
+  "Remover": "\u5220\u9664",
+  "Edição liberada a qualquer momento, com histórico de todas as movimentações.": "\u53ef\u968f\u65f6\u7f16\u8f91\uff0c\u5e76\u4fdd\u7559\u6240\u6709\u53d8\u66f4\u8bb0\u5f55\u3002",
+  "Regra: um contrato ou aditivo pode possuir vários equipamentos. Cada equipamento terá sua própria data de entrada, data final e valores para alimentar o Anexo I.": "\u89c4\u5219\uff1a\u5408\u540c\u6216\u8865\u5145\u534f\u8bae\u53ef\u5305\u542b\u591a\u53f0\u8bbe\u5907\u3002\u6bcf\u53f0\u8bbe\u5907\u6709\u72ec\u7acb\u7684\u5165\u573a\u65e5\u671f\u3001\u7ed3\u675f\u65e5\u671f\u548c\u4ef7\u683c\uff0c\u7528\u4e8e\u751f\u6210\u9644\u4ef6 I\u3002",
+});
   "Contratos ativos": "有效合同",
   "Próximos do vencimento": "即将到期",
   "Contratos vencidos": "已到期合同",
@@ -929,6 +991,65 @@ Object.assign(zh, {
   "Horímetro": "小时表",
   "KM": "公里数"
 });;
+
+// Traduções explícitas do formulário e das abas de Contratos. Os escapes
+// Unicode mantêm os caracteres chineses intactos em qualquer codificação do editor.
+Object.assign(zh, {
+  "Número do contrato": "\u5408\u540c\u7f16\u53f7",
+  "Número do aditivo": "\u8865\u5145\u534f\u8bae\u7f16\u53f7",
+  "Locador / fornecedor": "\u51fa\u79df\u65b9 / \u4f9b\u5e94\u5546",
+  "Locadora / fornecedora": "\u51fa\u79df\u65b9 / \u4f9b\u5e94\u5546",
+  "Tipo de contrato": "\u5408\u540c\u7c7b\u578b",
+  "Objeto do contrato": "\u5408\u540c\u6807\u7684",
+  "Obra / projeto": "\u9879\u76ee / \u5de5\u7a0b",
+  "Selecione uma obra cadastrada": "\u9009\u62e9\u5df2\u767b\u8bb0\u7684\u5de5\u7a0b",
+  "Equipamentos do contrato / aditivo": "\u5408\u540c / \u8865\u5145\u534f\u8bae\u8bbe\u5907",
+  "Equipamentos do contrato": "\u5408\u540c\u8bbe\u5907",
+  "Adicionar equipamento": "\u6dfb\u52a0\u8bbe\u5907",
+  "Fechar inclusão": "\u5173\u95ed\u6dfb\u52a0",
+  "Remover": "\u5220\u9664",
+  "Item": "\u9879\u76ee",
+  "Equipamento": "\u8bbe\u5907",
+  "Selecione ID ou placa": "\u9009\u62e9 ID \u6216\u8f66\u724c",
+  "Selecione": "\u8bf7\u9009\u62e9",
+  "Data de entrada": "\u5165\u573a\u65e5\u671f",
+  "Data final": "\u7ed3\u675f\u65e5\u671f",
+  "Contrato tipo": "\u5408\u540c\u7c7b\u578b",
+  "Quantidade": "\u6570\u91cf",
+  "Valor equipamento": "\u8bbe\u5907\u4ef7\u683c",
+  "Valor mensal do equipamento": "\u8bbe\u5907\u6708\u79df\u91d1",
+  "Valor operador": "\u64cd\u4f5c\u5458\u8d39\u7528",
+  "Valor mensal do operador": "\u64cd\u4f5c\u5458\u6708\u8d39",
+  "Mobilização": "\u8c03\u8fd0\u8d39",
+  "Desmobilização": "\u9000\u573a\u8d39",
+  "Mensal": "\u6708\u79df",
+  "Mobilizado": "\u5df2\u8fdb\u573a",
+  "Desmobilizado": "\u5df2\u9000\u573a",
+  "Regra:": "\u89c4\u5219\uff1a",
+  "Com operador": "\u542b\u64cd\u4f5c\u5458",
+  "com mão de obra": "\u542b\u4eba\u5de5",
+  "Contrato inicial": "\u521d\u59cb\u5408\u540c",
+  "Novo contrato": "\u65b0\u5efa\u5408\u540c",
+  "Novo aditivo": "\u65b0\u5efa\u8865\u5145\u534f\u8bae",
+  "Contrato": "\u5408\u540c",
+  "Aditivo": "\u8865\u5145\u534f\u8bae",
+  "Contratos": "\u5408\u540c",
+  "Aditivos": "\u8865\u5145\u534f\u8bae",
+  "Vigências": "\u6709\u6548\u671f",
+  "Financeiro": "\u8d22\u52a1",
+  "Documentos": "\u6587\u4ef6",
+  "Histórico": "\u5386\u53f2\u8bb0\u5f55",
+  "Contrato sem mão de obra": "\u4e0d\u542b\u4eba\u5de5\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locação de equipamento sem operador": "\u4e0d\u542b\u64cd\u4f5c\u5458\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locação com mão de obra": "\u542b\u4eba\u5de5\u7684\u8bbe\u5907\u79df\u8d41",
+  "Locação de equipamento com operador": "\u542b\u64cd\u4f5c\u5458\u7684\u8bbe\u5907\u79df\u8d41",
+  "Editar contrato": "\u7f16\u8f91\u5408\u540c",
+  "Imprimir Anexo I": "\u6253\u5370\u9644\u4ef6 I",
+  "Baixar Excel": "\u4e0b\u8f7d Excel",
+  "Voltar aos contratos": "\u8fd4\u56de\u5408\u540c\u5217\u8868",
+  "Edição liberada a qualquer momento, com histórico de todas as movimentações.": "\u53ef\u968f\u65f6\u7f16\u8f91\uff0c\u5e76\u4fdd\u7559\u6240\u6709\u53d8\u66f4\u8bb0\u5f55\u3002",
+  "Regra: um contrato ou aditivo pode possuir vários equipamentos. Cada equipamento terá sua própria data de entrada, data final e valores para alimentar o Anexo I.": "\u89c4\u5219\uff1a\u5408\u540c\u6216\u8865\u5145\u534f\u8bae\u53ef\u5305\u542b\u591a\u53f0\u8bbe\u5907\u3002\u6bcf\u53f0\u8bbe\u5907\u6709\u72ec\u7acb\u7684\u5165\u573a\u65e5\u671f\u3001\u7ed3\u675f\u65e5\u671f\u548c\u4ef7\u683c\uff0c\u7528\u4e8e\u751f\u6210\u9644\u4ef6 I\u3002",
+});
 
 const originalText = new WeakMap<Text, string>();
 const originalAttributes = new WeakMap<Element, Record<string, string>>();
@@ -2509,15 +2630,27 @@ function MaintenanceInfo({ label, value }: { label: string; value: string }) {
 }
 function Contracts({ query, setQuery, setModal: _setModal }: { query: string; setQuery: (s: string) => void; contracts: any[]; setModal: (s: string) => void }) {
   const [companies, setCompanies] = useState<any[]>([]), [companyId, setCompanyId] = useState("");
-  const [rows, setRows] = useState<any[]>([]), [detail, setDetail] = useState<any | null>(null), [equipmentOptions, setEquipmentOptions] = useState<any[]>([]);
+  const [rows, setRows] = useState<any[]>([]), [detail, setDetail] = useState<any | null>(null), [equipmentOptions, setEquipmentOptions] = useState<any[]>([]), [projectOptions, setProjectOptions] = useState<any[]>([]);
   const [supplierOptions, setSupplierOptions] = useState<any[]>([]), [activeTab, setActiveTab] = useState("Contratos"), [showCreate, setShowCreate] = useState(false), [documentType, setDocumentType] = useState("Contrato original");
   const [createDraft, setCreateDraft] = useState<any>({ number: "", object: "", contractType: "Locação sem mão de obra", documentKind: "initial", parentContractId: "", amendmentNumber: 0, supplierId: "", projectName: "", startsAt: "", endsAt: "", equipmentId: "", monthlyEquipment: "", monthlyOperator: "", mobilization: "", demobilization: "" });
   const [message, setMessage] = useState(""), [adding, setAdding] = useState(false), [saving, setSaving] = useState(false);
   const [editingContract, setEditingContract] = useState(false), [contractDraft, setContractDraft] = useState<any>({});
+  const [formalizationDraft, setFormalizationDraft] = useState({ status: "not_informed", note: "" });
   const [editingItemId, setEditingItemId] = useState(""), [itemDraft, setItemDraft] = useState<any>({});
   const emptyItem = { equipmentId: "", startsAt: "", endsAt: "", billingMode: "Mensal", monthlyEquipment: 0, monthlyOperator: 0, mobilization: 0, demobilization: 0, quantity: 1, status: "mobilized" };
   const [item, setItem] = useState<any>(emptyItem);
-  async function load(id = companyId) { if (!id) return; const [response, optionsResponse] = await Promise.all([fetch(`/api/contracts?companyId=${encodeURIComponent(id)}`), fetch(`/api/contracts?companyId=${encodeURIComponent(id)}&options=1`)]), data = await response.json(), options = await optionsResponse.json(); if (response.ok) setRows(data.contracts || []); else setMessage(data.error || "Não foi possível carregar os contratos."); if (optionsResponse.ok) { setEquipmentOptions(options.equipment || []); setSupplierOptions((options.suppliers || []).filter((row: any) => row.id && row.name && Object.prototype.hasOwnProperty.call(row, "tradeName"))); } }
+  async function load(id = companyId) {
+    if (!id) return;
+    const [response, optionsResponse, projectsResponse] = await Promise.all([
+      fetch(`/api/contracts?companyId=${encodeURIComponent(id)}`),
+      fetch(`/api/contracts?companyId=${encodeURIComponent(id)}&options=1`),
+      fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=obra`),
+    ]);
+    const [data, options, projects] = await Promise.all([response.json(), optionsResponse.json(), projectsResponse.json()]);
+    if (response.ok) setRows(data.contracts || []); else setMessage(data.error || "Não foi possível carregar os contratos.");
+    if (optionsResponse.ok) { setEquipmentOptions(options.equipment || []); setSupplierOptions((options.suppliers || []).filter((row: any) => row.id && row.name && Object.prototype.hasOwnProperty.call(row, "tradeName"))); }
+    if (projectsResponse.ok) setProjectOptions((projects.records || []).filter((row: any) => row.active));
+  }
   async function createContract(event: React.FormEvent) {
     event.preventDefault();
     const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;
@@ -2551,9 +2684,10 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
     const data = await response.json(); setSaving(false);
     if (!response.ok) return setMessage(data.error || "Não foi possível anexar o documento.");
     await openContract(detail.contract.id); setMessage("Documento anexado ao contrato. O histórico permanece vinculado.");
-  }  async function openContract(contractId: string) { const response = await fetch(`/api/contracts?companyId=${encodeURIComponent(companyId)}&contractId=${encodeURIComponent(contractId)}`), data = await response.json(); if (!response.ok) return setMessage(data.error || "Não foi possível abrir o contrato."); setDetail(data); setAdding(false); setEditingContract(false); setEditingItemId(""); setItem(emptyItem); setMessage(""); }
+  }  async function openContract(contractId: string) { const response = await fetch(`/api/contracts?companyId=${encodeURIComponent(companyId)}&contractId=${encodeURIComponent(contractId)}`), data = await response.json(); if (!response.ok) return setMessage(data.error || "Não foi possível abrir o contrato."); setDetail(data); setFormalizationDraft({ status: data.contract.formalizationStatus || "not_informed", note: data.contract.formalizationNote || "" }); setAdding(false); setEditingContract(false); setEditingItemId(""); setItem(emptyItem); setMessage(""); }
   async function addEquipment(event: React.FormEvent) { event.preventDefault(); if (!detail) return; setSaving(true); setMessage(""); const response = await offlineRequest("/api/contracts", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, contractId: detail.contract.id, action: "add_equipment", item }) }), data = await response.json(); setSaving(false); if (!response.ok) return setMessage(data.error || "Não foi possível adicionar o equipamento."); setAdding(false); setItem(emptyItem); await openContract(detail.contract.id); await load(companyId); setMessage("Equipamento adicionado ao contrato. O histórico das medições foi preservado."); }
   function startContractEdit() { setContractDraft({ number: detail.contract.number, object: detail.contract.object, supplierName: detail.contract.supplierName || "", projectName: detail.contract.projectName || "", status: detail.contract.status || "active" }); setEditingContract(true); }
+  async function saveFormalizationStatus() { if (!detail) return; setSaving(true); setMessage(""); const c = detail.contract; const response = await offlineRequest("/api/contracts", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, contractId: c.id, action: "update_contract", contract: { number: c.number, object: c.object, supplierName: c.supplierName, projectName: c.projectName, status: c.status, formalizationStatus: formalizationDraft.status, formalizationNote: formalizationDraft.note } }) }); const data = await response.json(); setSaving(false); if (!response.ok) return setMessage(data.error || "Could not update formalization status."); await openContract(c.id); await load(companyId); setMessage("Formalization status saved to contract history."); }
   async function saveContract(event: React.FormEvent) { event.preventDefault(); setSaving(true); const response = await offlineRequest("/api/contracts", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, contractId: detail.contract.id, action: "update_contract", contract: contractDraft }) }), data = await response.json(); setSaving(false); if (!response.ok) return setMessage(data.error || "Não foi possível alterar o contrato."); await openContract(detail.contract.id); await load(companyId); setMessage("Contrato alterado. A movimentação foi registrada no histórico."); }
   function startItemEdit(row: any) { setItemDraft({ startsAt: row.startsAt, endsAt: row.endsAt, billingMode: row.billingMode, monthlyEquipment: Number(row.monthlyEquipmentCents || 0) / 100, monthlyOperator: Number(row.monthlyOperatorCents || 0) / 100, mobilization: Number(row.mobilizationCents || 0) / 100, demobilization: Number(row.demobilizationCents || 0) / 100, quantity: Number(row.quantityMilli || 1000) / 1000, status: row.status }); setEditingItemId(row.id); }
   async function saveItem(event: React.FormEvent) { event.preventDefault(); setSaving(true); const response = await offlineRequest("/api/contracts", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, contractId: detail.contract.id, action: "update_equipment", itemId: editingItemId, item: itemDraft }) }), data = await response.json(); setSaving(false); if (!response.ok) return setMessage(data.error || "Não foi possível alterar o equipamento."); await openContract(detail.contract.id); await load(companyId); setMessage("Dados do equipamento alterados. A movimentação foi registrada no histórico."); }
@@ -2570,13 +2704,25 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
     if (!detail) return;
     const contract = detail.contract;
     const fmt = (cents = 0) => (Number(cents) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const months = countContractMonthsInclusive;
-    const equipmentRows = (detail.items || []).map((row: any, index: number) => { const qty = months(row.startsAt, row.endsAt), mob = Number(row.mobilizationCents || 0), demob = Number(row.demobilizationCents || 0), monthly = Number(row.monthlyEquipmentCents || 0), operator = Number(row.monthlyOperatorCents || 0), subtotal = monthly * qty, contractTotal = subtotal + mob + demob + operator * qty; return `<tr><td>${index + 1}</td><td class="desc">${row.plate || "—"} - ${row.description || "—"}${[row.brand,row.model].filter(Boolean).length ? ` - ${[row.brand,row.model].filter(Boolean).join(" / ")}` : ""}</td><td>${row.billingMode}</td><td>${row.startsAt.split("-").reverse().join("/")}</td><td>${row.endsAt.split("-").reverse().join("/")}</td><td>${mob ? "1,00" : ""}</td><td>${mob ? fmt(mob) : ""}</td><td>${mob ? fmt(mob) : ""}</td><td>${demob ? "1,00" : ""}</td><td>${demob ? fmt(demob) : ""}</td><td>${demob ? fmt(demob) : ""}</td><td>${fmt(mob + demob)}</td><td>${qty.toFixed(2).replace(".",",")}</td><td>${fmt(operator)}</td><td>${fmt(monthly)}</td><td>${fmt(subtotal)}</td><td>${fmt(contractTotal)}</td><td></td><td></td><td></td><td></td><td>${qty.toFixed(2).replace(".",",")}</td><td>${fmt(monthly)}</td><td>${fmt(mob + demob)}</td><td>${fmt(contractTotal)}</td></tr>`; }).join("");
+    const equipmentRows = (detail.items || []).map((row: any, index: number) => {
+      const days = countContractBillableDays(row.startsAt, row.endsAt);
+      const mob = Number(row.mobilizationCents || 0), demob = Number(row.demobilizationCents || 0);
+      const monthlyEquipment = Number(row.monthlyEquipmentCents || 0), monthlyOperator = Number(row.monthlyOperatorCents || 0);
+      const equipmentTotal = Math.round(monthlyEquipment * days / 30);
+      const operatorTotal = Math.round(monthlyOperator * days / 30);
+      const contractTotal = equipmentTotal + operatorTotal + mob + demob;
+      const dailyEquipment = monthlyEquipment / 30, dailyOperator = monthlyOperator / 30;
+      const daysLabel = String(days);
+      const isAmendment = detail.contract.documentKind === "amendment";
+      const dailyCombined = Math.round((monthlyEquipment + monthlyOperator) / 30);
+      return `<tr><td>${index + 1}</td><td class="desc">${row.plate || "-"} - ${row.description || "-"}${[row.brand,row.model].filter(Boolean).length ? ` - ${[row.brand,row.model].filter(Boolean).join(" / ")}` : ""}</td><td>${row.billingMode}</td><td>${row.startsAt.split("-").reverse().join("/")}</td><td>${row.endsAt.split("-").reverse().join("/")}</td><td>${mob ? "1,00" : ""}</td><td>${mob ? fmt(mob) : ""}</td><td>${mob ? fmt(mob) : ""}</td><td>${demob ? "1,00" : ""}</td><td>${demob ? fmt(demob) : ""}</td><td>${demob ? fmt(demob) : ""}</td><td>${fmt(mob + demob)}</td><td>${isAmendment ? "" : daysLabel}</td><td>${!isAmendment && monthlyOperator ? fmt(Math.round(dailyOperator)) : ""}</td><td>${isAmendment ? "" : fmt(Math.round(dailyEquipment))}</td><td>${isAmendment ? "" : fmt(equipmentTotal)}</td><td>${isAmendment ? "" : fmt(contractTotal)}</td><td>${isAmendment ? daysLabel : ""}</td><td>${isAmendment ? fmt(dailyCombined) : ""}</td><td>${isAmendment ? fmt(equipmentTotal + operatorTotal) : ""}</td><td>${isAmendment ? fmt(contractTotal) : ""}</td><td>${daysLabel}</td><td>${fmt(dailyCombined)}</td><td>${fmt(mob + demob)}</td><td>${fmt(contractTotal)}</td></tr>`;
+    }).join("");
     const isWithOperator = (detail.items || []).some((row: any) => Number(row.monthlyOperatorCents || 0) > 0);
-    const totalMob = (detail.items || []).reduce((s: number, r: any) => s + Number(r.mobilizationCents || 0), 0), totalDemob = (detail.items || []).reduce((s: number, r: any) => s + Number(r.demobilizationCents || 0), 0), totalContract = (detail.items || []).reduce((s: number, r: any) => { const q = months(r.startsAt,r.endsAt); return s + (Number(r.monthlyEquipmentCents || 0) + Number(r.monthlyOperatorCents || 0)) * q + Number(r.mobilizationCents || 0) + Number(r.demobilizationCents || 0); }, 0);
+    const isAmendmentDocument = detail.contract.documentKind === "amendment";
+    const totalMob = (detail.items || []).reduce((s: number, r: any) => s + Number(r.mobilizationCents || 0), 0), totalDemob = (detail.items || []).reduce((s: number, r: any) => s + Number(r.demobilizationCents || 0), 0), totalContract = (detail.items || []).reduce((s: number, r: any) => s + Math.round((Number(r.monthlyEquipmentCents || 0) + Number(r.monthlyOperatorCents || 0)) * countContractBillableDays(r.startsAt, r.endsAt) / 30) + Number(r.mobilizationCents || 0) + Number(r.demobilizationCents || 0), 0);
     const popup = window.open("", "_blank", "width=1400,height=900");
     if (!popup) return setMessage("O navegador bloqueou a impressão. Permita pop-ups para imprimir o Anexo I.");
-    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Anexo I - ${contract.number}</title><style>@page{size:A4 landscape;margin:7mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111;margin:0;font-size:7px}header{height:64px;border-top:1px solid #111;border-bottom:3px double #111;display:grid;grid-template-columns:180px 1fr 120px;align-items:center}header img{width:145px;max-height:55px;object-fit:contain}h1{font-size:16px;font-weight:500;text-align:center;line-height:1.25;margin:0}.ct{text-align:right;font-size:13px;font-weight:bold;padding-right:8px}.type{display:grid;grid-template-columns:180px 1fr 40px 2.7fr;border-bottom:1px solid #111;min-height:54px;align-items:center}.type>div{padding:5px}.type-title{text-align:center;font-size:9px;font-weight:bold}.check{border:1px solid #111;text-align:center;font-size:16px;font-weight:bold;padding:2px!important}.supplier{text-align:center;font-size:10px;font-weight:bold}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #555;text-align:center;padding:3px 2px;vertical-align:middle}thead th{background:#bfbfbf;font-weight:bold;line-height:1.15}thead .group{font-size:7px}tbody td{height:27px}.desc{text-align:left;color:#e11;font-weight:bold;font-size:6.5px;line-height:1.15}tfoot td{background:#d9e2f3;font-weight:bold;font-size:8px;height:25px}.w-item{width:3.2%}.w-desc{width:13.2%}.w-mode{width:5%}.w-date{width:5%}.notes{margin-top:8px;border:1px solid #777;min-height:38px;padding:5px;font-size:8px}.global{margin-left:auto;margin-top:8px;width:310px;border:1px solid #333;display:grid;grid-template-columns:2fr 1fr;font-size:10px;font-weight:bold}.global div{padding:7px;border-right:1px solid #333;text-align:center}.global div:last-child{border:0}@media print{button{display:none}}</style></head><body><header><img src="${location.origin}/assets/sepco1-logo-template.png"><h1>Anexo I - Contrato ${contract.number}<br>Planilha de Quantidades e Preços 数量和价格电子表格</h1><div class="ct">Nº CT<br>${contract.number}</div></header><section class="type"><div class="type-title">1. TIPO DE CONTRATO :</div><div>LOCAÇÃO DE EQUIPAMENTO SEM OPERADOR<br>无操作员的设备租赁<br><br>LOCAÇÃO DE EQUIPAMENTO COM OPERADOR<br>带操作员的设备租赁</div><div><div class="check">${isWithOperator ? "" : "X"}</div><div class="check" style="margin-top:6px">${isWithOperator ? "X" : ""}</div></div><div class="supplier">${contract.supplierName || "—"}</div></section><table><thead><tr><th rowspan="2" class="w-item">Item</th><th rowspan="2" class="w-desc">Descrição 描述</th><th rowspan="2" class="w-mode">Modalidade de cobrança</th><th colspan="2">Período 时期</th><th colspan="3">Mobilização 动员</th><th colspan="3">Desmobilização 复员</th><th rowspan="2">Total Geral<br>累计:</th><th colspan="5" class="group">CONTRATO</th><th colspan="4" class="group">ADITIVO I</th><th colspan="4" class="group">TOTAL GERAL 累计</th></tr><tr><th class="w-date">Data Início<br>开始日期</th><th class="w-date">Data de Término<br>结束日期</th><th>Quant.<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Total<br>全部的</th><th>Quant.<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Total<br>全部的</th><th>Tempo de Contrato<br>合同期 QUANT.</th><th>Valor Operador</th><th>Valor Unitário<br>单位价值</th><th>Sub-Total<br>全部的</th><th>Total Geral<br>全部的</th><th>Tempo Aditivo<br>添加时间 QUANT.</th><th>Valor Unitário<br>单位价值</th><th>Sub-Total<br>全部的</th><th>Total Geral<br>全部的</th><th>Quant. Total<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Valor Un+mob/desmob</th><th>Total<br>全部的</th></tr></thead><tbody>${equipmentRows || '<tr><td colspan="25">Nenhum equipamento vinculado.</td></tr>'}</tbody><tfoot><tr><td colspan="5">TOTAL GERAL 累计:</td><td></td><td></td><td>${fmt(totalMob)}</td><td></td><td></td><td>${fmt(totalDemob)}</td><td></td><td colspan="5">R$ ${fmt(totalContract)}</td><td colspan="4">R$ -</td><td colspan="4">R$ ${fmt(totalContract)}</td></tr></tfoot></table><div class="notes"><strong>Observações / 备注:</strong><br>${contract.object || ""}</div><div class="global"><div>VALOR TOTAL GLOBAL : R$</div><div>R$ ${fmt(totalContract)}</div></div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Anexo I - ${contract.number}</title><style>@page{size:A4 landscape;margin:7mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111;margin:0;font-size:7px}header{height:64px;border-top:1px solid #111;border-bottom:3px double #111;display:grid;grid-template-columns:180px 1fr 120px;align-items:center}header img{width:145px;max-height:55px;object-fit:contain}h1{font-size:16px;font-weight:500;text-align:center;line-height:1.25;margin:0}.ct{text-align:right;font-size:13px;font-weight:bold;padding-right:8px}.type{display:grid;grid-template-columns:180px 1fr 40px 2.7fr;border-bottom:1px solid #111;min-height:54px;align-items:center}.type>div{padding:5px}.type-title{text-align:center;font-size:9px;font-weight:bold}.check{border:1px solid #111;text-align:center;font-size:16px;font-weight:bold;padding:2px!important}.supplier{text-align:center;font-size:10px;font-weight:bold}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #555;text-align:center;padding:3px 2px;vertical-align:middle}thead th{background:#bfbfbf;font-weight:bold;line-height:1.15}thead .group{font-size:7px}tbody td{height:27px}.desc{text-align:left;color:#e11;font-weight:bold;font-size:6.5px;line-height:1.15}tfoot td{background:#d9e2f3;font-weight:bold;font-size:8px;height:25px}.w-item{width:3.2%}.w-desc{width:13.2%}.w-mode{width:5%}.w-date{width:5%}.notes{margin-top:8px;border:1px solid #777;min-height:38px;padding:5px;font-size:8px}.global{margin-left:auto;margin-top:8px;width:310px;border:1px solid #333;display:grid;grid-template-columns:2fr 1fr;font-size:10px;font-weight:bold}.global div{padding:7px;border-right:1px solid #333;text-align:center}.global div:last-child{border:0}@media print{button{display:none}}</style></head><body><header><img src="${location.origin}/assets/sepco1-logo-template.png"><h1>Anexo I - Contrato ${contract.number}<br>Planilha de Quantidades e Preços 数量和价格电子表格</h1><div class="ct">Nº CT<br>${contract.number}</div></header><section class="type"><div class="type-title">1. TIPO DE CONTRATO :</div><div>LOCAÇÃO DE EQUIPAMENTO SEM OPERADOR<br>无操作员的设备租赁<br><br>LOCAÇÃO DE EQUIPAMENTO COM OPERADOR<br>带操作员的设备租赁</div><div><div class="check">${isWithOperator ? "" : "X"}</div><div class="check" style="margin-top:6px">${isWithOperator ? "X" : ""}</div></div><div class="supplier">${contract.supplierName || "—"}</div></section><table><thead><tr><th rowspan="2" class="w-item">Item</th><th rowspan="2" class="w-desc">Descrição 描述</th><th rowspan="2" class="w-mode">Modalidade de cobrança</th><th colspan="2">Período 时期</th><th colspan="3">Mobilização 动员</th><th colspan="3">Desmobilização 复员</th><th rowspan="2">Total Geral<br>累计:</th><th colspan="5" class="group">CONTRATO</th><th colspan="4" class="group">ADITIVO I</th><th colspan="4" class="group">TOTAL GERAL 累计</th></tr><tr><th class="w-date">Data Início<br>开始日期</th><th class="w-date">Data de Término<br>结束日期</th><th>Quant.<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Total<br>全部的</th><th>Quant.<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Total<br>全部的</th><th>Tempo de Contrato<br>合同期 QUANT.</th><th>Valor Operador</th><th>Valor Unitário<br>单位价值</th><th>Sub-Total<br>全部的</th><th>Total Geral<br>全部的</th><th>Tempo Aditivo<br>添加时间 QUANT.</th><th>Valor Unitário<br>单位价值</th><th>Sub-Total<br>全部的</th><th>Total Geral<br>全部的</th><th>Quant. Total<br>数量</th><th>Valor Unitário<br>单位价值</th><th>Valor Un+mob/desmob</th><th>Total<br>全部的</th></tr></thead><tbody>${equipmentRows || '<tr><td colspan="25">Nenhum equipamento vinculado.</td></tr>'}</tbody><tfoot><tr><td colspan="5">TOTAL GERAL 累计:</td><td></td><td></td><td>${fmt(totalMob)}</td><td></td><td></td><td>${fmt(totalDemob)}</td><td></td><td colspan="5">R$ ${isAmendmentDocument ? "-" : fmt(totalContract)}</td><td colspan="4">R$ ${isAmendmentDocument ? fmt(totalContract) : "-"}</td><td colspan="4">R$ ${fmt(totalContract)}</td></tr></tfoot></table><div class="notes"><strong>Observações / 备注:</strong><br>${contract.object || ""}</div><div class="global"><div>VALOR TOTAL DO ANEXO : R$</div><div>R$ ${fmt(totalContract)}</div></div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
     popup.document.close();
   }
   async function exportAnexoExcel() {
@@ -2602,7 +2748,11 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
       }
       const totalRow = 50 + extraRows;
       const dataEnd = 12 + sourceItems.length;
-      for (let r = 13; r < totalRow; r++) for (let c = 1; c <= 25; c++) worksheet.getRow(r).getCell(c).value = null;
+      for (let r = 13; r < totalRow; r++) {
+        const row = worksheet.getRow(r);
+        row.hidden = r > dataEnd;
+        for (let c = 1; c <= 25; c++) row.getCell(c).value = null;
+      }
       worksheet.getCell("A3").value = "Anexo I - " + (detail.contract.documentKind === "amendment" ? "Aditivo" : "Contrato") + " " + detail.contract.number + "\nPlanilha de Quantidades e Preços";
       worksheet.getCell("Y3").value = detail.contract.number;
       worksheet.getCell("M7").value = detail.contract.supplierName || "";
@@ -2610,35 +2760,60 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
       worksheet.getCell("F7").value = withLabor ? "" : "X";
       worksheet.getCell("F9").value = withLabor ? "X" : "";
       const excelDate = (value: string) => { const [y, m, d] = value.split("-").map(Number); return new Date(y, m - 1, d); };
+      const moneyFmt = '#,##0.00;[Red]-#,##0.00;–';
       sourceItems.forEach((item: any, index: number) => {
         const r = 13 + index;
-        const months = countContractMonthsInclusive(item.startsAt, item.endsAt);
+        const days = countContractBillableDays(item.startsAt, item.endsAt);
         const equipmentRate = Number(item.monthlyEquipmentCents || 0) / 100;
         const operatorRate = Number(item.monthlyOperatorCents || 0) / 100;
         const mobilization = Number(item.mobilizationCents || 0) / 100;
         const demobilization = Number(item.demobilizationCents || 0) / 100;
         const amendment = detail.contract.documentKind === "amendment";
-        const set = (col: number, value: unknown) => { worksheet.getRow(r).getCell(col).value = value as any; };
+        const equipmentSubtotal = Math.round(Number(item.monthlyEquipmentCents || 0) * days / 30) / 100;
+        const operatorSubtotal = Math.round(Number(item.monthlyOperatorCents || 0) * days / 30) / 100;
+        const itemSubtotal = equipmentSubtotal + operatorSubtotal + mobilization + demobilization;
+        const set = (col: number, value: unknown, numFmt?: string) => { const cell = worksheet.getRow(r).getCell(col); cell.value = value as any; if (numFmt) cell.numFmt = numFmt; };
         set(1, index + 1);
         set(2, [item.plate, item.description, item.brand, item.model, item.manufactureYear].filter(Boolean).join(" - "));
         set(3, item.billingMode || "Mensal"); set(4, excelDate(item.startsAt)); set(5, excelDate(item.endsAt));
-        set(6, mobilization ? 1 : 0); set(7, mobilization); set(8, { formula: "F" + r + "*G" + r });
-        set(9, demobilization ? 1 : 0); set(10, demobilization); set(11, { formula: "I" + r + "*J" + r });
-        set(12, { formula: "H" + r + "+K" + r });
+        set(6, mobilization ? 1 : 0, "#,##0.00"); set(7, mobilization, moneyFmt); set(8, { formula: "F" + r + "*G" + r, result: mobilization }, moneyFmt);
+        set(9, demobilization ? 1 : 0, "#,##0.00"); set(10, demobilization, moneyFmt); set(11, { formula: "I" + r + "*J" + r, result: demobilization }, moneyFmt);
+        set(12, { formula: "H" + r + "+K" + r, result: mobilization + demobilization }, moneyFmt);
         if (amendment) {
-          set(18, months); set(19, equipmentRate + operatorRate); set(20, { formula: "R" + r + "*S" + r }); set(21, { formula: "T" + r + "+L" + r });
+          set(18, days, "#,##0"); set(19, (equipmentRate + operatorRate) / 30, moneyFmt);
+          set(20, { formula: "R" + r + "*S" + r, result: equipmentSubtotal + operatorSubtotal }, moneyFmt);
+          set(21, { formula: "T" + r + "+L" + r, result: itemSubtotal }, moneyFmt);
         } else {
-          set(13, months); set(14, operatorRate); set(15, equipmentRate); set(16, { formula: "M" + r + "*O" + r });
-          set(17, { formula: "P" + r + "+M" + r + "*N" + r + "+L" + r });
+          set(13, days, "#,##0"); set(14, operatorRate ? operatorRate / 30 : null, moneyFmt); set(15, equipmentRate / 30, moneyFmt);
+          set(16, { formula: "M" + r + "*O" + r, result: equipmentSubtotal }, moneyFmt);
+          set(17, { formula: "P" + r + "+M" + r + "*N" + r + "+L" + r, result: itemSubtotal }, moneyFmt);
         }
-        set(22, months); set(23, equipmentRate + operatorRate); set(24, { formula: "L" + r });
-        set(25, { formula: "V" + r + "*W" + r + "+X" + r });
+        set(22, days, "#,##0"); set(23, (equipmentRate + operatorRate) / 30, moneyFmt);
+        set(24, { formula: "L" + r, result: mobilization + demobilization }, moneyFmt);
+        set(25, { formula: "V" + r + "*W" + r + "+X" + r, result: itemSubtotal }, moneyFmt);
+        worksheet.getCell("D" + r).numFmt = "dd/mm/yyyy"; worksheet.getCell("E" + r).numFmt = "dd/mm/yyyy";
       });
       const lastData = Math.max(13, dataEnd);
-      for (const col of ["H", "K", "Y"]) worksheet.getCell(col + totalRow).value = { formula: "SUM(" + col + "13:" + col + lastData + ")" };
-      worksheet.getCell("Q" + totalRow).value = detail.contract.documentKind === "amendment" ? null : { formula: "SUM(Q13:Q" + lastData + ")" };
-      worksheet.getCell("U" + totalRow).value = detail.contract.documentKind === "amendment" ? { formula: "SUM(U13:U" + lastData + ")" } : null;
-      worksheet.getCell("Y" + (totalRow + 2)).value = { formula: "Y" + totalRow };
+      const mobTotal = sourceItems.reduce((sum: number, item: any) => sum + Number(item.mobilizationCents || 0), 0) / 100;
+      const demobTotal = sourceItems.reduce((sum: number, item: any) => sum + Number(item.demobilizationCents || 0), 0) / 100;
+      const annexTotal = sourceItems.reduce((sum: number, item: any) => sum + Math.round((Number(item.monthlyEquipmentCents || 0) + Number(item.monthlyOperatorCents || 0)) * countContractBillableDays(item.startsAt, item.endsAt) / 30) / 100 + Number(item.mobilizationCents || 0) / 100 + Number(item.demobilizationCents || 0) / 100, 0);
+      const isAmendment = detail.contract.documentKind === "amendment";
+      const contractGroupTotal = isAmendment ? 0 : annexTotal;
+      const amendmentGroupTotal = isAmendment ? annexTotal : 0;
+      const setTotal = (address: string, formula: string, result: number) => {
+        const cell = worksheet.getCell(address);
+        cell.value = { formula, result };
+        cell.numFmt = moneyFmt;
+      };
+      setTotal("H" + totalRow, "SUM(H13:H" + lastData + ")", mobTotal);
+      setTotal("K" + totalRow, "SUM(K13:K" + lastData + ")", demobTotal);
+      setTotal("M" + totalRow, "SUM(Q13:Q" + lastData + ")", contractGroupTotal);
+      setTotal("R" + totalRow, "SUM(U13:U" + lastData + ")", amendmentGroupTotal);
+      setTotal("V" + totalRow, "SUM(Y13:Y" + lastData + ")", annexTotal);
+      worksheet.getCell("V" + (totalRow + 2)).value = "VALOR TOTAL DO ANEXO :";
+      worksheet.getCell("Y" + (totalRow + 2)).value = { formula: "V" + totalRow, result: annexTotal };
+      worksheet.getCell("Y" + (totalRow + 2)).numFmt = moneyFmt;
+      workbook.calcProperties.fullCalcOnLoad = true;
       const bytes = await workbook.xlsx.writeBuffer();
       const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob), link = document.createElement("a");
@@ -2663,9 +2838,13 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   const totalBalanceCents = rows.reduce((sum, row) => sum + Number(row.balanceCents || 0), 0);
   const tabRows = filtered.filter((row) => activeTab === "Aditivos" ? row.documentKind === "amendment" : activeTab === "Contratos" ? row.documentKind !== "amendment" : true);
   if (detail) return <div className="space-y-4">
+    <section className="panel space-y-3 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="font-bold">Acompanhamento da formalização</h3><p className="text-sm text-slate-500">Acompanhe o envio ao Jurídico e as pendências até a conclusão.</p></div><Badge tone={formalizationDraft.status === "completed" ? "green" : formalizationDraft.status === "pending_legal" || formalizationDraft.status === "pending_documents" || formalizationDraft.status === "pending_signature" ? "amber" : "blue"}>{formalizationDraft.status === "completed" ? "Concluído" : formalizationDraft.status === "pending_legal" ? "Pendente no Jurídico" : formalizationDraft.status === "pending_documents" ? "Aguardando documentos" : formalizationDraft.status === "pending_signature" ? "Aguardando assinatura" : formalizationDraft.status === "in_preparation" ? "Em preparação" : "Não informado"}</Badge></div>
+      <div className="grid gap-3 md:grid-cols-[1fr_2fr_auto]"><label className="text-sm font-semibold">Situação<select className="input mt-1" value={formalizationDraft.status} onChange={(e) => setFormalizationDraft({ ...formalizationDraft, status: e.target.value })}><option value="not_informed">Não informado</option><option value="in_preparation">Em preparação</option><option value="pending_legal">Pendente no Jurídico</option><option value="pending_documents">Aguardando documentos</option><option value="pending_signature">Aguardando assinatura</option><option value="completed">Concluído</option></select></label><label className="text-sm font-semibold">Pendência / observação<input className="input mt-1" value={formalizationDraft.note} onChange={(e) => setFormalizationDraft({ ...formalizationDraft, note: e.target.value })} placeholder="Ex.: falta documento ou assinatura" /></label><div className="flex items-end"><button disabled={saving} onClick={saveFormalizationStatus} className="btn-primary">{saving ? "Salvando..." : "Salvar andamento"}</button></div></div>
+    </section>
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-black">Contrato {detail.contract.number}</h2><p className="text-sm text-slate-500">Edição liberada a qualquer momento, com histórico de todas as movimentações.</p></div><div className="flex flex-wrap gap-2"><button onClick={printContractAnnexModel} className="btn-secondary"><Printer size={17}/>Imprimir Anexo I</button><button onClick={exportAnexoExcel} disabled={saving} className="btn-secondary"><FileSpreadsheet size={17}/>Baixar Excel</button><button onClick={startContractEdit} className="btn-primary"><Pencil size={17}/>Editar contrato</button><button onClick={() => { setDetail(null); setMessage(""); }} className="btn-secondary"><ChevronLeft size={17}/>Voltar aos contratos</button></div></div>
     {message && <div className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-900">{message}</div>}
-    {editingContract ? <form onSubmit={saveContract} className="panel p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"><FuelField label="Número"><input required className="input mt-1" value={contractDraft.number} onChange={(e) => setContractDraft({ ...contractDraft, number: e.target.value })}/></FuelField><FuelField label="Locador"><input required className="input mt-1" value={contractDraft.supplierName} onChange={(e) => setContractDraft({ ...contractDraft, supplierName: e.target.value })}/></FuelField><FuelField label="Objeto"><input required className="input mt-1" value={contractDraft.object} onChange={(e) => setContractDraft({ ...contractDraft, object: e.target.value })}/></FuelField><FuelField label="Obra"><input className="input mt-1" value={contractDraft.projectName} onChange={(e) => setContractDraft({ ...contractDraft, projectName: e.target.value })}/></FuelField><FuelField label="Status"><select className="input mt-1" value={contractDraft.status} onChange={(e) => setContractDraft({ ...contractDraft, status: e.target.value })}><option value="active">Ativo</option><option value="suspended">Suspenso</option><option value="closed">Encerrado</option></select></FuelField></div><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setEditingContract(false)} className="btn-secondary">Cancelar</button><button disabled={saving} className="btn-primary"><CheckCircle2 size={17}/>{saving ? "Salvando..." : "Salvar alterações"}</button></div></form> : <section className="panel p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><MaintenanceInfo label="Documento" value={detail.contract.documentKind === "amendment" ? `Aditivo ${detail.contract.amendmentNumber || ""}` : "Contrato inicial"}/><MaintenanceInfo label="Locador" value={detail.contract.supplierName || "—"}/><MaintenanceInfo label="Objeto" value={detail.contract.object}/><MaintenanceInfo label="Obra" value={detail.contract.projectName || "—"}/><MaintenanceInfo label="Vigência geral" value={`${detail.contract.startsAt.split("-").reverse().join("/")} a ${detail.contract.endsAt.split("-").reverse().join("/")}`}/><MaintenanceInfo label="Valor total" value={money(detail.contract.totalCents)}/><MaintenanceInfo label="Valor mensal" value={money(detail.contract.monthlyAmountCents)}/><MaintenanceInfo label="Status" value={detail.contract.status === "active" ? "Ativo" : detail.contract.status === "suspended" ? "Suspenso" : "Encerrado"}/></div></section>}
+    {editingContract ? <form onSubmit={saveContract} className="panel p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"><FuelField label="Número"><input required className="input mt-1" value={contractDraft.number} onChange={(e) => setContractDraft({ ...contractDraft, number: e.target.value })}/></FuelField><FuelField label="Locador"><input required className="input mt-1" value={contractDraft.supplierName} onChange={(e) => setContractDraft({ ...contractDraft, supplierName: e.target.value })}/></FuelField><FuelField label="Objeto"><input required className="input mt-1" value={contractDraft.object} onChange={(e) => setContractDraft({ ...contractDraft, object: e.target.value })}/></FuelField><FuelField label="Obra"><select required className="input mt-1" value={contractDraft.projectName} onChange={(e) => setContractDraft({ ...contractDraft, projectName: e.target.value })}><option value="">Selecione uma obra cadastrada</option>{projectOptions.map((row: any) => <option key={row.id} value={row.name}>{row.name}</option>)}</select></FuelField><FuelField label="Status"><select className="input mt-1" value={contractDraft.status} onChange={(e) => setContractDraft({ ...contractDraft, status: e.target.value })}><option value="active">Ativo</option><option value="suspended">Suspenso</option><option value="closed">Encerrado</option></select></FuelField></div><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setEditingContract(false)} className="btn-secondary">Cancelar</button><button disabled={saving} className="btn-primary"><CheckCircle2 size={17}/>{saving ? "Salvando..." : "Salvar alterações"}</button></div></form> : <section className="panel p-5"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><MaintenanceInfo label="Documento" value={detail.contract.documentKind === "amendment" ? `Aditivo ${detail.contract.amendmentNumber || ""}` : "Contrato inicial"}/><MaintenanceInfo label="Locador" value={detail.contract.supplierName || "—"}/><MaintenanceInfo label="Objeto" value={detail.contract.object}/><MaintenanceInfo label="Obra" value={detail.contract.projectName || "—"}/><MaintenanceInfo label="Vigência geral" value={`${detail.contract.startsAt.split("-").reverse().join("/")} a ${detail.contract.endsAt.split("-").reverse().join("/")}`}/><MaintenanceInfo label="Valor total" value={money(detail.contract.totalCents)}/><MaintenanceInfo label="Valor mensal" value={money(detail.contract.monthlyAmountCents)}/><MaintenanceInfo label="Status" value={detail.contract.status === "active" ? "Ativo" : detail.contract.status === "suspended" ? "Suspenso" : "Encerrado"}/></div></section>}
     <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Equipamentos do contrato</h3><p>{detail.items.length} equipamento(s) vinculado(s)</p></div><button onClick={() => setAdding(!adding)} className="btn-primary"><Plus size={17}/>{adding ? "Fechar inclusão" : "Adicionar equipamento"}</button></div>
       {adding && <form onSubmit={addEquipment} className="grid gap-3 border-b border-slate-200 bg-blue-50 p-4 md:grid-cols-2 xl:grid-cols-5"><FuelField label="Equipamento"><select required className="input mt-1 bg-white" value={item.equipmentId} onChange={(e) => setItem({ ...item, equipmentId: e.target.value })}><option value="">Selecione ID ou placa</option>{equipmentOptions.map((row) => <option key={row.id} value={row.id}>{row.fleetNumber} • {row.plate || "Sem placa"} • {row.description}</option>)}</select></FuelField><FuelField label="Data de entrada"><input required type="date" className="input mt-1 bg-white" value={item.startsAt} onChange={(e) => setItem({ ...item, startsAt: e.target.value })}/></FuelField><FuelField label="Data final"><input required type="date" className="input mt-1 bg-white" value={item.endsAt} onChange={(e) => setItem({ ...item, endsAt: e.target.value })}/></FuelField><FuelField label="Valor equipamento"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={item.monthlyEquipment} onChange={(e) => setItem({ ...item, monthlyEquipment: Number(e.target.value) })}/></FuelField><FuelField label="Valor operador / mão de obra"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={item.monthlyOperator} onChange={(e) => setItem({ ...item, monthlyOperator: Number(e.target.value) })}/></FuelField><FuelField label="Modalidade"><select className="input mt-1 bg-white" value={item.billingMode} onChange={(e) => setItem({ ...item, billingMode: e.target.value })}><option>Mensal</option><option>Diária</option><option>Horímetro</option><option>Quilômetro</option></select></FuelField><FuelField label="Mobilização"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={item.mobilization} onChange={(e) => setItem({ ...item, mobilization: Number(e.target.value) })}/></FuelField><FuelField label="Desmobilização"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={item.demobilization} onChange={(e) => setItem({ ...item, demobilization: Number(e.target.value) })}/></FuelField><div className="flex items-end xl:col-span-2"><button disabled={saving} className="btn-primary w-full justify-center"><CheckCircle2 size={17}/>{saving ? "Salvando..." : "Confirmar inclusão"}</button></div></form>}
       {editingItemId && <form onSubmit={saveItem} className="grid gap-3 border-b border-slate-200 bg-amber-50 p-4 md:grid-cols-2 xl:grid-cols-5"><FuelField label="Data de entrada"><input required type="date" className="input mt-1 bg-white" value={itemDraft.startsAt} onChange={(e) => setItemDraft({ ...itemDraft, startsAt: e.target.value })}/></FuelField><FuelField label="Data final"><input required type="date" className="input mt-1 bg-white" value={itemDraft.endsAt} onChange={(e) => setItemDraft({ ...itemDraft, endsAt: e.target.value })}/></FuelField><FuelField label="Modalidade"><select className="input mt-1 bg-white" value={itemDraft.billingMode} onChange={(e) => setItemDraft({ ...itemDraft, billingMode: e.target.value })}><option>Mensal</option><option>Diária</option><option>Horímetro</option><option>Quilômetro</option></select></FuelField><FuelField label="Valor equipamento"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={itemDraft.monthlyEquipment} onChange={(e) => setItemDraft({ ...itemDraft, monthlyEquipment: Number(e.target.value) })}/></FuelField><FuelField label="Valor operador"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={itemDraft.monthlyOperator} onChange={(e) => setItemDraft({ ...itemDraft, monthlyOperator: Number(e.target.value) })}/></FuelField><FuelField label="Mobilização"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={itemDraft.mobilization} onChange={(e) => setItemDraft({ ...itemDraft, mobilization: Number(e.target.value) })}/></FuelField><FuelField label="Desmobilização"><input type="number" min="0" step="0.01" className="input mt-1 bg-white" value={itemDraft.demobilization} onChange={(e) => setItemDraft({ ...itemDraft, demobilization: Number(e.target.value) })}/></FuelField><FuelField label="Situação"><select className="input mt-1 bg-white" value={itemDraft.status} onChange={(e) => setItemDraft({ ...itemDraft, status: e.target.value })}><option value="mobilized">Mobilizado</option><option value="demobilized">Desmobilizado</option></select></FuelField><div className="flex items-end gap-2 xl:col-span-2"><button type="button" onClick={() => setEditingItemId("")} className="btn-secondary flex-1 justify-center">Cancelar</button><button disabled={saving} className="btn-primary flex-1 justify-center"><CheckCircle2 size={17}/>{saving ? "Salvando..." : "Salvar item"}</button></div></form>}
@@ -2684,7 +2863,7 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   <label className="text-sm font-semibold">{createDraft.documentKind === "amendment" ? "Nº do aditivo" : "Nº do contrato"}<input required readOnly={createDraft.documentKind === "amendment"} className="input mt-1" value={createDraft.number} onChange={(e) => setCreateDraft({ ...createDraft, number: e.target.value })}/></label>
   <label className="text-sm font-semibold">{createDraft.documentKind === "amendment" ? "Contrato principal" : "Modalidade"}{createDraft.documentKind === "amendment" ? <select required className="input mt-1" value={createDraft.parentContractId} onChange={(e) => { const parent = rows.find((row: any) => row.id === e.target.value); const nextNo = rows.filter((row: any) => row.parentContractId === e.target.value).length + 1; setCreateDraft({ ...createDraft, parentContractId: e.target.value, amendmentNumber: nextNo, number: parent ? parent.number + "-A" + nextNo : "", contractType: parent?.contractType || createDraft.contractType }); }}><option value="">Selecione</option>{rows.filter((row: any) => row.documentKind !== "amendment").map((row: any) => <option key={row.id} value={row.id}>{row.number} · {row.supplierName} · {row.object}</option>)}</select> : <select required className="input mt-1" value={createDraft.contractType} onChange={(e) => setCreateDraft({ ...createDraft, contractType: e.target.value, monthlyOperator: "" })}><option>Locação sem mão de obra</option><option>Locação com mão de obra</option></select>}</label>
   {createDraft.documentKind !== "amendment" && <label className="text-sm font-semibold">Locadora / fornecedora<select required className="input mt-1" value={createDraft.supplierId} onChange={(e) => setCreateDraft({ ...createDraft, supplierId: e.target.value })}><option value="">Selecione</option>{supplierOptions.map((row: any) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>}
-  <label className="text-sm font-semibold">Obra / projeto<input className="input mt-1" value={createDraft.projectName} onChange={(e) => setCreateDraft({ ...createDraft, projectName: e.target.value })}/></label>
+  <label className="text-sm font-semibold">Obra / projeto<select required className="input mt-1" value={createDraft.projectName} onChange={(e) => setCreateDraft({ ...createDraft, projectName: e.target.value })}><option value="">Selecione uma obra cadastrada</option>{projectOptions.map((row: any) => <option key={row.id} value={row.name}>{row.code ? `${row.code} — ` : ""}{row.name}</option>)}</select></label>
   <label className="text-sm font-semibold sm:col-span-2">Objeto<input required className="input mt-1" value={createDraft.object} onChange={(e) => setCreateDraft({ ...createDraft, object: e.target.value })}/></label>
   <label className="text-sm font-semibold">Início da vigência<input required type="date" className="input mt-1" value={createDraft.startsAt} onChange={(e) => setCreateDraft({ ...createDraft, startsAt: e.target.value })}/></label>
   <label className="text-sm font-semibold">Fim da vigência<input required type="date" min={createDraft.startsAt || undefined} className="input mt-1" value={createDraft.endsAt} onChange={(e) => setCreateDraft({ ...createDraft, endsAt: e.target.value })}/></label>
@@ -2693,7 +2872,7 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   {createDraft.contractType === "Locação com mão de obra" && <label className="text-sm font-semibold">Valor mensal do operador<input type="number" min="0" step="0.01" className="input mt-1" value={createDraft.monthlyOperator} onChange={(e) => setCreateDraft({ ...createDraft, monthlyOperator: e.target.value })}/></label>}
   <label className="text-sm font-semibold">Mobilização (uma vez)<input type="number" min="0" step="0.01" className="input mt-1" value={createDraft.mobilization} onChange={(e) => setCreateDraft({ ...createDraft, mobilization: e.target.value })}/></label>
   <label className="text-sm font-semibold">Desmobilização (uma vez)<input type="number" min="0" step="0.01" className="input mt-1" value={createDraft.demobilization} onChange={(e) => setCreateDraft({ ...createDraft, demobilization: e.target.value })}/></label>
-</div><div className="flex justify-end gap-2"><button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancelar</button><button disabled={saving} className="btn-primary"><Plus size={16}/>{saving ? "Salvando..." : createDraft.documentKind === "amendment" ? "Cadastrar aditivo" : "Cadastrar contrato"}</button></div></form>}<section className="panel overflow-hidden"><div className="flex flex-wrap gap-3 border-b border-slate-200 p-4"><div className="relative min-w-[240px] flex-1"><Search className="absolute left-3 top-3 text-slate-400" size={18}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar número, locador ou objeto..." className="input pl-10"/></div><select className="input w-auto" value={companyId} onChange={(e) => { setCompanyId(e.target.value); setDetail(null); load(e.target.value); }}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select><button onClick={() => { setCreateDraft({ ...createDraft, documentKind: "initial", parentContractId: "", amendmentNumber: 0, number: "" }); setShowCreate(!showCreate); }} className="btn-primary"><Plus size={16}/>Novo contrato</button><button onClick={() => { setCreateDraft({ ...createDraft, documentKind: "amendment", parentContractId: "", amendmentNumber: 0, number: "", supplierId: "" }); setActiveTab("Aditivos"); setShowCreate(true); }} className="btn-secondary"><Plus size={16}/>Novo aditivo</button><button onClick={() => load()} className="btn-secondary"><RefreshCw size={16}/>Atualizar</button></div><div className="overflow-x-auto"><table className="min-w-[1100px]"><thead><tr><th>Documento</th><th>Contrato / aditivo</th><th>Locador / objeto</th><th>Obra</th><th>Equipamentos</th><th>Vigência geral</th><th>Saldo</th><th>Status</th><th>Ações</th></tr></thead><tbody>{tabRows.map((row) => { const days = Math.ceil((new Date(`${row.endsAt}T12:00:00`).getTime() - today.getTime()) / 86400000); return <tr key={row.id}><td><Badge tone={row.documentKind === "amendment" ? "blue" : "green"}>{row.documentKind === "amendment" ? `Aditivo ${row.amendmentNumber || ""}` : "Contrato inicial"}</Badge></td><td className="font-bold text-blue-800">{row.number}</td><td><div className="font-semibold">{row.supplierName || "Locador não informado"}</div><div className="text-xs text-slate-500">{row.object}</div></td><td>{row.projectName || "—"}</td><td>{row.equipmentCount || 0}</td><td>{row.startsAt?.split("-").reverse().join("/")} a {row.endsAt?.split("-").reverse().join("/")}<div className={`text-xs ${days <= 10 ? "font-bold text-red-700" : "text-slate-500"}`}>{days >= 0 ? `${days} dias restantes` : "Vencido"}</div></td><td className="font-semibold">{money(row.balanceCents)}</td><td><Badge tone={days < 0 ? "red" : days <= 10 ? "amber" : "green"}>{days < 0 ? "Vencido" : days <= 10 ? "A vencer" : "Ativo"}</Badge></td><td><div className="flex flex-wrap gap-2"><button onClick={() => openContract(row.id)} className="row-action"><FileText size={15}/>Abrir / Detalhes</button><DeletionRequestButton companyId={companyId} module="contracts" entityType="contract" entityId={row.id} label={`Contrato ${row.number} • ${row.supplierName || row.object}`} snapshot={row} onSent={setMessage}/></div></td></tr>; })}{!tabRows.length && <tr><td colSpan={9} className="py-10 text-center text-slate-500">Nenhum contrato cadastrado nesta empresa.</td></tr>}</tbody></table></div></section></div>;
+</div><div className="flex justify-end gap-2"><button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancelar</button><button disabled={saving} className="btn-primary"><Plus size={16}/>{saving ? "Salvando..." : createDraft.documentKind === "amendment" ? "Cadastrar aditivo" : "Cadastrar contrato"}</button></div></form>}<section className="panel overflow-hidden"><div className="flex flex-wrap gap-3 border-b border-slate-200 p-4"><div className="relative min-w-[240px] flex-1"><Search className="absolute left-3 top-3 text-slate-400" size={18}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar número, locador ou objeto..." className="input pl-10"/></div><select className="input w-auto" value={companyId} onChange={(e) => { setCompanyId(e.target.value); setDetail(null); load(e.target.value); }}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select><button onClick={() => { setCreateDraft({ ...createDraft, documentKind: "initial", parentContractId: "", amendmentNumber: 0, number: "" }); setShowCreate(!showCreate); }} className="btn-primary"><Plus size={16}/>Novo contrato</button><button onClick={() => { setCreateDraft({ ...createDraft, documentKind: "amendment", parentContractId: "", amendmentNumber: 0, number: "", supplierId: "" }); setActiveTab("Aditivos"); setShowCreate(true); }} className="btn-secondary"><Plus size={16}/>Novo aditivo</button><button onClick={() => load()} className="btn-secondary"><RefreshCw size={16}/>Atualizar</button></div><div className="overflow-x-auto"><table className="min-w-[1100px]"><thead><tr><th>Documento</th><th>Contrato / aditivo</th><th>Locador / objeto</th><th>Obra</th><th>Equipamentos</th><th>Vigência geral</th><th>Saldo</th><th>Status</th><th>Acompanhamento</th><th>Ações</th></tr></thead><tbody>{tabRows.map((row) => { const days = Math.ceil((new Date(`${row.endsAt}T12:00:00`).getTime() - today.getTime()) / 86400000); return <tr key={row.id}><td><Badge tone={row.documentKind === "amendment" ? "blue" : "green"}>{row.documentKind === "amendment" ? `Aditivo ${row.amendmentNumber || ""}` : "Contrato inicial"}</Badge></td><td className="font-bold text-blue-800">{row.number}</td><td><div className="font-semibold">{row.supplierName || "Locador não informado"}</div><div className="text-xs text-slate-500">{row.object}</div></td><td>{row.projectName || "—"}</td><td>{row.equipmentCount || 0}</td><td>{row.startsAt?.split("-").reverse().join("/")} a {row.endsAt?.split("-").reverse().join("/")}<div className={`text-xs ${days <= 10 ? "font-bold text-red-700" : "text-slate-500"}`}>{days >= 0 ? `${days} dias restantes` : "Vencido"}</div></td><td className="font-semibold">{money(row.balanceCents)}</td><td><Badge tone={days < 0 ? "red" : days <= 10 ? "amber" : "green"}>{days < 0 ? "Vencido" : days <= 10 ? "A vencer" : "Ativo"}</Badge></td><td><Badge tone={row.formalizationStatus === "completed" ? "green" : row.formalizationStatus?.startsWith("pending_") ? "amber" : "blue"}>{row.formalizationStatus === "completed" ? "Conclu\u00eddo" : row.formalizationStatus === "pending_legal" ? "Pendente no Jur\u00eddico" : row.formalizationStatus === "pending_documents" ? "Aguardando documentos" : row.formalizationStatus === "pending_signature" ? "Aguardando assinatura" : row.formalizationStatus === "in_preparation" ? "Em prepara\u00e7\u00e3o" : "N\u00e3o informado"}</Badge></td><td><div className="flex flex-wrap gap-2"><button onClick={() => openContract(row.id)} className="row-action"><FileText size={15}/>Abrir / Detalhes</button><DeletionRequestButton companyId={companyId} module="contracts" entityType="contract" entityId={row.id} label={`Contrato ${row.number} • ${row.supplierName || row.object}`} snapshot={row} onSent={setMessage}/></div></td></tr>; })}{!tabRows.length && <tr><td colSpan={10} className="py-10 text-center text-slate-500">Nenhum contrato cadastrado nesta empresa.</td></tr>}</tbody></table></div></section></div>;
 }
 
 function ContractsOld({ query, setQuery, setModal }: { query: string; setQuery: (s: string) => void; contracts: any[]; setModal: (s: string) => void }) {
@@ -4057,11 +4236,16 @@ function ReportsPage() {
   const [periodMode, setPeriodMode] = useState("21-20");
   const [referenceMonth, setReferenceMonth] = useState("2026-11");
   const [report, setReport] = useState("Gastos por fornecedor e notas pagas");
+  const [dailyPartEntries, setDailyPartEntries] = useState<any[]>([]);
+  const [dailyEquipmentFilter, setDailyEquipmentFilter] = useState("");
+  const [dailyWorksiteFilter, setDailyWorksiteFilter] = useState("");
   const [data, setData] = useState<any>(null);
   const [rows, setRows] = useState<any[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const money = (cents: any = 0) => (Number(cents || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const dailyReadingTotal = (start: any, end: any): number | null => start == null || end == null || start === "" || end === "" ? null : Math.round((Number(end) - Number(start) + Number.EPSILON) * 100) / 100;
+  const dailyReadingLabel = (value: number | null) => value == null ? "-" : value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   function applyPeriod(mode: string, month = referenceMonth) { setPeriodMode(mode); setReferenceMonth(month); if (mode === "custom") return; const [year, number] = month.split("-").map(Number); if (mode === "calendar") { const last = new Date(Date.UTC(year, number, 0)).getUTCDate(); setFrom(`${month}-01`); setTo(`${month}-${String(last).padStart(2,"0")}`); } else { const previous = new Date(Date.UTC(year, number - 2, 21)); setFrom(previous.toISOString().slice(0,10)); setTo(`${month}-20`); } }
   const reportOptions = [
     ["Produtivo x Improdutivo", "Produtividade, disposição, manutenção e ranking por equipamento"],
@@ -4072,9 +4256,26 @@ function ReportsPage() {
     ["Controle de baterias", "Certificado, nota fiscal e aplicação"],
     ["Custo de veículos", "Locação, combustível, serviços e manutenção"],
     ["Contrato x despesas", "Valor contratual, despesas vinculadas e saldo"],
+    ["Relatório analítico de Partes Diárias", "Por equipamento e canteiro, com horímetro e KM"],
   ];
   useEffect(() => { fetch("/api/companies").then((r) => r.json()).then((payload) => { const list = payload.companies || []; setCompanies(list); if (list[0]) setCompanyId(list[0].id); }).catch(() => setMessage("Não foi possível carregar as empresas.")); }, []);
   function displayRows(payload: any, selected = report) {
+    if (selected.includes("Partes")) {
+      const filtered = dailyPartEntries
+        .filter((r: any) => !dailyEquipmentFilter || r.equipmentId === dailyEquipmentFilter)
+        .filter((r: any) => !dailyWorksiteFilter || (r.projectName || r.costCenter || "") === dailyWorksiteFilter);
+      const counts = filtered.reduce((acc: Record<string, number>, row: any) => { acc[row.entryDate] = (acc[row.entryDate] || 0) + 1; return acc; }, {});
+      return filtered.map((r: any) => ({
+        Data: r.entryDate?.split("-").reverse().join("/"), Frota: r.fleetNumber, Placa: r.plate || "-",
+        Equipamento: r.description, Canteiro: r.projectName || r.costCenter || "-", Situação: r.status,
+        "Total de partes lançadas no dia": counts[r.entryDate] || 0,
+        "Horímetro inicial": r.hourmeterStart ?? "-", "Horímetro final": r.hourmeterEnd ?? "-",
+        "Total horímetro": dailyReadingTotal(r.hourmeterStart, r.hourmeterEnd) == null ? "-" : dailyReadingLabel(dailyReadingTotal(r.hourmeterStart, r.hourmeterEnd)),
+        "KM inicial": r.kilometerStart ?? "-", "KM final": r.kilometerEnd ?? "-",
+        "Total KM": dailyReadingTotal(r.kilometerStart, r.kilometerEnd) == null ? "-" : dailyReadingLabel(dailyReadingTotal(r.kilometerStart, r.kilometerEnd)),
+        "Nº O.S.": r.maintenanceOrderNumber || "-", Observação: r.observation || "-",
+      }));
+    }
     if (selected === "Produtivo x Improdutivo") return (payload.productivityByType || []).map((r: any, index: number) => ({ Ranking: index + 1, "Tipo de equipamento": r.equipmentType, Trabalhado: r.worked, Disposição: r.idle, Manutenção: r.maintenance, Abono: r.allowance, Improdutivo: r.unproductive, Total: r.total, "% Produtivo": `${(r.productiveRate * 100).toFixed(1)}%`, "% Improdutivo": `${(r.unproductiveRate * 100).toFixed(1)}%`, "% Disposição": `${(r.idleRate * 100).toFixed(1)}%`, "% Manutenção": `${(r.maintenanceRate * 100).toFixed(1)}%` }));
     if (selected === "Dashboard mensal de frota") return [
       ...(payload.monthlyPanel?.equipmentByType || []).map((r: any) => ({ Grupo: "Equipamentos por tipo", Indicador: r.name, Quantidade: r.total, Valor: "—" })),
@@ -4094,15 +4295,22 @@ function ReportsPage() {
     if (selected === "Custo de veículos") return (payload.vehicleCosts || []).map((r: any) => ({ Frota: r.fleetNumber, Placa: r.plate || "—", Equipamento: r.description, Locação: money(r.rentCents), Combustível: money(r.fuelCents), "Serviços rápidos": money(r.quickCents), "Manutenção direta": money(r.directMaintenanceCents), Total: money(r.totalCents) }));
     return (payload.contractExpenses || []).map((r: any) => ({ Contrato: r.contractNumber, Objeto: r.contractObject, Locador: r.supplierName || "—", Obra: r.projectName || "—", "Valor contratual": money(r.contractCents), Despesas: money(r.expenseCents), Saldo: money(r.balanceCents) }));
   }
-  async function generate(selected = report) { if (!companyId) return setMessage("Selecione uma empresa."); setLoading(true); setMessage(""); try { const response = await fetch(`/api/reports?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório."); setData(payload); setRows(displayRows(payload, selected)); } catch (error: any) { setRows([]); setMessage(error.message || "Não foi possível gerar o relatório."); } finally { setLoading(false); } }
+  useEffect(() => { if (report.includes("Partes") && dailyPartEntries.length) setRows(displayRows({}, report)); }, [dailyPartEntries, dailyEquipmentFilter, dailyWorksiteFilter, report]);
+  async function generate(selected = report) { if (!companyId) return setMessage("Selecione uma empresa."); setLoading(true); setMessage(""); try { if (selected.includes("Partes")) { const response = await fetch(`/api/daily-parts?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório de Partes Diárias."); setDailyPartEntries(payload.entries || []); setRows(displayRows({}, selected)); return; } const response = await fetch(`/api/reports?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório."); setData(payload); setRows(displayRows(payload, selected)); } catch (error: any) { setRows([]); setMessage(error.message || "Não foi possível gerar o relatório."); } finally { setLoading(false); } }
   function selectReport(name: string) { setReport(name); if (data) setRows(displayRows(data, name)); }
   function exportExcel() { if (!rows.length) return setMessage("Gere o relatório antes de exportar."); const headers = Object.keys(rows[0]); const csv = [headers.join(";"), ...rows.map((row) => headers.map((key) => `"${String(row[key] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n"); const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${report.replace(/\s+/g, "_")}_${from}_${to}.csv`; anchor.click(); URL.revokeObjectURL(url); }
   const summary = data?.summary || {};
+  const dailyEquipmentOptions = Array.from(new Map(dailyPartEntries.map((row: any) => [row.equipmentId, row])).values());
+  const dailyWorksiteOptions = Array.from(new Set(dailyPartEntries.map((row: any) => row.projectName || row.costCenter).filter(Boolean)));
   return <div className="space-y-5">
     <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-2xl font-black">Central de relatórios</h2><p className="text-slate-500">Relatórios financeiros e operacionais formados pelos lançamentos reais do sistema.</p></div><Badge tone="blue">PowerChina</Badge></div><div className="mt-5 grid gap-3 md:grid-cols-3 xl:grid-cols-6"><FuelField label="Empresa"><select className="input mt-1" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select></FuelField><FuelField label="Tipo de período"><select className="input mt-1" value={periodMode} onChange={(e)=>applyPeriod(e.target.value)}><option value="21-20">Medição — dia 21 ao dia 20</option><option value="calendar">Mês civil — dia 01 ao último dia</option><option value="custom">Personalizado</option></select></FuelField><FuelField label="Mês de referência"><input type="month" className="input mt-1" value={referenceMonth} onChange={(e)=>applyPeriod(periodMode,e.target.value)}/></FuelField><FuelField label="Período inicial"><input type="date" className="input mt-1" value={from} onChange={(e) => {setFrom(e.target.value);setPeriodMode("custom");}}/></FuelField><FuelField label="Período final"><input type="date" className="input mt-1" value={to} onChange={(e) => {setTo(e.target.value);setPeriodMode("custom");}}/></FuelField><div className="flex items-end"><button onClick={() => generate()} disabled={loading} className="btn-primary w-full justify-center"><Search size={17}/>{loading ? "Gerando..." : "Gerar relatório"}</button></div></div>{message && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{message}</div>}</section>
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Mini label="Notas fiscais no período" value={money(summary.invoiceTotalCents || 0)}/><Mini label="Notas pagas" value={money(summary.invoicePaidCents || 0)}/><Mini label="Custo operacional" value={money(summary.companyOperatingCostCents || 0)}/><Mini label="Custo total da empresa" value={money(summary.totalCompanyCostCents || 0)}/></section>
     <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Selecione o relatório</h3><p>Clique em uma opção e depois em Gerar relatório.</p></div></div><div className="grid gap-px bg-slate-200 md:grid-cols-2 xl:grid-cols-3">{reportOptions.map(([name, description]) => <button key={name} onClick={() => selectReport(name)} className={`bg-white p-4 text-left hover:bg-slate-50 ${report === name ? "ring-2 ring-inset ring-blue-500 bg-blue-50" : ""}`}><div className="flex items-center gap-3"><div className="iconbox blue"><FileSpreadsheet size={19}/></div><div><div className="font-bold">{name}</div><div className="text-sm text-slate-500">{description}</div></div></div></button>)}</div></section>
-    <section className="panel overflow-hidden"><div className="panel-head"><div><h3>{report}</h3><p>{rows.length} registro(s) de {from.split("-").reverse().join("/")} a {to.split("-").reverse().join("/")}</p></div><div className="flex gap-2"><button onClick={() => window.print()} className="btn-secondary"><Printer size={17}/>PDF / imprimir</button><button onClick={exportExcel} className="btn-primary"><FileSpreadsheet size={17}/>Excel</button></div></div><div className="overflow-x-auto">{rows.length ? <table className="min-w-[1000px]"><thead><tr>{Object.keys(rows[0]).map((key) => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{Object.keys(rows[0]).map((key) => <td key={key}>{String(row[key] ?? "")}</td>)}</tr>)}</tbody></table> : <div className="p-10 text-center text-slate-500">Selecione os filtros e clique em “Gerar relatório”.</div>}</div></section>
+    <section className="panel overflow-hidden">
+      <div className="panel-head"><div><h3>{report}</h3><p>{rows.length} registros de {from.split("-").reverse().join("/")} a {to.split("-").reverse().join("/")}</p></div><div className="flex gap-2"><button onClick={() => window.print()} className="btn-secondary"><Printer size={17}/>PDF / imprimir</button><button onClick={exportExcel} className="btn-primary"><FileSpreadsheet size={17}/>Excel</button></div></div>
+      {report.includes("Partes") && <div className="grid gap-3 border-b border-slate-200 p-4 md:grid-cols-2"><FuelField label="Equipamento"><select className="input mt-1" value={dailyEquipmentFilter} onChange={(e) => setDailyEquipmentFilter(e.target.value)}><option value="">Todos os equipamentos</option>{dailyEquipmentOptions.map((row: any) => <option key={row.equipmentId} value={row.equipmentId}>{row.fleetNumber} / {row.plate || "-"} - {row.description}</option>)}</select></FuelField><FuelField label="Canteiro"><select className="input mt-1" value={dailyWorksiteFilter} onChange={(e) => setDailyWorksiteFilter(e.target.value)}><option value="">Todos os canteiros</option>{dailyWorksiteOptions.map((site: any) => <option key={site} value={site}>{site}</option>)}</select></FuelField></div>}
+      <div className="overflow-x-auto">{rows.length ? <><table className="min-w-[1000px]"><thead><tr>{Object.keys(rows[0]).map((key) => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{Object.keys(rows[0]).map((key) => <td key={key}>{String(row[key] ?? "")}</td>)}</tr>)}</tbody></table>{report.includes("Partes") && <div className="border-t border-slate-200 bg-slate-50 p-4 text-right font-bold">Total de partes diarias lancadas: {dailyPartEntries.filter((r: any) => !dailyEquipmentFilter || r.equipmentId === dailyEquipmentFilter).filter((r: any) => !dailyWorksiteFilter || (r.projectName || r.costCenter || "") === dailyWorksiteFilter).length}</div>}</> : <div className="p-10 text-center text-slate-500">Selecione os filtros e clique em Gerar relatorio.</div>}</div>
+    </section>
   </div>;
 }
 
@@ -5027,7 +5235,7 @@ function ContractForm({ close }: { close: () => void }) {
     if (!response.ok) return setMessage(data.error || "Não foi possível cadastrar o locador/fornecedor.");
     setForm((current) => ({ ...current, supplierName: data.supplier.name })); setNewSupplier({ code: "", name: "", description: "" }); setShowSupplierForm(false); await loadOptions(form.companyId); setMessage("Locador/fornecedor cadastrado e selecionado no contrato.");
   }
-  function monthsBetween(start: string, end: string) { if (!start || !end) return 0; const a = new Date(`${start}T12:00:00`), b = new Date(`${end}T12:00:00`); return Math.max(1, (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + b.getUTCMonth() - a.getUTCMonth()); }
+  function monthsBetween(start: string, end: string) { if (!start || !end) return 0; try { return countContractMonthsInclusive(start, end); } catch { return 0; } }
   const includesOperator = form.contractType.toLowerCase().includes("operador") || form.contractType.toLowerCase().includes("mão de obra");
   const total = items.reduce((sum, row) => sum + ((Number(row.monthlyEquipment) + Number(row.monthlyOperator)) * monthsBetween(row.startsAt, row.endsAt) + Number(row.mobilization) + Number(row.demobilization)) * Number(row.quantity || 1), 0);
   async function save(event: React.FormEvent) {

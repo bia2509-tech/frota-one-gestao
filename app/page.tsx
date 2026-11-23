@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FuelManagementPage from "@/components/fuel-management-page";
 import { countContractMonthsInclusive } from "@/lib/contracts-finance";
@@ -2520,8 +2520,10 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   async function load(id = companyId) { if (!id) return; const [response, optionsResponse] = await Promise.all([fetch(`/api/contracts?companyId=${encodeURIComponent(id)}`), fetch(`/api/contracts?companyId=${encodeURIComponent(id)}&options=1`)]), data = await response.json(), options = await optionsResponse.json(); if (response.ok) setRows(data.contracts || []); else setMessage(data.error || "Não foi possível carregar os contratos."); if (optionsResponse.ok) { setEquipmentOptions(options.equipment || []); setSupplierOptions((options.suppliers || []).filter((row: any) => row.id && row.name && Object.prototype.hasOwnProperty.call(row, "tradeName"))); } }
   async function createContract(event: React.FormEvent) {
     event.preventDefault();
-    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;\n    const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
-    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");\n    if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
+    const parent = createDraft.documentKind === "amendment" ? rows.find((row: any) => row.id === createDraft.parentContractId) : null;
+    const supplier = supplierOptions.find((row: any) => row.id === (parent?.supplierId || createDraft.supplierId));
+    if (createDraft.documentKind === "amendment" && !parent) return setMessage("Selecione o contrato inicial para este aditivo.");
+    if (!supplier && !parent?.supplierName) return setMessage("Selecione uma locadora/fornecedora cadastrada.");
     if (!createDraft.equipmentId) return setMessage("Selecione o equipamento já cadastrado na Frota.");
     setSaving(true); setMessage("");
     const normalizedType = /com.*(mão|operador)/i.test(String(parent?.contractType || createDraft.contractType)) ? "Locação com mão de obra" : "Locação sem mão de obra";
@@ -5374,3 +5376,4 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
+

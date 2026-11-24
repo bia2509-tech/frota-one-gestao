@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { auditLog, contractDocuments, contractEquipmentItems, contracts, equipment, masterData, measurements, suppliers } from "@/db/schema";
+import { auditLog, companyUsers, contractDocuments, contractEquipmentItems, contracts, equipment, masterData, measurements, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
 import { calculateEquipmentCommitmentCents } from "@/lib/contracts-finance";
 
@@ -17,7 +17,18 @@ export async function GET(request: Request) {
         db.select().from(auditLog).where(and(eq(auditLog.companyId, companyId), eq(auditLog.entity, "contract"), eq(auditLog.entityId, contractId))).orderBy(desc(auditLog.createdAt)).limit(50),
         db.select().from(contractDocuments).where(and(eq(contractDocuments.companyId, companyId), eq(contractDocuments.contractId, contractId))).orderBy(desc(contractDocuments.uploadedAt)),
       ]);
-      return Response.json({ contract, items, history, documents });
+      const userRows = await db.select({ id: companyUsers.id, userId: companyUsers.userId, displayName: companyUsers.displayName, email: companyUsers.email })
+        .from(companyUsers)
+        .where(eq(companyUsers.companyId, companyId));
+      const names = new Map<string, string>();
+      for (const user of userRows) {
+        const label = user.displayName?.trim() || user.email?.trim() || "Usuário";
+        names.set(user.id, label);
+        names.set(`local:${user.id}`, label);
+        names.set(user.userId, label);
+      }
+      const historyWithNames = history.map((entry) => ({ ...entry, userName: names.get(entry.userId) || entry.userId.replace(/^local:/, "Usuário ") }));
+      return Response.json({ contract, items, history: historyWithNames, documents });
     }
     if (url.searchParams.get("options") === "1") {
       const [supplierRows, supplierMasterRows, equipmentRows, contractRows] = await Promise.all([

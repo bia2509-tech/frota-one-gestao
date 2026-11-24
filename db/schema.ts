@@ -29,6 +29,9 @@ export const companyUsers = sqliteTable(
     userId: text("user_id").notNull(),
     displayName: text("display_name"),
     email: text("email"),
+    passwordHash: text("password_hash"),
+    inviteTokenHash: text("invite_token_hash"),
+    inviteExpiresAt: text("invite_expires_at"),
     role: text("role", {
       enum: ["super_admin", "company_admin", "manager", "operator", "viewer"],
     }).notNull(),
@@ -39,6 +42,19 @@ export const companyUsers = sqliteTable(
     uniqueIndex("uidx_company_users_company_email").on(t.companyId, t.email),
     index("idx_company_users_user").on(t.userId),
   ],
+);
+
+export const authSessions = sqliteTable(
+  "auth_sessions",
+  {
+    id: text("id").primaryKey(),
+    companyUserId: text("company_user_id").notNull().references(() => companyUsers.id),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull(),
+    revokedAt: text("revoked_at"),
+  },
+  (t) => [uniqueIndex("uidx_auth_sessions_token_hash").on(t.tokenHash), index("idx_auth_sessions_user_expiry").on(t.companyUserId, t.expiresAt)],
 );
 
 export const contracts = sqliteTable(
@@ -64,6 +80,8 @@ export const contracts = sqliteTable(
     monthlyLaborCents: integer("monthly_labor_cents").notNull().default(0),
     monthlyAmountCents: integer("monthly_amount_cents").notNull().default(0),
     status: text("status").notNull(),
+    formalizationStatus: text("formalization_status").notNull().default("not_informed"),
+    formalizationNote: text("formalization_note"),
   },
   (t) => [
     uniqueIndex("uidx_contracts_company_number").on(t.companyId, t.number),

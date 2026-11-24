@@ -14,6 +14,11 @@ export function countContractMonthsInclusive(startsAt: string, endsAt: string): 
   return Math.max(1, monthDifference + (end.getUTCDate() >= start.getUTCDate() ? 1 : 0));
 }
 
+/** Billing periods in the Anexo I use 30-day months, including a partial month. */
+export function countContractBillableDays(startsAt: string, endsAt: string): number {
+  return countContractMonthsInclusive(startsAt, endsAt) * 30;
+}
+
 export type EquipmentCommitmentInput = {
   startsAt: string;
   endsAt: string;

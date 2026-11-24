@@ -253,6 +253,20 @@
       "when": 1795300000000,
       "tag": "0035_contract_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1795310000000,
+      "tag": "0036_contract_formalization_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1795320000000,
+      "tag": "0037_user_password_login",
+      "breakpoints": true
     }
   ]
 }

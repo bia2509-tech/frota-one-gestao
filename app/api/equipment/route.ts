@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     }
     if (!fleetNumber && !plate) {
       const rows = await getDb().select().from(equipment).where(and(eq(equipment.companyId, companyId), ne(equipment.status, "demo")));
-      return Response.json({ equipment: dailyList ? rows.map((row) => ({ id: row.id, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, status: row.status, operatorName: row.operatorName, currentKilometer: row.currentKilometer, currentHourmeter: row.currentHourmeter })) : rows });
+      return Response.json({ equipment: dailyList ? rows.map((row) => ({ id: row.id, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, projectName: row.projectName, frontName: row.frontName, costCenter: row.costCenter, status: row.status, operatorName: row.operatorName, currentKilometer: row.currentKilometer, currentHourmeter: row.currentHourmeter })) : rows });
     }
 
     let found;

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLog, companies, companyUsers, equipment, fiscalInvoiceItems, fiscalInvoicePayments, fiscalInvoices, fuelEntries, masterData, products } from "@/db/schema";
 import { apiError, requireApiUser } from "@/lib/tenant";
@@ -13,23 +13,24 @@ export async function GET() {
   try {
     const user = await requireApiUser();
     const db = getDb();
+    const isLocalAccount = user.userId.startsWith("local:");
     const sepcoTaxId = "14139738002001";
     let [sepco] = await db.select().from(companies).where(eq(companies.taxId, sepcoTaxId)).limit(1);
     if (!sepco) {
       const id = crypto.randomUUID(), now = new Date().toISOString();
       await db.batch([
         db.insert(companies).values({ id, legalName: "SEPCO1 CONSTRUCOES DO BRASIL LTDA", tradeName: "SEPCO1", taxId: sepcoTaxId, active: true, createdAt: now }).onConflictDoNothing(),
-        db.insert(companyUsers).values({ id: crypto.randomUUID(), companyId: id, userId: user.userId, displayName: user.displayName || null, email: user.email || null, role: "super_admin", active: true }).onConflictDoNothing(),
+        ...(!isLocalAccount ? [db.insert(companyUsers).values({ id: crypto.randomUUID(), companyId: id, userId: user.userId, displayName: user.displayName || null, email: user.email || null, role: "super_admin", active: true }).onConflictDoNothing()] : []),
       ]);
       [sepco] = await db.select().from(companies).where(eq(companies.taxId, sepcoTaxId)).limit(1);
     }
     if (sepco) {
-      const [membership] = await db.select().from(companyUsers).where(sql`${companyUsers.companyId} = ${sepco.id} and ${companyUsers.userId} = ${user.userId}`).limit(1);
+      const [membership] = await db.select().from(companyUsers).where(and(eq(companyUsers.companyId, sepco.id), or(eq(companyUsers.userId, user.userId), user.email ? eq(companyUsers.email, user.email.toLowerCase()) : undefined))).limit(1);
       const now = new Date().toISOString();
       await db.batch([
         db.update(companies).set({ legalName: "SEPCO1 CONSTRUCOES DO BRASIL LTDA", tradeName: "SEPCO1", active: true }).where(eq(companies.id, sepco.id)),
-        ...(!membership ? [db.insert(companyUsers).values({ id: crypto.randomUUID(), companyId: sepco.id, userId: user.userId, displayName: user.displayName || null, email: user.email || null, role: "super_admin", active: true })] : []),
-        ...(membership ? [db.update(companyUsers).set({ displayName: user.displayName || membership.displayName, email: user.email?.toLowerCase() || membership.email, role: "super_admin", active: true }).where(eq(companyUsers.id, membership.id))] : []),
+        ...(!membership && !isLocalAccount ? [db.insert(companyUsers).values({ id: crypto.randomUUID(), companyId: sepco.id, userId: user.userId, displayName: user.displayName || null, email: user.email || null, role: "super_admin", active: true })] : []),
+        ...(membership && !isLocalAccount ? [db.update(companyUsers).set({ displayName: user.displayName || membership.displayName, email: user.email?.toLowerCase() || membership.email, role: "super_admin", active: true }).where(eq(companyUsers.id, membership.id))] : []),
       ]);
       try {
       // As obras iniciais 01–04 foram excluídas pela administradora. Elas não
@@ -440,10 +441,11 @@ export async function GET() {
       })
       .from(companyUsers)
       .innerJoin(companies, eq(companyUsers.companyId, companies.id))
-      .where(and(eq(companyUsers.userId, user.userId), eq(companyUsers.active, true), eq(companies.active, true)))
+      .where(and(or(eq(companyUsers.userId, user.userId), user.email ? eq(companyUsers.email, user.email.toLowerCase()) : undefined), eq(companyUsers.active, true), eq(companies.active, true)))
       .orderBy(asc(companies.createdAt));
     rows.sort((a, b) => Number(b.taxId === sepcoTaxId) - Number(a.taxId === sepcoTaxId));
-    return Response.json({ companies: rows, activeCompany: sepco?.id || rows[0]?.id || null, environment: "production", currentUser: { name: user.displayName || "Usuário administrador", email: user.email || null, role: "super_admin" } });
+    const currentMembership = rows.find((row) => row.id === (sepco?.id || rows[0]?.id));
+    return Response.json({ companies: rows, activeCompany: sepco?.id || rows[0]?.id || null, environment: "production", currentUser: { name: user.displayName || "Usuário", email: user.email || null, role: currentMembership?.role || "viewer" } });
   } catch (error) {
     return apiError(error);
   }

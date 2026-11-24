@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FuelManagementPage from "@/components/fuel-management-page";
-import { countContractMonthsInclusive, countContractBillableDays } from "@/lib/contracts-finance";
+import { countContractMonthsInclusive } from "@/lib/contracts-finance";
 import {
   BarChart3,
   AlertTriangle,
@@ -42,6 +42,8 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
+
+const countContractBillableDays = (startsAt: string, endsAt: string) => countContractMonthsInclusive(startsAt, endsAt) * 30;
 
 function downloadStandardTemplate(path: string, fileName: string) {
   const link = document.createElement("a");
@@ -1227,7 +1229,8 @@ export default function Home() {
   useEffect(() => {
     const saved = localStorage.getItem("frota-language") as Language | null;
     if (saved) setLanguage(saved);
-    fetch("/api/companies").then((r) => r.json()).then((data) => { const rows = data.companies || []; setCompanyOptions(rows); if (rows[0]) setCompany(rows[0].tradeName); if (data.currentUser) setCurrentUser({ name: data.currentUser.name || "Usuário administrador", email: data.currentUser.email || "", role: "Administrador geral" }); }).catch(() => undefined);
+    fetch("/api/auth/session").then(async (response) => { if (response.ok) return; window.location.replace("/login"); }).catch(() => undefined);
+    fetch("/api/companies").then((r) => r.json()).then((data) => { const rows = data.companies || []; setCompanyOptions(rows); if (rows[0]) setCompany(rows[0].tradeName); if (data.currentUser) { const labels: Record<string, string> = { super_admin: "Administrador geral", company_admin: "Administrador", manager: "Gestor", operator: "Operador", viewer: "Consulta" }; setCurrentUser({ name: data.currentUser.name || "Usuário", email: data.currentUser.email || "", role: labels[data.currentUser.role] || "Consulta" }); } }).catch(() => undefined);
   }, []);
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -1366,6 +1369,7 @@ export default function Home() {
               <div className="text-xs text-slate-400">{currentUser.role}</div>
             </div>
           </div>
+          <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined); window.location.assign("/login"); }} className="mt-2 w-full rounded-lg px-3 py-2 text-left text-xs font-bold text-blue-100 hover:bg-white/10">Sair da conta</button>
         </div>
       </aside>
       <div className="lg:pl-[260px]">
@@ -4777,6 +4781,7 @@ function PermissionsPage() {
   const [userForm, setUserForm] = useState({ name: "", email: "", role: "operator" });
   const [userMessage, setUserMessage] = useState("");
   const [userBusy, setUserBusy] = useState(false);
+  const [invitationLink, setInvitationLink] = useState("");
   const roleLabel: Record<string, string> = { super_admin: "Administrador geral", company_admin: "Administrador", manager: "Gestor", operator: "Operador", viewer: "Consulta" };
   async function loadUsers(id = companyId) {
     if (!id) return;
@@ -4795,7 +4800,7 @@ function PermissionsPage() {
     const response = await offlineRequest("/api/users", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...userForm, companyId }) });
     const data = await response.json(); setUserBusy(false);
     if (!response.ok) return setUserMessage(data.error || "Não foi possível cadastrar o usuário.");
-    setUserMessage(data.queued ? data.message : "Usuário cadastrado. O acesso será reconhecido pelo e-mail informado.");
+    setUserMessage(data.queued ? data.message : "Usuário cadastrado. Selecione-o, aprove os módulos e gere o convite para criar a senha.");
     setUserForm({ name: "", email: "", role: "operator" }); setShowUserForm(false); if (!data.queued) await loadUsers();
   }
   const modules = [
@@ -4845,7 +4850,14 @@ function PermissionsPage() {
     modules.forEach((module, index) => permissionsByModule.set(permissionModuleKeys[index], rules[module]));
     const response = await fetch("/api/permissions", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, companyUserId: user, permissions: [...permissionsByModule].map(([module, values]) => ({ module, canView: !!values?.[0], canCreate: !!values?.[1], canUpdate: !!values?.[2], canDelete: !!values?.[3], canApprove: !!values?.[4], canCancel: !!values?.[5], canReopen: !!values?.[6], canReport: !!values?.[7] })) }) });
     const data = await response.json().catch(() => ({})); setPermissionsBusy(false); setSaved(response.ok);
-    setUserMessage(response.ok ? "Permissões salvas no sistema." : data.error || "Não foi possível salvar as permissões.");
+    setUserMessage(response.ok ? "Módulos autorizados salvos no sistema." : data.error || "Não foi possível salvar as permissões.");
+  }
+  async function generateInvitation() {
+    const response = await fetch("/api/auth/invitation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, companyUserId: user }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { setUserMessage(data.error || "Não foi possível gerar o convite."); return; }
+    setInvitationLink(`${window.location.origin}${data.invitationUrl}`);
+    setUserMessage(`Convite criado para ${data.email}. Ele expira em 48 horas; envie o link diretamente ao funcionário.`);
   }
   function toggle(module: string, index: number) {
     if (profile === "Administrador" || profile === "Administrador geral") return;
@@ -4854,6 +4866,7 @@ function PermissionsPage() {
       [module]: r[module].map((v, i) => (i === index ? !v : v)),
     }));
     setSaved(false);
+    setInvitationLink("");
   }
   return (
     <div className="space-y-4">
@@ -4868,7 +4881,7 @@ function PermissionsPage() {
         <label className="text-sm font-semibold">Perfil do usuário<select className="input mt-1" value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}><option value="company_admin">Administrador</option><option value="manager">Gestor</option><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="super_admin">Administrador geral</option></select></label>
         <div className="md:col-span-3 flex justify-end"><button disabled={userBusy || !companyId} className="btn-primary"><ShieldCheck size={17} />{userBusy ? "Salvando..." : "Cadastrar usuário"}</button></div>
       </form>}
-      <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">O acesso dos colaboradores usa o login autenticado da plataforma. Cadastre o mesmo e-mail que cada pessoa usará ao entrar; depois selecione o usuário abaixo e grave as permissões por módulo. Esta tela não cria senhas próprias.</div>
+      <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">Cadastre o funcionário, selecione os módulos que ele poderá acessar e salve a aprovação. Depois gere o convite e envie o link ao funcionário para que ele crie a própria senha.</div>
       {userMessage && <div className="mt-3 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{userMessage}</div>}
       <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th></tr></thead><tbody>{users.map((item) => <tr key={item.id}><td className="font-semibold">{item.displayName || "Usuário já vinculado"}</td><td>{item.email || "Conta vinculada anteriormente"}</td><td>{roleLabel[item.role] || item.role}</td><td><Badge tone={item.active ? "green" : "slate"}>{item.active ? "Ativo" : "Inativo"}</Badge></td></tr>)}{!users.length && <tr><td colSpan={4} className="py-8 text-center text-slate-500">Nenhum usuário cadastrado nesta empresa.</td></tr>}</tbody></table></div>
     </section>
@@ -4939,11 +4952,11 @@ function PermissionsPage() {
         <span className="text-sm text-emerald-700">
           {saved ? "Permissões carregadas/salvas no sistema." : "Alterações ainda não salvas."}
         </span>
-        <button onClick={savePermissions} disabled={!user || permissionsBusy || profile === "Administrador" || profile === "Administrador geral"} className="btn-primary">
-          <ShieldCheck size={17} />
-          Salvar permissões
-        </button>
+        <div className="flex flex-wrap gap-2"><button onClick={savePermissions} disabled={!user || permissionsBusy || profile === "Administrador" || profile === "Administrador geral"} className="btn-primary">
+          <ShieldCheck size={17} />{permissionsBusy ? "Salvando..." : "Aprovar módulos e salvar"}
+        </button><button onClick={generateInvitation} disabled={!user || !saved || permissionsBusy || profile === "Administrador" || profile === "Administrador geral"} className="btn-secondary">Gerar convite para criar senha</button></div>
       </div>
+      {invitationLink && <div className="border-t border-emerald-200 bg-emerald-50 p-4"><label className="block text-sm font-bold text-emerald-900">Link de primeiro acesso (válido por 48 horas)<input readOnly className="input mt-2 bg-white" value={invitationLink} onFocus={(event) => event.currentTarget.select()} /></label><button className="mt-2 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm font-bold text-emerald-800" onClick={() => navigator.clipboard.writeText(invitationLink).then(() => setUserMessage("Link copiado. Envie-o somente ao funcionário autorizado."))}>Copiar link do convite</button></div>}
     </section>
     <section className="grid gap-3 md:grid-cols-3">
       <div className="panel p-4"><div className="text-sm font-bold">Cadastros / 登记</div><p className="mt-1 text-sm text-slate-500">Usuários, empresas, fornecedores, obras, centros de custo, equipamentos, marcas e modelos.</p></div>

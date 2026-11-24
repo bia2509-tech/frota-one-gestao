@@ -5,19 +5,16 @@ import { backupSnapshots } from "@/db/schema";
 import { apiError, requireCompanyAccess } from "@/lib/tenant";
 
 const COMPANY_TABLES = [
-  "companies", "company_users", "user_module_permissions", "master_data",
-  "suppliers", "products", "contracts", "contract_documents", "contract_equipment_items",
-  "measurements", "equipment", "equipment_documents", "equipment_checklists",
-  "maintenance_orders", "maintenance_order_items", "fiscal_invoices", "fiscal_invoice_items",
-  "fiscal_invoice_payments", "fiscal_credit_notes", "fuel_convoys", "fuel_convoy_sequences",
-  "fuel_entries", "fuel_credit_usages", "fuel_stock_movements", "daily_part_entries",
-  "quick_service_entries", "quotation_maps", "quotation_options",
-  "appropriation_adjustments", "deletion_requests", "email_notifications", "audit_log",
+  "companies", "company_users", "contracts", "contract_documents", "contract_equipment_items", "measurements", "audit_log",
+  "appropriation_adjustments", "deletion_requests", "user_module_permissions", "suppliers", "products", "equipment", "equipment_documents", "equipment_checklists", "maintenance_orders",
+  "maintenance_order_items", "fiscal_invoices", "fiscal_invoice_items",
+  "fiscal_invoice_payments", "fiscal_credit_notes", "fuel_credit_usages", "daily_part_entries", "fuel_entries", "fuel_convoys", "fuel_convoy_sequences", "fuel_stock_movements", "quick_service_entries", "email_notifications", "quotation_maps", "quotation_options",
+  "master_data",
 ];
 
 async function requireBackupAdmin(companyId: string) {
   const access = await requireCompanyAccess(companyId, true);
-  if (!["super_admin", "company_admin"].includes(access.membership.role)) {
+  if (!['super_admin', 'company_admin'].includes(access.membership.role)) {
     throw new Response("Somente administradores podem acessar backups.", { status: 403 });
   }
   return access;
@@ -56,63 +53,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as {
-      companyId?: string;
-      action?: string;
-      backupPayload?: {
-        format?: string;
-        companyId?: string;
-        data?: Record<string, Record<string, unknown>[]>;
-      };
-    };
-
-    if (body.action === "import" && body.backupPayload?.data) {
-      const payload = body.backupPayload;
-      if (payload.format && payload.format !== "frota-one-backup-v1") {
-        return Response.json({ error: "Formato de arquivo de backup inválido." }, { status: 400 });
-      }
-      const targetCompanyId = payload.companyId || body.companyId || "";
-      if (!targetCompanyId) {
-        return Response.json({ error: "Empresa do backup não identificada." }, { status: 400 });
-      }
-      await requireBackupAdmin(targetCompanyId);
-
-      let restoredCount = 0;
-
-      for (const table of COMPANY_TABLES) {
-        const rows = payload.data[table];
-        if (!Array.isArray(rows) || rows.length === 0) continue;
-
-        const statements = [];
-        for (const row of rows) {
-          const cols = Object.keys(row).filter((k) => /^[a-zA-Z0-9_]+$/.test(k));
-          if (cols.length === 0) continue;
-          const placeholders = cols.map(() => "?").join(", ");
-          const values = cols.map((col) => (row[col] === undefined ? null : row[col]));
-          statements.push(
-            env.DB.prepare(`INSERT OR REPLACE INTO ${table} (${cols.join(", ")}) VALUES (${placeholders})`).bind(...values)
-          );
-          restoredCount++;
-        }
-
-        for (let i = 0; i < statements.length; i += 20) {
-          try {
-            await env.DB.batch(statements.slice(i, i + 20));
-          } catch {
-            for (const stmt of statements.slice(i, i + 20)) {
-              try {
-                await stmt.run();
-              } catch (rowErr) {
-                console.warn(`Ignorando linha em ${table}:`, rowErr);
-              }
-            }
-          }
-        }
-      }
-
-      return Response.json({ ok: true, restoredCount, companyId: targetCompanyId });
-    }
-
+    const body = await request.json() as { companyId?: string };
     const companyId = body.companyId || "";
     const access = await requireBackupAdmin(companyId);
     const data: Record<string, unknown[]> = {};

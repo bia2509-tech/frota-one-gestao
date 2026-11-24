@@ -17,7 +17,8 @@ export async function GET(request: Request) {
   try {
     const companyId = new URL(request.url).searchParams.get("companyId") || "";
     await requireAdmin(companyId);
-    const users = await getDb().select().from(companyUsers).where(eq(companyUsers.companyId, companyId));
+    const rows = await getDb().select().from(companyUsers).where(eq(companyUsers.companyId, companyId));
+    const users = rows.map(({ passwordHash, inviteTokenHash, inviteExpiresAt, ...user }) => ({ ...user, hasPassword: !!passwordHash, hasPendingInvite: !!inviteTokenHash, inviteExpiresAt }));
     return Response.json({ users });
   } catch (error) { return apiError(error); }
 }

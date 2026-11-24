@@ -709,7 +709,7 @@ const zh: Record<string, string> = {
   "Lançar nota fiscal": "录入发票",
   "Entrada de nota fiscal": "录入进项发票",
   "Consulta de notas fiscais lançadas": "已录入发票查询",
-  "Após cada lançamento, a FATURA é gerada automaticamente para assinatura.": "每次录入后，系统会自动生成“发票审批单”供签字。",
+  "Após cada lançamento, a FATURA é gerada automaticamente para assinatura.": "每次录入后，系统将自动生成发票以供签署。",
   "Nenhuma fatura registrada.": "尚无发票记录。",
   "Nenhum lançamento encontrado neste período.": "该期间未找到记录。",
   "Nenhum contrato cadastrado nesta empresa.": "该公司尚无合同记录。",
@@ -797,7 +797,7 @@ Object.assign(zh, {
   "Equipamentos do contrato / aditivo": "\u5408\u540c / \u8865\u5145\u534f\u8bae\u8bbe\u5907",
   "Regra": "\u89c4\u5219",
   "Contrato": "\u5408\u540c",
-  "Aditivo": "\u8865\u充\u534f\u8bae",
+  "Aditivo": "\u8865\u5145\u534f\u8bae",
   "Objeto do contrato": "\u5408\u540c\u6807\u7684",
   "Contrato inicial": "\u521d\u59cb\u5408\u540c",
   "Obra / projeto": "\u9879\u76ee / \u5de5\u7a0b",
@@ -831,6 +831,7 @@ Object.assign(zh, {
   "Edição liberada a qualquer momento, com histórico de todas as movimentações.": "\u53ef\u968f\u65f6\u7f16\u8f91\uff0c\u5e76\u4fdd\u7559\u6240\u6709\u53d8\u66f4\u8bb0\u5f55\u3002",
   "Regra: um contrato ou aditivo pode possuir vários equipamentos. Cada equipamento terá sua própria data de entrada, data final e valores para alimentar o Anexo I.": "\u89c4\u5219\uff1a\u5408\u540c\u6216\u8865\u5145\u534f\u8bae\u53ef\u5305\u542b\u591a\u53f0\u8bbe\u5907\u3002\u6bcf\u53f0\u8bbe\u5907\u6709\u72ec\u7acb\u7684\u5165\u573a\u65e5\u671f\u3001\u7ed3\u675f\u65e5\u671f\u548c\u4ef7\u683c\uff0c\u7528\u4e8e\u751f\u6210\u9644\u4ef6 I\u3002",
 });
+Object.assign(zh, {
   "Contratos ativos": "有效合同",
   "Próximos do vencimento": "即将到期",
   "Contratos vencidos": "已到期合同",
@@ -5700,9 +5701,3 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
-
-
-
-
-
-

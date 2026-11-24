@@ -79,7 +79,10 @@ export function calculateAppropriation(
   // A locação é proporcional aos dias efetivamente registrados. Só a manutenção
   // contínua acima da tolerância reduz dias pagos; fevereiro completa 30 dias
   // quando todos os dias corridos do mês foram lançados.
-  const recordedDays = monthEntries.filter((entry) => financialDay(entry.entryDate)).length;
+  const validDailyStatuses = new Set<DailyStatus>(["T", "D", "M", "AB"]);
+  const recordedDays = new Set(monthEntries
+    .filter((entry) => validDailyStatuses.has(entry.status) && financialDay(entry.entryDate))
+    .map((entry) => entry.entryDate)).size;
   const februaryAdjustment = month === 2 && recordedDays >= calendarDays ? commercialAdjustmentDays : 0;
   const paidDays = Math.min(30, Math.max(0, recordedDays + februaryAdjustment - discountedDays));
   return {

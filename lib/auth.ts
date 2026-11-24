@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { getDb } from "@/db";
 import { authSessions, companyUsers } from "@/db/schema";
 
-const PBKDF2_ITERATIONS = 310_000;
+// Cloudflare Workers WebCrypto supports up to 100,000 PBKDF2 iterations.
+const PBKDF2_ITERATIONS = 100_000;
 export const LOCAL_SESSION_COOKIE = "frota_one_session";
 const bytesToHex = (value: Uint8Array) => Array.from(value, (byte) => byte.toString(16).padStart(2, "0")).join("");
 const hexToBytes = (value: string) => new Uint8Array(value.match(/.{2}/g)?.map((byte) => parseInt(byte, 16)) || []);
@@ -20,7 +21,7 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, stored: string) {
   const [algorithm, iterationsText, salt, expected] = stored.split("$");
   const iterations = Number(iterationsText);
-  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 100_000 || iterations > 1_000_000 || !salt || !expected) return false;
+  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 100_000 || iterations > PBKDF2_ITERATIONS || !salt || !expected) return false;
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(salt), iterations }, key, 256);
   const actual = bytesToHex(new Uint8Array(bits));

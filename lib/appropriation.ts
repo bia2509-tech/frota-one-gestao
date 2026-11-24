@@ -76,6 +76,12 @@ export function calculateAppropriation(
     (e) => !financialDay(e.entryDate),
   ).length;
   const discountCents = discountedDays * dailyValueCents;
+  // A locação é proporcional aos dias efetivamente registrados. Só a manutenção
+  // contínua acima da tolerância reduz dias pagos; fevereiro completa 30 dias
+  // quando todos os dias corridos do mês foram lançados.
+  const recordedDays = monthEntries.filter((entry) => financialDay(entry.entryDate)).length;
+  const februaryAdjustment = month === 2 && recordedDays >= calendarDays ? commercialAdjustmentDays : 0;
+  const paidDays = Math.min(30, Math.max(0, recordedDays + februaryAdjustment - discountedDays));
   return {
     referenceMonth,
     calendarDays,
@@ -91,11 +97,11 @@ export function calculateAppropriation(
     maintenanceDiscountStartsOnDay: maintenanceGraceDays + 1,
     toleranceDays,
     discountedDays,
-    paidDays: Math.max(0, 30 - discountedDays),
+    paidDays,
     dailyValueCents,
     monthlyRentCents,
     discountCents,
-    payableCents: Math.max(0, monthlyRentCents - discountCents),
+    payableCents: Math.min(monthlyRentCents, paidDays * dailyValueCents),
     occurrences: occurrenceReport,
   };
 }

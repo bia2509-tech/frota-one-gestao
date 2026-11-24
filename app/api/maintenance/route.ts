@@ -202,7 +202,8 @@ export async function PATCH(request: Request) {
     }
     if (order.orderKind === "purchase_service" && !orderItems.length) return Response.json({ error: "Inclua ao menos uma peça ou serviço antes de concluir a O.S. de compra e serviços." }, { status: 400 });
     if (order.orderKind === "purchase_service" && order.requestApprovalStatus !== "approved") return Response.json({ error: "A Ficha de Pedido precisa ser solicitada e aprovada antes de concluir a O.S." }, { status: 400 });
-    const closedAt = body.closedAt && /^\d{4}-\d{2}-\d{2}$/.test(body.closedAt) ? body.closedAt : order.startedAt;
+    if (!body.closedAt || !/^\d{4}-\d{2}-\d{2}$/.test(body.closedAt)) return Response.json({ error: "Informe a data real de encerramento da O.S." }, { status: 400 });
+    const closedAt = body.closedAt;
     if (closedAt < order.startedAt) return Response.json({ error: "A data de encerramento não pode ser anterior à abertura da O.S." }, { status: 400 });
     await db.update(maintenanceOrders).set({ status: "closed", maintenanceStatus: "Concluída", closedAt }).where(eq(maintenanceOrders.id, order.id));
     if (order.orderKind === "purchase_service") {

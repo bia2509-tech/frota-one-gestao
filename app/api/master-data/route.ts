@@ -27,8 +27,7 @@ export async function POST(request: Request) {
     if (body.type === "profissional" && Array.isArray(body.records)) {
       const incoming = body.records
         .filter((row) => row.name?.trim())
-        .filter((row) => { try { const job = JSON.parse(row.description || "{}").job || ""; return /MECANIC|SUPERVISOR.*TRANSPORTE|ENCARREGADO.*TRANSPORTE/i.test(job); } catch { return false; } })
-        .slice(0, 2500);
+        .slice(0, 50000);
       const now = new Date().toISOString();
       for (let index = 0; index < incoming.length; index += 80) {
         const statements = incoming.slice(index, index + 80).map((row) =>

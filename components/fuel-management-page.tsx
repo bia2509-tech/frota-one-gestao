@@ -24,6 +24,7 @@ export default function FuelManagementPage() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [costCenters, setCostCenters] = useState<{ id: string; name: string; active?: boolean }[]>([]);
   const [credits, setCredits] = useState<Credit[]>([]);
   const [convoys, setConvoys] = useState<Convoy[]>([]);
   const [movementHistory, setMovementHistory] = useState<StockMovement[]>([]);
@@ -53,16 +54,16 @@ export default function FuelManagementPage() {
     if (filters.supplierId) params.set("supplierId", filters.supplierId);
     if (filters.convoyId) params.set("convoyId", filters.convoyId);
     if (filters.equipmentId) params.set("equipmentId", filters.equipmentId);
-    const [fuelRes, stockRes, equipmentRes, supplierRes, locationRes, invoiceRes] = await Promise.all([
+    const [fuelRes, stockRes, equipmentRes, supplierRes, locationRes, invoiceRes, costCenterRes] = await Promise.all([
       fetch(`/api/fuel?${params}`), fetch(`/api/fuel/stock?companyId=${encodeURIComponent(id)}`),
       fetch(`/api/equipment?companyId=${encodeURIComponent(id)}&dailyList=1`), fetch(`/api/suppliers?companyId=${encodeURIComponent(id)}`),
-      fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=local_manutencao`), fetch(`/api/invoices?companyId=${encodeURIComponent(id)}`),
+      fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=local_manutencao`), fetch(`/api/invoices?companyId=${encodeURIComponent(id)}`), fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=centro_custo`),
     ]);
-    const [fuelData, stockData, equipmentData, supplierData, locationData, invoiceData] = await Promise.all([fuelRes.json(), stockRes.json(), equipmentRes.json(), supplierRes.json(), locationRes.json(), invoiceRes.json()]);
+    const [fuelData, stockData, equipmentData, supplierData, locationData, invoiceData, costCenterData] = await Promise.all([fuelRes.json(), stockRes.json(), equipmentRes.json(), supplierRes.json(), locationRes.json(), invoiceRes.json(), costCenterRes.json()]);
     if (!fuelRes.ok) { setError(true); setMessage(fuelData.error || "Não foi possível consultar os abastecimentos."); return; }
     setHistory(fuelData.entries || []); setNextSystemNumber(Number(fuelData.nextSystemNumber || 1)); setConvoys(stockData.convoys || []); setCredits(stockData.credits || []); setMovementHistory(stockData.history || []);
     setEquipment(equipmentData.equipment || []); setSuppliers((supplierData.suppliers || []).filter((s: Supplier) => s.active !== false));
-    setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []);
+    setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []); setCostCenters((costCenterData.records || []).filter((x: any) => x.active !== false));
   }
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export default function FuelManagementPage() {
   const selectedCredit = supplierCredits.find((x) => x.id === form.creditNoteId);
   const selectedEquipment = equipment.find((x) => x.id === form.equipmentId);
   const comboioCandidates = equipment.filter(isConvoyAsset);
+  const costCenterOptions = [...new Set([...costCenters.map((row) => row.name), ...equipment.map((row) => row.costCenter || row.projectName).filter(Boolean) as string[]])].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   function selectEquipment(id: string) {
     const found = equipment.find((e) => e.id === id);
@@ -191,7 +193,7 @@ export default function FuelManagementPage() {
       <label className="text-xs font-semibold text-slate-600">Fornecedor<select className="input mt-1" value={filters.supplierId} onChange={(e) => setFilters({ ...filters, supplierId: e.target.value })}><option value="">Todos</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
       <label className="text-xs font-semibold text-slate-600">Comboio<select className="input mt-1" value={filters.convoyId} onChange={(e) => setFilters({ ...filters, convoyId: e.target.value })}><option value="">Todos</option>{convoys.map((c) => <option key={c.id} value={c.id}>Comboio {c.convoyNumber} · {c.fleetNumber}</option>)}</select></label>
       <label className="text-xs font-semibold text-slate-600">Equipamento<select className="input mt-1" value={filters.equipmentId} onChange={(e) => setFilters({ ...filters, equipmentId: e.target.value })}><option value="">Todos</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
-      <label className="text-xs font-semibold text-slate-600">Canteiro<select className="input mt-1" value={filters.costCenter} onChange={(e) => setFilters({ ...filters, costCenter: e.target.value })}><option value="">Todos</option>{[...new Set(equipment.map((e) => e.costCenter || e.projectName).filter(Boolean) as string[])].sort().map((x) => <option key={x}>{x}</option>)}</select></label>
+      <label className="text-xs font-semibold text-slate-600">Centro de custo / Canteiro<select className="input mt-1" value={filters.costCenter} onChange={(e) => setFilters({ ...filters, costCenter: e.target.value })}><option value="">Todos</option>{costCenterOptions.map((x) => <option key={x}>{x}</option>)}</select></label>
     </section>
 
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -228,7 +230,7 @@ export default function FuelManagementPage() {
           <label className="block text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={form.maintenanceLocationId} onChange={(e) => setForm({ ...form, maintenanceLocationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
           <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })}/></label><label className="text-sm font-semibold">Hora<input type="time" className="input mt-1" value={form.entryTime} onChange={(e) => setForm({ ...form, entryTime: e.target.value })}/></label></div>
           <label className="block text-sm font-semibold">ID / Placa<select required className="input mt-1" value={form.equipmentId} onChange={(e) => selectEquipment(e.target.value)}><option value="">Selecione</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
-          <label className="block text-sm font-semibold">Canteiro<input className="input mt-1" list="fuel-cost-centers" value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })}/><datalist id="fuel-cost-centers">{[...new Set(equipment.map((e) => e.costCenter || e.projectName).filter(Boolean) as string[])].map((x) => <option key={x} value={x}/>)}</datalist></label>
+          <label className="block text-sm font-semibold">Centro de custo / Canteiro<select className="input mt-1" value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })}><option value="">Selecione</option>{costCenterOptions.map((x) => <option key={x} value={x}>{x}</option>)}</select></label>
 
           <label className="block text-sm font-semibold">Posto / Fornecedor<select required className="input mt-1" value={form.supplierId} onChange={(e) => { setForm({ ...form, supplierId: e.target.value, creditNoteId: "", creditAmount: "" }); setCreditAnswer(""); }}><option value="">Selecione</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
           {supplierCredits.length > 0 && <div className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm text-red-900"><div className="font-bold">Há nota(s) de crédito disponível(is) para {supplierCredits[0].supplierName}.</div><button type="button" className="mt-1 font-bold underline" onClick={() => setShowCreditDetails(true)}>Ver detalhes</button><p className="mt-1">Deseja utilizar uma Nota de Crédito neste abastecimento?</p><div className="mt-2 flex gap-2"><button type="button" className="btn-primary" onClick={() => { setCreditAnswer("yes"); setForm({ ...form, creditNoteId: supplierCredits[0].id, creditAmount: ((supplierCredits[0].remainingCents / 100)).toFixed(2) }); }}>Sim</button><button type="button" className="btn-secondary" onClick={() => { setCreditAnswer("no"); setForm({ ...form, creditNoteId: "", creditAmount: "" }); }}>Não</button></div>{creditAnswer === "yes" && <div className="mt-2 space-y-2"><select required className="input" value={form.creditNoteId} onChange={(e) => setForm({ ...form, creditNoteId: e.target.value, creditAmount: ((supplierCredits.find((c) => c.id === e.target.value)?.remainingCents || 0) / 100).toFixed(2) })}>{supplierCredits.map((c) => <option key={c.id} value={c.id}>NF {c.creditNumber} · disponível {currency(c.remainingCents)}</option>)}</select><div className="text-xs">Valor original: {currency(selectedCredit?.originalCents || 0)} · já usado: {currency((selectedCredit?.originalCents || 0) - (selectedCredit?.remainingCents || 0))} · saldo: {currency(selectedCredit?.remainingCents || 0)}</div><label className="block text-xs font-semibold">Valor a utilizar<input required min="0.01" step="0.01" type="number" className="input mt-1" value={form.creditAmount} onChange={(e) => setForm({ ...form, creditAmount: e.target.value })}/></label></div>}</div>}

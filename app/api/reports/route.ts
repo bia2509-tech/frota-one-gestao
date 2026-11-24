@@ -1,7 +1,9 @@
 import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { getDb } from "@/db";
-import { contractEquipmentItems, contracts, dailyPartEntries, equipment, fiscalInvoicePayments, fiscalInvoices, fuelEntries, maintenanceOrderItems, maintenanceOrders, quickServiceEntries, suppliers } from "@/db/schema";
+import { appropriationAdjustments, contractEquipmentItems, contracts, dailyPartEntries, equipment, fiscalInvoicePayments, fiscalInvoices, fuelEntries, maintenanceOrderItems, maintenanceOrders, quickServiceEntries, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
+import { calculateAppropriation } from "@/lib/appropriation";
+import { getMaintenanceGraceDays } from "@/lib/maintenance-rule";
 
 export async function GET(request: Request) {
   try {
@@ -9,10 +11,10 @@ export async function GET(request: Request) {
     const companyId = url.searchParams.get("companyId") || "";
     const from = url.searchParams.get("from") || "1900-01-01";
     const to = url.searchParams.get("to") || "2999-12-31";
-    await requirePermission(companyId, "maintenance", "view");
+    await requirePermission(companyId, "reports", "report");
     const db = getDb();
 
-    const [assets, parts, fuel, quick, orderItems, rents, invoices, payments] = await Promise.all([
+    const [assets, parts, fuel, quick, orderItems, rents, invoices, payments, maintenanceHistory, measurementAdjustments] = await Promise.all([
       db.select().from(equipment).where(and(eq(equipment.companyId, companyId), ne(equipment.status, "demo"))),
       db.select({ entryDate: dailyPartEntries.entryDate, status: dailyPartEntries.status, equipmentId: dailyPartEntries.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
         .from(dailyPartEntries).innerJoin(equipment, eq(dailyPartEntries.equipmentId, equipment.id))
@@ -29,6 +31,10 @@ export async function GET(request: Request) {
       db.select({ item: contractEquipmentItems, contractNumber: contracts.number, contractObject: contracts.object, supplierName: contracts.supplierName, projectName: contracts.projectName }).from(contractEquipmentItems).innerJoin(contracts, eq(contractEquipmentItems.contractId, contracts.id)).where(eq(contractEquipmentItems.companyId, companyId)),
       db.select({ id: fiscalInvoices.id, supplierId: fiscalInvoices.supplierId, supplierName: suppliers.name, invoiceNumber: fiscalInvoices.invoiceNumber, issueDate: fiscalInvoices.issueDate, dueDate: fiscalInvoices.dueDate, costCenter: fiscalInvoices.costCenter, totalCents: fiscalInvoices.totalCents, status: fiscalInvoices.status }).from(fiscalInvoices).innerJoin(suppliers, eq(fiscalInvoices.supplierId, suppliers.id)).where(and(eq(fiscalInvoices.companyId, companyId), gte(fiscalInvoices.issueDate, from), lte(fiscalInvoices.issueDate, to))),
       db.select().from(fiscalInvoicePayments).where(eq(fiscalInvoicePayments.companyId, companyId)),
+      db.select({ entryDate: dailyPartEntries.entryDate, status: dailyPartEntries.status, equipmentId: dailyPartEntries.equipmentId, maintenanceOrderId: dailyPartEntries.maintenanceOrderId, orderNumber: maintenanceOrders.orderNumber })
+        .from(dailyPartEntries).leftJoin(maintenanceOrders, eq(dailyPartEntries.maintenanceOrderId, maintenanceOrders.id))
+        .where(eq(dailyPartEntries.companyId, companyId)),
+      db.select().from(appropriationAdjustments).where(and(eq(appropriationAdjustments.companyId, companyId), eq(appropriationAdjustments.scope, "measurement"), eq(appropriationAdjustments.periodStart, from), eq(appropriationAdjustments.periodEnd, to))).orderBy(appropriationAdjustments.createdAt),
     ]);
 
     const directMaintenanceCents = orderItems.filter((r) => r.item.paymentResponsibility === "company").reduce((s, r) => s + r.item.totalCents, 0);
@@ -36,7 +42,21 @@ export async function GET(request: Request) {
     const lessorDiscountCents = orderItems.filter((r) => r.item.paymentResponsibility === "company_charge_lessor").reduce((s, r) => s + r.item.totalCents, 0);
     const fuelCents = fuel.reduce((s, r) => s + r.totalCents, 0);
     const quickCompanyCents = quick.filter((r) => r.paymentResponsibility === "company").reduce((s, r) => s + r.totalCents, 0);
-    const rentCents = rents.filter((r) => r.item.status !== "demobilized" && r.item.startsAt <= to && r.item.endsAt >= from).reduce((s, r) => s + r.item.monthlyEquipmentCents + r.item.monthlyOperatorCents, 0);
+    const maintenanceGraceDays = await getMaintenanceGraceDays(companyId);
+    const maintenanceByEquipment = new Map<string, any[]>();
+    for (const entry of maintenanceHistory) maintenanceByEquipment.set(entry.equipmentId, [...(maintenanceByEquipment.get(entry.equipmentId) || []), entry]);
+    const measuredOverrides = new Map<string, number>();
+    for (const adjustment of measurementAdjustments) if (adjustment.fieldName === "measuredCents") measuredOverrides.set(adjustment.itemId, Math.max(0, Number(adjustment.newValue || 0)));
+    const measuredRentByItem = new Map<string, number>();
+    for (const row of rents.filter((r) => r.item.status !== "demobilized" && r.item.startsAt <= to && r.item.endsAt >= from)) {
+      const monthlyCents = Math.max(0, row.item.monthlyEquipmentCents) + Math.max(0, row.item.monthlyOperatorCents);
+      const referenceMonth = from.slice(0, 7);
+      const itemKey = `${row.item.contractId}:${row.item.equipmentId}`;
+      const calculatedMeasurement = calculateAppropriation(maintenanceByEquipment.get(row.item.equipmentId) || [], referenceMonth, monthlyCents, from, to, maintenanceGraceDays).payableCents;
+      const measuredCents = measuredOverrides.get(itemKey) ?? calculatedMeasurement;
+      measuredRentByItem.set(row.item.id, measuredCents);
+    }
+    const rentCents = [...measuredRentByItem.values()].reduce((sum, value) => sum + value, 0);
     const worked = parts.filter((r) => r.status === "T").length, idle = parts.filter((r) => r.status === "D").length, maintenance = parts.filter((r) => r.status === "M").length, allowance = parts.filter((r) => r.status === "AB").length;
     const efficiencyBase = worked + idle + maintenance;
 
@@ -45,7 +65,7 @@ export async function GET(request: Request) {
     for (const row of fuel) { const target = costMap.get(row.equipmentId); if (target) target.fuelCents += row.totalCents; }
     for (const row of quick) { const target = costMap.get(row.equipmentId); if (target) target.quickCents += row.totalCents; }
     for (const row of orderItems) if (row.item.paymentResponsibility === "company") { const target = costMap.get(row.equipmentId); if (target) target.directMaintenanceCents += row.item.totalCents; }
-    for (const row of rents) if (row.item.status !== "demobilized" && row.item.startsAt <= to && row.item.endsAt >= from && costMap.has(row.item.equipmentId)) costMap.get(row.item.equipmentId)!.rentCents += row.item.monthlyEquipmentCents + row.item.monthlyOperatorCents;
+    for (const row of rents) if (measuredRentByItem.has(row.item.id) && costMap.has(row.item.equipmentId)) costMap.get(row.item.equipmentId)!.rentCents += measuredRentByItem.get(row.item.id) || 0;
     const vehicleCosts = [...costMap.values()].map((r) => ({ ...r, totalCents: r.rentCents + r.fuelCents + r.quickCents + r.directMaintenanceCents })).filter((r) => r.totalCents > 0).sort((a, b) => b.totalCents - a.totalCents);
 
     const paymentByInvoice = new Map<string, any[]>();
@@ -82,7 +102,7 @@ export async function GET(request: Request) {
     const equipmentByType = countMap(assets.map((row) => row.equipmentType || row.description || "Não informado"));
     const equipmentByLessor = countMap(assets.map((row) => row.lessorName || "Próprio / não informado"));
     const lessorExpenseMap = new Map<string, number>();
-    for (const row of rents.filter((r) => r.item.startsAt <= to && r.item.endsAt >= from)) lessorExpenseMap.set(row.supplierName || "Não informado", (lessorExpenseMap.get(row.supplierName || "Não informado") || 0) + row.item.monthlyEquipmentCents + row.item.monthlyOperatorCents);
+    for (const row of rents.filter((r) => measuredRentByItem.has(r.item.id))) lessorExpenseMap.set(row.supplierName || "Não informado", (lessorExpenseMap.get(row.supplierName || "Não informado") || 0) + (measuredRentByItem.get(row.item.id) || 0));
     const expensesByLessor = [...lessorExpenseMap].map(([name, totalCents]) => ({ name, totalCents })).sort((a, b) => b.totalCents - a.totalCents);
     const maintenanceTypeMap = new Map<string, number>();
     for (const row of orderItems.filter((r) => r.item.paymentResponsibility === "company")) maintenanceTypeMap.set(row.item.serviceClass || "Não informado", (maintenanceTypeMap.get(row.item.serviceClass || "Não informado") || 0) + row.item.totalCents);

@@ -1,14 +1,14 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { contracts, measurements } from "@/db/schema";
-import { apiError, requireCompanyAccess } from "@/lib/tenant";
+import { apiError, requirePermission } from "@/lib/tenant";
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url),
       companyId = url.searchParams.get("companyId") || "",
       contractId = url.searchParams.get("contractId") || "";
-    await requireCompanyAccess(companyId);
+    await requirePermission(companyId, "appropriation", "view");
     const rows = await getDb()
       .select()
       .from(measurements)
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       status?: string;
     };
     const companyId = body.companyId || "";
-    await requireCompanyAccess(companyId, true);
+    await requirePermission(companyId, "appropriation", body.status === "approved" ? "approve" : "create");
     const db = getDb();
     const [contract] = await db
       .select()

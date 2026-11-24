@@ -2,7 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
 import { contractDocuments, contracts } from "@/db/schema";
-import { apiError, requireCompanyAccess } from "@/lib/tenant";
+import { apiError, requirePermission } from "@/lib/tenant";
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const companyId = url.searchParams.get("companyId") || "";
     const contractId = url.searchParams.get("contractId") || "";
     const fileId = url.searchParams.get("fileId") || "";
-    await requireCompanyAccess(companyId);
+    await requirePermission(companyId, "contracts", "view");
     const db = getDb();
 
     if (fileId) {
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     const contractId = String(form.get("contractId") || "");
     const documentType = String(form.get("documentType") || "").trim();
     const entry = form.get("file");
-    const access = await requireCompanyAccess(companyId, true);
+    const access = await requirePermission(companyId, "contracts", "create");
     if (!contractId || !documentType || !(entry instanceof File)) {
       return Response.json({ error: "Informe contrato, tipo de documento e arquivo." }, { status: 400 });
     }

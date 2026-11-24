@@ -4260,9 +4260,9 @@ function ReportsPage() {
     ["Relatório analítico de Partes Diárias", "Por equipamento e canteiro, com horímetro e KM"],
   ];
   useEffect(() => { fetch("/api/companies").then((r) => r.json()).then((payload) => { const list = payload.companies || []; setCompanies(list); if (list[0]) setCompanyId(list[0].id); }).catch(() => setMessage("Não foi possível carregar as empresas.")); }, []);
-  function displayRows(payload: any, selected = report) {
+  function displayRows(payload: any, selected = report, entries = dailyPartEntries) {
     if (selected.includes("Partes")) {
-      const filtered = dailyPartEntries
+      const filtered = entries
         .filter((r: any) => !dailyEquipmentFilter || r.equipmentId === dailyEquipmentFilter)
         .filter((r: any) => !dailyWorksiteFilter || (r.projectName || r.costCenter || "") === dailyWorksiteFilter);
       const counts = filtered.reduce((acc: Record<string, number>, row: any) => { acc[row.entryDate] = (acc[row.entryDate] || 0) + 1; return acc; }, {});
@@ -4297,20 +4297,20 @@ function ReportsPage() {
     return (payload.contractExpenses || []).map((r: any) => ({ Contrato: r.contractNumber, Objeto: r.contractObject, Locador: r.supplierName || "—", Obra: r.projectName || "—", "Valor contratual": money(r.contractCents), Despesas: money(r.expenseCents), Saldo: money(r.balanceCents) }));
   }
   useEffect(() => { if (report.includes("Partes") && dailyPartEntries.length) setRows(displayRows({}, report)); }, [dailyPartEntries, dailyEquipmentFilter, dailyWorksiteFilter, report]);
-  async function generate(selected = report) { if (!companyId) return setMessage("Selecione uma empresa."); setLoading(true); setMessage(""); try { if (selected.includes("Partes")) { const response = await fetch(`/api/daily-parts?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório de Partes Diárias."); setDailyPartEntries(payload.entries || []); setRows(displayRows({}, selected)); return; } const response = await fetch(`/api/reports?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório."); setData(payload); setRows(displayRows(payload, selected)); } catch (error: any) { setRows([]); setMessage(error.message || "Não foi possível gerar o relatório."); } finally { setLoading(false); } }
-  function selectReport(name: string) { setReport(name); if (data) setRows(displayRows(data, name)); }
+  async function generate(selected = report) { if (!companyId) return setMessage("Selecione uma empresa."); setLoading(true); setMessage(""); try { if (selected.includes("Partes")) { const response = await fetch(`/api/daily-parts?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório de Partes Diárias."); const entries = payload.entries || []; setDailyPartEntries(entries); setRows(displayRows({}, selected, entries)); return; } const response = await fetch(`/api/reports?companyId=${encodeURIComponent(companyId)}&from=${from}&to=${to}`); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || "Não foi possível gerar o relatório."); setData(payload); setRows(displayRows(payload, selected)); } catch (error: any) { setRows([]); setMessage(error.message || "Não foi possível gerar o relatório."); } finally { setLoading(false); } }
+  function selectReport(name: string) { setReport(name); if (name.includes("Partes")) { setRows([]); setDailyPartEntries([]); return; } if (data) setRows(displayRows(data, name)); }
   function exportExcel() { if (!rows.length) return setMessage("Gere o relatório antes de exportar."); const headers = Object.keys(rows[0]); const csv = [headers.join(";"), ...rows.map((row) => headers.map((key) => `"${String(row[key] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n"); const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${report.replace(/\s+/g, "_")}_${from}_${to}.csv`; anchor.click(); URL.revokeObjectURL(url); }
   const summary = data?.summary || {};
   const dailyEquipmentOptions = Array.from(new Map(dailyPartEntries.map((row: any) => [row.equipmentId, row])).values());
   const dailyWorksiteOptions = Array.from(new Set(dailyPartEntries.map((row: any) => row.projectName || row.costCenter).filter(Boolean)));
   return <div className="space-y-5">
-    <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-2xl font-black">Central de relatórios</h2><p className="text-slate-500">Relatórios financeiros e operacionais formados pelos lançamentos reais do sistema.</p></div><Badge tone="blue">PowerChina</Badge></div><div className="mt-5 grid gap-3 md:grid-cols-3 xl:grid-cols-6"><FuelField label="Empresa"><select className="input mt-1" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select></FuelField><FuelField label="Tipo de período"><select className="input mt-1" value={periodMode} onChange={(e)=>applyPeriod(e.target.value)}><option value="21-20">Medição — dia 21 ao dia 20</option><option value="calendar">Mês civil — dia 01 ao último dia</option><option value="custom">Personalizado</option></select></FuelField><FuelField label="Mês de referência"><input type="month" className="input mt-1" value={referenceMonth} onChange={(e)=>applyPeriod(periodMode,e.target.value)}/></FuelField><FuelField label="Período inicial"><input type="date" className="input mt-1" value={from} onChange={(e) => {setFrom(e.target.value);setPeriodMode("custom");}}/></FuelField><FuelField label="Período final"><input type="date" className="input mt-1" value={to} onChange={(e) => {setTo(e.target.value);setPeriodMode("custom");}}/></FuelField><div className="flex items-end"><button onClick={() => generate()} disabled={loading} className="btn-primary w-full justify-center"><Search size={17}/>{loading ? "Gerando..." : "Gerar relatório"}</button></div></div>{message && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{message}</div>}</section>
+    <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-2xl font-black">Central de relatórios</h2><p className="text-slate-500">Relatórios financeiros e operacionais formados pelos lançamentos reais do sistema.</p></div><img src="/assets/sepco1-logo-template.png" alt="SEPCO1" className="h-12 max-w-48 object-contain"/></div><div className="mt-5 grid gap-3 md:grid-cols-3 xl:grid-cols-6"><FuelField label="Empresa"><select className="input mt-1" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>{companies.map((row) => <option key={row.id} value={row.id}>{row.tradeName}</option>)}</select></FuelField><FuelField label="Tipo de período"><select className="input mt-1" value={periodMode} onChange={(e)=>applyPeriod(e.target.value)}><option value="21-20">Medição — dia 21 ao dia 20</option><option value="calendar">Mês civil — dia 01 ao último dia</option><option value="custom">Personalizado</option></select></FuelField><FuelField label="Mês de referência"><input type="month" className="input mt-1" value={referenceMonth} onChange={(e)=>applyPeriod(periodMode,e.target.value)}/></FuelField><FuelField label="Período inicial"><input type="date" className="input mt-1" value={from} onChange={(e) => {setFrom(e.target.value);setPeriodMode("custom");}}/></FuelField><FuelField label="Período final"><input type="date" className="input mt-1" value={to} onChange={(e) => {setTo(e.target.value);setPeriodMode("custom");}}/></FuelField><div className="flex items-end"><button onClick={() => generate()} disabled={loading} className="btn-primary w-full justify-center"><Search size={17}/>{loading ? "Gerando..." : "Gerar relatório"}</button></div></div>{message && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{message}</div>}</section>
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Mini label="Notas fiscais no período" value={money(summary.invoiceTotalCents || 0)}/><Mini label="Notas pagas" value={money(summary.invoicePaidCents || 0)}/><Mini label="Custo operacional" value={money(summary.companyOperatingCostCents || 0)}/><Mini label="Custo total da empresa" value={money(summary.totalCompanyCostCents || 0)}/></section>
     <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Selecione o relatório</h3><p>Clique em uma opção e depois em Gerar relatório.</p></div></div><div className="grid gap-px bg-slate-200 md:grid-cols-2 xl:grid-cols-3">{reportOptions.map(([name, description]) => <button key={name} onClick={() => selectReport(name)} className={`bg-white p-4 text-left hover:bg-slate-50 ${report === name ? "ring-2 ring-inset ring-blue-500 bg-blue-50" : ""}`}><div className="flex items-center gap-3"><div className="iconbox blue"><FileSpreadsheet size={19}/></div><div><div className="font-bold">{name}</div><div className="text-sm text-slate-500">{description}</div></div></div></button>)}</div></section>
     <section className="panel overflow-hidden">
       <div className="panel-head"><div><h3>{report}</h3><p>{rows.length} registros de {from.split("-").reverse().join("/")} a {to.split("-").reverse().join("/")}</p></div><div className="flex gap-2"><button onClick={() => window.print()} className="btn-secondary"><Printer size={17}/>PDF / imprimir</button><button onClick={exportExcel} className="btn-primary"><FileSpreadsheet size={17}/>Excel</button></div></div>
       {report.includes("Partes") && <div className="grid gap-3 border-b border-slate-200 p-4 md:grid-cols-2"><FuelField label="Equipamento"><select className="input mt-1" value={dailyEquipmentFilter} onChange={(e) => setDailyEquipmentFilter(e.target.value)}><option value="">Todos os equipamentos</option>{dailyEquipmentOptions.map((row: any) => <option key={row.equipmentId} value={row.equipmentId}>{row.fleetNumber} / {row.plate || "-"} - {row.description}</option>)}</select></FuelField><FuelField label="Canteiro"><select className="input mt-1" value={dailyWorksiteFilter} onChange={(e) => setDailyWorksiteFilter(e.target.value)}><option value="">Todos os canteiros</option>{dailyWorksiteOptions.map((site: any) => <option key={site} value={site}>{site}</option>)}</select></FuelField></div>}
-      <div className="overflow-x-auto">{rows.length ? <><table className="min-w-[1000px]"><thead><tr>{Object.keys(rows[0]).map((key) => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{Object.keys(rows[0]).map((key) => <td key={key}>{String(row[key] ?? "")}</td>)}</tr>)}</tbody></table>{report.includes("Partes") && <div className="border-t border-slate-200 bg-slate-50 p-4 text-right font-bold">Total de partes diarias lancadas: {dailyPartEntries.filter((r: any) => !dailyEquipmentFilter || r.equipmentId === dailyEquipmentFilter).filter((r: any) => !dailyWorksiteFilter || (r.projectName || r.costCenter || "") === dailyWorksiteFilter).length}</div>}</> : <div className="p-10 text-center text-slate-500">Selecione os filtros e clique em Gerar relatorio.</div>}</div>
+       <div className="overflow-x-auto">{rows.length ? <><table className="min-w-[1000px]"><thead><tr>{Object.keys(rows[0]).map((key) => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{Object.keys(rows[0]).map((key) => <td key={key}>{String(row[key] ?? "")}</td>)}</tr>)}</tbody></table>{report.includes("Partes") && <div className="border-t border-slate-200 bg-slate-50 p-4 text-right font-bold">Total de partes diárias lançadas: {rows.length}</div>}</> : <div className="p-10 text-center text-slate-500">Gere o relatório para exibir os lançamentos; ajuste os filtros por equipamento e canteiro acima.</div>}</div>
     </section>
   </div>;
 }
@@ -4329,7 +4329,7 @@ function ReportsPageLegacy() {
   function exportReport() { const headers = selectedReport === "Controle de pneus" ? ["O.S.","Data","Frota","Placa","Equipamento","Identificação anterior","Identificação atual","DOT","Condição","Destino","Fornecedor","Valor","Observação"] : selectedReport === "Controle de baterias" ? ["O.S.","Data","Frota","Placa","Equipamento","Certificado","Nota fiscal","Fornecedor","Valor","Observação"] : selectedReport === "Índice de eficiência" ? ["Frota","Placa","Equipamento","Trabalhado","Disposição","Manutenção","Abono","Eficiência"] : ["Frota","Placa","Equipamento","Combustível","Serviços rápidos","Manutenção direta PowerChina","Total"]; const csv=[headers.join(";")].concat(rows.map((r:any)=>Object.values(selectedReport === "Controle de pneus" ? {a:r.orderNumber,b:r.date,c:r.fleetNumber,d:r.plate,e:r.description,f:r.previousIdentification,g:r.currentIdentification,h:r.dot,i:r.condition,j:r.destination,k:r.supplier,l:(r.valueCents||0)/100,m:r.observation} : selectedReport === "Controle de baterias" ? {a:r.orderNumber,b:r.date,c:r.fleetNumber,d:r.plate,e:r.description,f:r.certificate,g:r.invoice,h:r.supplier,i:(r.valueCents||0)/100,j:r.observation} : selectedReport === "Índice de eficiência" ? {a:r.fleetNumber,b:r.plate,c:r.description,d:r.worked,e:r.idle,f:r.maintenance,g:r.allowance,h:(r.efficiency*100).toFixed(1)+"%"} : {a:r.fleetNumber,b:r.plate,c:r.description,d:(r.fuelCents||0)/100,e:(r.quickCents||0)/100,f:(r.directMaintenanceCents||0)/100,g:(r.totalCents||0)/100}).map((v:any)=>`"${String(v??"").replaceAll('"','""')}"`).join(";"))); const blob=new Blob(["\ufeff"+csv.join("\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a"); a.href=url;a.download=`${selectedReport.replace(/\s+/g,"_")}_${from}_${to}.csv`;a.click();URL.revokeObjectURL(url); }
   return <div className="space-y-5">
     <section className="panel p-5"><div className="grid gap-3 md:grid-cols-4"><FuelField label="Empresa"><select className="input mt-1" value={companyId} onChange={(e)=>setCompanyId(e.target.value)}>{companies.map((c)=><option key={c.id} value={c.id}>{c.tradeName}</option>)}</select></FuelField><FuelField label="Período inicial"><input type="date" className="input mt-1" value={from} onChange={(e)=>setFrom(e.target.value)}/></FuelField><FuelField label="Período final"><input type="date" className="input mt-1" value={to} onChange={(e)=>setTo(e.target.value)}/></FuelField><div className="flex items-end gap-2"><button onClick={()=>loadReport()} className="btn-primary flex-1"><Search size={17}/>{loading?"Carregando...":"Aplicar"}</button><button onClick={()=>window.print()} className="btn-secondary"><Printer size={17}/></button></div></div></section>
-    <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Painel mensal de gestão</h3><p>{from.split("-").reverse().join("/")} a {to.split("-").reverse().join("/")} • dados consolidados do sistema</p></div><Badge tone="blue">PowerChina</Badge></div><div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4"><Mini value={String(s.equipmentTotal||0)} label="Total de equipamentos"/><Mini value={String(s.activeEquipment||0)} label="Ativos"/><Mini value={`${((s.efficiency||0)*100).toFixed(1)}%`} label="Índice de eficiência"/><Mini value={money(s.totalCompanyCostCents||0)} label="Custo total da empresa"/></div><div className="grid gap-3 border-t border-slate-200 p-5 sm:grid-cols-2 xl:grid-cols-4"><Mini value={money(s.rentCents||0)} label="Locação"/><Mini value={money(s.fuelCents||0)} label="Abastecimento"/><Mini value={money(s.quickCompanyCents||0)} label="Serviços rápidos pagos pela empresa"/><div className="rounded-xl border-2 border-red-200 bg-red-50 p-4"><div className="text-sm font-bold text-red-800">Manutenção direta PowerChina</div><div className="mt-2 text-2xl font-black text-red-900">{money(s.directMaintenanceCents||0)}</div><div className="mt-1 text-xs text-red-700">Pago pela empresa e não descontado do locador</div></div></div><div className="grid gap-3 border-t border-slate-200 bg-slate-50 p-5 sm:grid-cols-2 lg:grid-cols-4"><Mini value={money(s.lessorReimbursementCents||0)} label="Reembolso ao locador"/><Mini value={money(s.lessorDiscountCents||0)} label="Cobrado/descontado do locador"/><Mini value={String(s.idle||0)} label="Dias à disposição"/><Mini value={String(s.maintenance||0)} label="Dias em manutenção"/></div></section>
+    <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Painel mensal de gestão</h3><p>{from.split("-").reverse().join("/")} a {to.split("-").reverse().join("/")} • dados consolidados do sistema</p></div><img src="/assets/sepco1-logo-template.png" alt="SEPCO1" className="h-12 max-w-48 object-contain"/></div><div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4"><Mini value={String(s.equipmentTotal||0)} label="Total de equipamentos"/><Mini value={String(s.activeEquipment||0)} label="Ativos"/><Mini value={`${((s.efficiency||0)*100).toFixed(1)}%`} label="Índice de eficiência"/><Mini value={money(s.totalCompanyCostCents||0)} label="Custo total da empresa"/></div><div className="grid gap-3 border-t border-slate-200 p-5 sm:grid-cols-2 xl:grid-cols-4"><Mini value={money(s.rentCents||0)} label="Locação"/><Mini value={money(s.fuelCents||0)} label="Abastecimento"/><Mini value={money(s.quickCompanyCents||0)} label="Serviços rápidos pagos pela empresa"/><div className="rounded-xl border-2 border-red-200 bg-red-50 p-4"><div className="text-sm font-bold text-red-800">Manutenção direta PowerChina</div><div className="mt-2 text-2xl font-black text-red-900">{money(s.directMaintenanceCents||0)}</div><div className="mt-1 text-xs text-red-700">Pago pela empresa e não descontado do locador</div></div></div><div className="grid gap-3 border-t border-slate-200 bg-slate-50 p-5 sm:grid-cols-2 lg:grid-cols-4"><Mini value={money(s.lessorReimbursementCents||0)} label="Reembolso ao locador"/><Mini value={money(s.lessorDiscountCents||0)} label="Cobrado/descontado do locador"/><Mini value={String(s.idle||0)} label="Dias à disposição"/><Mini value={String(s.maintenance||0)} label="Dias em manutenção"/></div></section>
     <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Central de relatórios</h3><p>Escolha o relatório, consulte, imprima ou exporte.</p></div></div><div className="grid gap-px bg-slate-200 md:grid-cols-2 xl:grid-cols-3">{reports.map(([name,desc,group])=><button key={name} onClick={()=>setSelectedReport(name)} className={`flex items-center gap-3 p-4 text-left ${selectedReport===name?"bg-blue-50 ring-2 ring-inset ring-blue-500":"bg-white hover:bg-slate-50"}`}><div className="iconbox blue"><FileSpreadsheet size={19}/></div><div className="min-w-0 flex-1"><div className="font-semibold">{name}</div><div className="text-sm text-slate-500">{desc}</div></div><Badge tone="blue">{group}</Badge></button>)}</div></section>
     {selectedReport !== "Painel mensal de gestão" && selectedReport !== "Apropriação de equipamentos" && <section className="panel overflow-hidden"><div className="panel-head"><div><h3>{selectedReport}</h3><p>{rows.length} registro(s) no período</p></div><div className="flex gap-2"><button onClick={()=>window.print()} className="btn-secondary"><Printer size={17}/>PDF</button><button onClick={exportReport} className="btn-primary"><FileSpreadsheet size={17}/>Excel</button></div></div><div className="overflow-x-auto"><table className="min-w-[900px]"><thead><tr>{selectedReport==="Controle de pneus"?<><th>O.S.</th><th>Data</th><th>Frota / placa</th><th>Pneu anterior</th><th>Pneu atual</th><th>DOT</th><th>Condição</th><th>Destino</th><th>Fornecedor</th><th className="text-right">Valor</th></>:selectedReport==="Controle de baterias"?<><th>O.S.</th><th>Data</th><th>Frota / placa</th><th>Certificado</th><th>Nota fiscal</th><th>Fornecedor</th><th className="text-right">Valor</th><th>Observação</th></>:selectedReport==="Índice de eficiência"?<><th>Frota / placa</th><th>Equipamento</th><th>T</th><th>D</th><th>M</th><th>AB</th><th>Eficiência</th></>:<><th>Frota / placa</th><th>Equipamento</th><th className="text-right">Combustível</th><th className="text-right">Serviços rápidos</th><th className="text-right">Manutenção direta</th><th className="text-right">Total</th></>}</tr></thead><tbody>{rows.length?rows.map((r:any,i:number)=><tr key={i}>{selectedReport==="Controle de pneus"?<><td>{r.orderNumber}</td><td>{r.date}</td><td>{r.fleetNumber} • {r.plate}</td><td>{r.previousIdentification||"—"}</td><td>{r.currentIdentification||"—"}</td><td>{r.dot||"—"}</td><td>{r.condition||"—"}</td><td>{r.destination||"—"}</td><td>{r.supplier||"—"}</td><td className="text-right">{money(r.valueCents)}</td></>:selectedReport==="Controle de baterias"?<><td>{r.orderNumber}</td><td>{r.date}</td><td>{r.fleetNumber} • {r.plate}</td><td>{r.certificate||"—"}</td><td>{r.invoice||"—"}</td><td>{r.supplier||"—"}</td><td className="text-right">{money(r.valueCents)}</td><td>{r.observation||"—"}</td></>:selectedReport==="Índice de eficiência"?<><td>{r.fleetNumber} • {r.plate}</td><td>{r.description}</td><td>{r.worked}</td><td>{r.idle}</td><td>{r.maintenance}</td><td>{r.allowance}</td><td className="font-bold">{(r.efficiency*100).toFixed(1)}%</td></>:<><td>{r.fleetNumber} • {r.plate}</td><td>{r.description}</td><td className="text-right">{money(r.fuelCents)}</td><td className="text-right">{money(r.quickCents)}</td><td className="text-right">{money(r.directMaintenanceCents)}</td><td className="text-right font-bold">{money(r.totalCents)}</td></>}</tr>):<tr><td colSpan={12} className="py-8 text-center text-slate-500">Nenhum lançamento encontrado neste período.</td></tr>}</tbody></table></div></section>}
 */
@@ -4782,7 +4782,7 @@ function PermissionsPage() {
     if (!id) return;
     const response = await fetch(`/api/users?companyId=${encodeURIComponent(id)}`);
     const data = await response.json();
-    if (response.ok) setUsers(data.users || []); else setUserMessage(data.error || "Não foi possível carregar os usuários.");
+    if (response.ok) { const nextUsers = data.users || []; setUsers(nextUsers); setUser((current) => nextUsers.some((item: any) => item.id === current) ? current : nextUsers[0]?.id || ""); if (!user && nextUsers[0]) setProfile(roleLabel[nextUsers[0].role] || "Consulta"); } else setUserMessage(data.error || "Não foi possível carregar os usuários.");
   }
   useEffect(() => {
     fetch("/api/companies").then((r) => r.json()).then((data) => {
@@ -4799,11 +4799,9 @@ function PermissionsPage() {
     setUserForm({ name: "", email: "", role: "operator" }); setShowUserForm(false); if (!data.queued) await loadUsers();
   }
   const modules = [
-    "Empresas",
-    "Usuários",
-    "Fornecedores",
-    "Obras, canteiros e centros de custo",
-    "Tipos, marcas e modelos",
+    "Empresas (administrador)",
+    "Usuários (administrador)",
+    "Cadastros e fornecedores",
     "Contratos",
     "Equipamentos",
     "Manutenção",
@@ -4812,14 +4810,45 @@ function PermissionsPage() {
     "Apropriação",
     "Relatórios",
   ];
+  const permissionModuleKeys = ["companies", "users", "master_data", "contracts", "equipment", "maintenance", "daily_parts", "fuel", "appropriation", "reports"];
   const [user, setUser] = useState("");
   const [profile, setProfile] = useState("Gestor");
   const [rules, setRules] = useState<Record<string, boolean[]>>(() =>
     Object.fromEntries(modules.map((m, i) => [m, [true, i < 10, i < 9, false, i < 6, false, false, true]])),
   );
   const [saved, setSaved] = useState(false);
+  const [permissionsBusy, setPermissionsBusy] = useState(false);
+  useEffect(() => {
+    if (!companyId || !user) { setSaved(false); return; }
+    let cancelled = false;
+    setPermissionsBusy(true);
+    fetch(`/api/permissions?companyId=${encodeURIComponent(companyId)}&companyUserId=${encodeURIComponent(user)}`)
+      .then(async (response) => ({ response, data: await response.json() }))
+      .then(({ response, data }) => {
+        if (cancelled) return;
+        if (!response.ok) { setUserMessage(data.error || "Não foi possível carregar as permissões."); return; }
+        const next = Object.fromEntries(modules.map((module) => [module, [false, false, false, false, false, false, false, false]])) as Record<string, boolean[]>;
+        for (const permission of data.permissions || []) {
+          const indexes = permissionModuleKeys.map((key, index) => key === permission.module ? index : -1).filter((index) => index >= 0);
+          for (const index of indexes) next[modules[index]] = [permission.canView, permission.canCreate, permission.canUpdate, permission.canDelete, permission.canApprove, permission.canCancel, permission.canReopen, permission.canReport];
+        }
+        setRules(next); setSaved(true);
+      })
+      .catch(() => { if (!cancelled) setUserMessage("Não foi possível carregar as permissões."); })
+      .finally(() => { if (!cancelled) setPermissionsBusy(false); });
+    return () => { cancelled = true; };
+  }, [companyId, user]);
+  async function savePermissions() {
+    if (!companyId || !user) { setUserMessage("Selecione um usuário antes de salvar as permissões."); return; }
+    setPermissionsBusy(true);
+    const permissionsByModule = new Map<string, boolean[]>();
+    modules.forEach((module, index) => permissionsByModule.set(permissionModuleKeys[index], rules[module]));
+    const response = await fetch("/api/permissions", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, companyUserId: user, permissions: [...permissionsByModule].map(([module, values]) => ({ module, canView: !!values?.[0], canCreate: !!values?.[1], canUpdate: !!values?.[2], canDelete: !!values?.[3], canApprove: !!values?.[4], canCancel: !!values?.[5], canReopen: !!values?.[6], canReport: !!values?.[7] })) }) });
+    const data = await response.json().catch(() => ({})); setPermissionsBusy(false); setSaved(response.ok);
+    setUserMessage(response.ok ? "Permissões salvas no sistema." : data.error || "Não foi possível salvar as permissões.");
+  }
   function toggle(module: string, index: number) {
-    if (profile === "Administrador") return;
+    if (profile === "Administrador" || profile === "Administrador geral") return;
     setRules((r) => ({
       ...r,
       [module]: r[module].map((v, i) => (i === index ? !v : v)),
@@ -4839,6 +4868,7 @@ function PermissionsPage() {
         <label className="text-sm font-semibold">Perfil do usuário<select className="input mt-1" value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}><option value="company_admin">Administrador</option><option value="manager">Gestor</option><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="super_admin">Administrador geral</option></select></label>
         <div className="md:col-span-3 flex justify-end"><button disabled={userBusy || !companyId} className="btn-primary"><ShieldCheck size={17} />{userBusy ? "Salvando..." : "Cadastrar usuário"}</button></div>
       </form>}
+      <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">O acesso dos colaboradores usa o login autenticado da plataforma. Cadastre o mesmo e-mail que cada pessoa usará ao entrar; depois selecione o usuário abaixo e grave as permissões por módulo. Esta tela não cria senhas próprias.</div>
       {userMessage && <div className="mt-3 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{userMessage}</div>}
       <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th></tr></thead><tbody>{users.map((item) => <tr key={item.id}><td className="font-semibold">{item.displayName || "Usuário já vinculado"}</td><td>{item.email || "Conta vinculada anteriormente"}</td><td>{roleLabel[item.role] || item.role}</td><td><Badge tone={item.active ? "green" : "slate"}>{item.active ? "Ativo" : "Inativo"}</Badge></td></tr>)}{!users.length && <tr><td colSpan={4} className="py-8 text-center text-slate-500">Nenhum usuário cadastrado nesta empresa.</td></tr>}</tbody></table></div>
     </section>
@@ -4854,16 +4884,18 @@ function PermissionsPage() {
         <select
           className="input w-auto"
           value={user}
-          onChange={(e) => { const selected = users.find((item) => item.id === e.target.value); setUser(e.target.value); if (selected) setProfile(roleLabel[selected.role] === "Administrador geral" ? "Administrador" : roleLabel[selected.role]); }}
+          onChange={(e) => { const selected = users.find((item) => item.id === e.target.value); setUser(e.target.value); if (selected) setProfile(roleLabel[selected.role] || "Consulta"); setSaved(false); }}
         >
           <option value="">Selecione o usuário</option>
           {users.map((item) => <option key={item.id} value={item.id}>{item.displayName || item.email || "Usuário"} • {roleLabel[item.role] || item.role}</option>)}
         </select>
-        <select className="input w-auto" value={profile} onChange={(e) => { setProfile(e.target.value); setSaved(false); }}>
-          <option>Administrador</option>
-          <option>Gestor</option>
-          <option>Operador</option>
-          <option>Consulta</option>
+        <select className="input w-auto" value={users.find((item) => item.id === user)?.role || ""} onChange={async (e) => { const role = e.target.value; const selected = users.find((item) => item.id === user); if (!selected) return; const response = await fetch("/api/users", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, companyUserId: user, role }) }); const data = await response.json().catch(() => ({})); if (!response.ok) { setUserMessage(data.error || "Não foi possível alterar o perfil."); return; } setProfile(roleLabel[role] || role); setUserMessage("Perfil do usuário atualizado."); await loadUsers(); }} disabled={!user}>
+          <option value="">Perfil do usuário</option>
+          <option value="company_admin">Administrador</option>
+          <option value="manager">Gestor</option>
+          <option value="operator">Operador</option>
+          <option value="viewer">Consulta</option>
+          {users.find((item) => item.id === user)?.role === "super_admin" && <option value="super_admin">Administrador geral</option>}
         </select>
       </div>
       {profile === "Administrador" && <div className="border-b border-blue-200 bg-blue-50 px-5 py-4"><div className="font-bold text-blue-900">Administrador / 管理员 — acesso total</div><p className="mt-1 text-sm text-blue-800">Pode cadastrar e alterar usuários, empresas, fornecedores, obras, centros de custo e equipamentos; consultar e alterar todos os registros; aprovar, cancelar, reabrir e gerar todos os relatórios.</p></div>}
@@ -4891,9 +4923,9 @@ function PermissionsPage() {
                     <input
                       aria-label={`${["Visualizar", "Incluir", "Alterar", "Excluir", "Aprovar", "Cancelar", "Reabrir", "Relatórios"][i]} ${m}`}
                       type="checkbox"
-                      checked={profile === "Administrador" ? true : checked}
+                      checked={profile === "Administrador" || profile === "Administrador geral" ? true : checked}
                       onChange={() => toggle(m, i)}
-                      disabled={profile === "Administrador"}
+                      disabled={!user || permissionsBusy || profile === "Administrador" || profile === "Administrador geral"}
                       className="h-5 w-5 accent-blue-700"
                     />
                   </td>
@@ -4905,11 +4937,9 @@ function PermissionsPage() {
       </div>
       <div className="flex items-center justify-between border-t border-slate-200 p-4">
         <span className="text-sm text-emerald-700">
-          {saved
-            ? "Permissões salvas com sucesso."
-            : "Alterações ainda não salvas."}
+          {saved ? "Permissões carregadas/salvas no sistema." : "Alterações ainda não salvas."}
         </span>
-        <button onClick={() => setSaved(true)} className="btn-primary">
+        <button onClick={savePermissions} disabled={!user || permissionsBusy || profile === "Administrador" || profile === "Administrador geral"} className="btn-primary">
           <ShieldCheck size={17} />
           Salvar permissões
         </button>

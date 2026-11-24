@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     const efficiencyBase = worked + idle + maintenance;
 
     const costMap = new Map<string, any>();
-    for (const asset of assets) costMap.set(asset.id, { equipmentId: asset.id, fleetNumber: asset.fleetNumber, plate: asset.plate, description: asset.description, rentCents: 0, fuelCents: 0, quickCents: 0, directMaintenanceCents: 0, totalCents: 0 });
+    for (const asset of assets) costMap.set(asset.id, { equipmentId: asset.id, fleetNumber: asset.fleetNumber, plate: asset.plate, description: asset.description, equipmentType: asset.equipmentType, rentCents: 0, fuelCents: 0, quickCents: 0, directMaintenanceCents: 0, totalCents: 0 });
     for (const row of fuel) { const target = costMap.get(row.equipmentId); if (target) target.fuelCents += row.totalCents; }
     for (const row of quick) { const target = costMap.get(row.equipmentId); if (target) target.quickCents += row.totalCents; }
     for (const row of orderItems) if (row.item.paymentResponsibility === "company") { const target = costMap.get(row.equipmentId); if (target) target.directMaintenanceCents += row.item.totalCents; }
@@ -118,8 +118,20 @@ export async function GET(request: Request) {
     const maintenanceTypeMap = new Map<string, number>();
     for (const row of orderItems.filter((r) => r.item.paymentResponsibility === "company")) maintenanceTypeMap.set(row.item.serviceClass || "Não informado", (maintenanceTypeMap.get(row.item.serviceClass || "Não informado") || 0) + row.item.totalCents);
     const maintenanceByType = [...maintenanceTypeMap].map(([name, totalCents]) => ({ name, totalCents })).sort((a, b) => b.totalCents - a.totalCents);
+    const maintenanceEntries = orderItems.map((row) => ({
+      date: row.closedAt || row.startedAt,
+      orderNumber: row.orderNumber,
+      fleetNumber: row.fleetNumber,
+      plate: row.plate,
+      equipment: row.equipmentDescription,
+      service: row.item.productService,
+      serviceClass: row.item.serviceClass || "Não informado",
+      supplier: row.item.supplierName || "",
+      paymentResponsibility: row.item.paymentResponsibility,
+      totalCents: row.item.totalCents,
+    }));
     const monthlyPanel = { equipmentByType, equipmentByLessor, expensesByLessor, maintenanceByType, topEquipment: vehicleCosts.slice(0, 4), efficiency91to100: efficiency.filter((row) => row.efficiency >= .91 && row.efficiency <= 1).length };
 
-    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized").length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: (worked + idle) / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, productivityByEquipment, monthlyPanel, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
+    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized").length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: (worked + idle) / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, productivityByEquipment, monthlyPanel, maintenanceEntries, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
   } catch (error) { return apiError(error); }
 }

@@ -21,6 +21,7 @@ const isConvoyAsset = (e: Equipment) => /COMBOIO/i.test(`${e.equipmentType || ""
 
 export default function FuelManagementPage() {
   const [companyId, setCompanyId] = useState("");
+  const [companies, setCompanies] = useState<{ id: string; tradeName: string }[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -67,7 +68,7 @@ export default function FuelManagementPage() {
   }
 
   useEffect(() => {
-    fetch("/api/companies").then((r) => r.json()).then((data) => { const id = data.companies?.[0]?.id || ""; setCompanyId(id); if (id) load(id); }).catch(() => { setError(true); setMessage("Não foi possível carregar a empresa ativa."); });
+    fetch("/api/companies").then((r) => r.json()).then((data) => { const rows = data.companies || []; setCompanies(rows); const id = rows[0]?.id || ""; setCompanyId(id); }).catch(() => { setError(true); setMessage("Não foi possível carregar as empresas."); });
   }, []);
   useEffect(() => { if (companyId) load(); }, [filters.from, filters.to, filters.supplierId, filters.convoyId, filters.equipmentId, companyId]);
 
@@ -187,7 +188,8 @@ export default function FuelManagementPage() {
 
     {message && <div className={`rounded-xl border p-3 text-sm font-semibold ${error ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>{message}</div>}
 
-    <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-6">
+    <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-7">
+      <label className="text-xs font-semibold text-slate-600">Empresa<select required className="input mt-1" value={companyId} onChange={(e) => { setError(false); setMessage(""); setCompanyId(e.target.value); setForm(emptyForm()); }}><option value="">Selecione</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.tradeName}</option>)}</select></label>
       <label className="text-xs font-semibold text-slate-600">Período inicial<input className="input mt-1" type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })}/></label>
       <label className="text-xs font-semibold text-slate-600">Período final<input className="input mt-1" type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })}/></label>
       <label className="text-xs font-semibold text-slate-600">Fornecedor<select className="input mt-1" value={filters.supplierId} onChange={(e) => setFilters({ ...filters, supplierId: e.target.value })}><option value="">Todos</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>

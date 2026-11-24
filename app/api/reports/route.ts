@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const [assets, parts, fuel, quick, orderItems, rents, invoices, payments, maintenanceHistory, measurementAdjustments] = await Promise.all([
       db.select().from(equipment).where(and(eq(equipment.companyId, companyId), ne(equipment.status, "demo"))),
-      db.select({ entryDate: dailyPartEntries.entryDate, status: dailyPartEntries.status, equipmentId: dailyPartEntries.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
+      db.select({ entryDate: dailyPartEntries.entryDate, status: dailyPartEntries.status, equipmentId: dailyPartEntries.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description, equipmentType: equipment.equipmentType, costCenter: equipment.costCenter, projectName: equipment.projectName })
         .from(dailyPartEntries).innerJoin(equipment, eq(dailyPartEntries.equipmentId, equipment.id))
         .where(and(eq(dailyPartEntries.companyId, companyId), gte(dailyPartEntries.entryDate, from), lte(dailyPartEntries.entryDate, to))),
       db.select({ equipmentId: fuelEntries.equipmentId, totalCents: fuelEntries.totalCents, litersMilli: fuelEntries.litersMilli, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
@@ -79,15 +79,20 @@ export async function GET(request: Request) {
     const contractExpenses = [...contractMap.values()].sort((a, b) => b.expenseCents - a.expenseCents);
 
     const efficiencyMap = new Map<string, any>();
-    for (const row of parts) { const current = efficiencyMap.get(row.equipmentId) || { equipmentId: row.equipmentId, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, worked: 0, idle: 0, maintenance: 0, allowance: 0 }; current[row.status === "T" ? "worked" : row.status === "D" ? "idle" : row.status === "M" ? "maintenance" : "allowance"]++; efficiencyMap.set(row.equipmentId, current); }
-    const efficiency = [...efficiencyMap.values()].map((r) => ({ ...r, efficiency: r.worked / Math.max(1, r.worked + r.idle + r.maintenance) })).sort((a, b) => a.efficiency - b.efficiency);
+    for (const row of parts) { const current = efficiencyMap.get(row.equipmentId) || { equipmentId: row.equipmentId, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, equipmentType: row.equipmentType, worked: 0, idle: 0, maintenance: 0, allowance: 0 }; current[row.status === "T" ? "worked" : row.status === "D" ? "idle" : row.status === "M" ? "maintenance" : "allowance"]++; efficiencyMap.set(row.equipmentId, current); }
+    const efficiency = [...efficiencyMap.values()].map((r) => {
+      const denominator = r.worked + r.idle + r.maintenance;
+      const efficiencyDays = r.worked + r.idle;
+      const unproductive = r.idle + r.maintenance;
+      return { ...r, efficiencyDays, unproductive, total: denominator, efficiency: efficiencyDays / Math.max(1, denominator), productiveRate: r.worked / Math.max(1, denominator), unproductiveRate: unproductive / Math.max(1, denominator) };
+    }).sort((a, b) => a.efficiency - b.efficiency);
 
     const tires = orderItems.filter((r) => r.item.tireCurrentIdentification || r.item.tirePreviousIdentification || r.item.tireDot).map((r) => ({ orderNumber: r.orderNumber, date: r.closedAt || r.startedAt, fleetNumber: r.fleetNumber, plate: r.plate, description: r.equipmentDescription, previousIdentification: r.item.tirePreviousIdentification, currentIdentification: r.item.tireCurrentIdentification, dot: r.item.tireDot, condition: r.item.tireCondition, destination: r.item.tireRemovedDestination, supplier: r.item.supplierName, valueCents: r.item.totalCents, observation: r.item.observation }));
     const batteries = orderItems.filter((r) => r.item.batteryCertificateNumber || r.item.batteryInvoiceNumber).map((r) => ({ orderNumber: r.orderNumber, date: r.closedAt || r.startedAt, fleetNumber: r.fleetNumber, plate: r.plate, description: r.equipmentDescription, certificate: r.item.batteryCertificateNumber, invoice: r.item.batteryInvoiceNumber || r.item.invoiceNumber, supplier: r.item.supplierName, valueCents: r.item.totalCents, observation: r.item.observation }));
 
     const productivityTypeMap = new Map<string, any>();
     for (const row of parts) {
-      const type = row.description || "Não informado";
+      const type = row.equipmentType || row.description || "Não informado";
       const current = productivityTypeMap.get(type) || { equipmentType: type, worked: 0, idle: 0, maintenance: 0, allowance: 0 };
       if (row.status === "T") current.worked++; else if (row.status === "D") current.idle++; else if (row.status === "M") current.maintenance++; else current.allowance++;
       productivityTypeMap.set(type, current);
@@ -97,6 +102,12 @@ export async function GET(request: Request) {
       const unproductive = row.idle + row.maintenance;
       return { ...row, total, unproductive, productiveRate: row.worked / Math.max(1, total), unproductiveRate: unproductive / Math.max(1, total), idleRate: row.idle / Math.max(1, total), maintenanceRate: row.maintenance / Math.max(1, total) };
     }).sort((a, b) => b.unproductiveRate - a.unproductiveRate);
+    const productivityByEquipment = [...efficiencyMap.values()].map((row) => {
+      const total = row.worked + row.idle + row.maintenance;
+      const unproductive = row.idle + row.maintenance;
+      const efficiencyDays = row.worked + row.idle;
+      return { ...row, equipmentType: row.equipmentType || "Não informado", total, unproductive, efficiencyDays, efficiency: efficiencyDays / Math.max(1, total), productiveRate: row.worked / Math.max(1, total), unproductiveRate: unproductive / Math.max(1, total) };
+    }).sort((a, b) => a.fleetNumber.localeCompare(b.fleetNumber, "pt-BR", { numeric: true }));
 
     const countMap = (values: string[]) => [...values.reduce((map, value) => map.set(value || "Não informado", (map.get(value || "Não informado") || 0) + 1), new Map<string, number>())].map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total);
     const equipmentByType = countMap(assets.map((row) => row.equipmentType || row.description || "Não informado"));
@@ -109,6 +120,6 @@ export async function GET(request: Request) {
     const maintenanceByType = [...maintenanceTypeMap].map(([name, totalCents]) => ({ name, totalCents })).sort((a, b) => b.totalCents - a.totalCents);
     const monthlyPanel = { equipmentByType, equipmentByLessor, expensesByLessor, maintenanceByType, topEquipment: vehicleCosts.slice(0, 4), efficiency91to100: efficiency.filter((row) => row.efficiency >= .91 && row.efficiency <= 1).length };
 
-    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized").length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: worked / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, monthlyPanel, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
+    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized").length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: (worked + idle) / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, productivityByEquipment, monthlyPanel, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
   } catch (error) { return apiError(error); }
 }

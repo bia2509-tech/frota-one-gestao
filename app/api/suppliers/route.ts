@@ -8,7 +8,19 @@ const fields = (body: any) => ({ name: body.name?.trim() || "", tradeName: body.
 const supplierCode = (id: string) => `FOR-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 export async function GET(request: Request) {
-  try { const companyId = new URL(request.url).searchParams.get("companyId") || ""; const access = await requirePermission(companyId, "master_data", "view"); try { await ensureSepcoRentalPayments(companyId, access.user.userId); } catch (error) { console.error("Carga opcional de pagamentos ignorada", error); } const rows = await getDb().select().from(suppliers).where(eq(suppliers.companyId, companyId)).orderBy(asc(suppliers.name)); return Response.json({ suppliers: rows.map((row) => ({ ...row, code: supplierCode(row.id) })), canDelete: access.membership.role === "super_admin" }); } catch (error) { return apiError(error); }
+  try {
+    const url = new URL(request.url), companyId = url.searchParams.get("companyId") || "";
+    if (url.searchParams.get("purpose") === "fuel") {
+      await requirePermission(companyId, "fuel", "view");
+      const rows = await getDb().select({ id: suppliers.id, name: suppliers.name, active: suppliers.active })
+        .from(suppliers).where(eq(suppliers.companyId, companyId)).orderBy(asc(suppliers.name));
+      return Response.json({ suppliers: rows });
+    }
+    const access = await requirePermission(companyId, "master_data", "view");
+    try { await ensureSepcoRentalPayments(companyId, access.user.userId); } catch (error) { console.error("Carga opcional de pagamentos ignorada", error); }
+    const rows = await getDb().select().from(suppliers).where(eq(suppliers.companyId, companyId)).orderBy(asc(suppliers.name));
+    return Response.json({ suppliers: rows.map((row) => ({ ...row, code: supplierCode(row.id) })), canDelete: access.membership.role === "super_admin" });
+  } catch (error) { return apiError(error); }
 }
 export async function POST(request: Request) {
   try { const body = await request.json(), companyId = body.companyId || ""; await requirePermission(companyId, "master_data", "create"); const data = fields(body); if (!data.name) return Response.json({ error: "Razão social é obrigatória." }, { status: 400 }); const row = { id: crypto.randomUUID(), companyId, ...data }; await getDb().insert(suppliers).values(row); return Response.json({ supplier: { ...row, code: supplierCode(row.id) } }, { status: 201 }); } catch (error) { return apiError(error); }

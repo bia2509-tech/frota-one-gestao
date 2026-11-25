@@ -683,9 +683,7 @@ export const fuelEntries = sqliteTable(
     companyId: text("company_id")
       .notNull()
       .references(() => companies.id),
-    equipmentId: text("equipment_id")
-      .notNull()
-      .references(() => equipment.id),
+    equipmentId: text("equipment_id").references(() => equipment.id),
     systemNumber: integer("system_number"),
     entryDate: text("entry_date").notNull(),
     rn: text("rn"),
@@ -712,6 +710,11 @@ export const fuelEntries = sqliteTable(
     originalExternalId: text("original_external_id"),
     sourceFingerprint: text("source_fingerprint"),
     transactionType: text("transaction_type", { enum: ["consumption", "stock_receipt", "distribution"] }).notNull().default("consumption"),
+    externalIdentifier: text("external_identifier"),
+    externalAssetType: text("external_asset_type"),
+    externalCompanyName: text("external_company_name"),
+    externalDescription: text("external_description"),
+    observation: text("observation"),
     createdBy: text("created_by").notNull(),
     createdAt: text("created_at").notNull(),
   },

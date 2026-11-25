@@ -10,6 +10,7 @@ import { fuelEntryFingerprint } from "@/lib/fuel-domain";
 type FuelInput = {
   entryDate?: string; entryTime?: string; rn?: string; requisitionCoupon?: string;
   fleetNumber?: string; plate?: string; station?: string; supplierId?: string;
+  assetKind?: "fleet" | "external"; externalIdentifier?: string; externalAssetType?: string; externalCompanyName?: string; externalDescription?: string; observation?: string;
   maintenanceLocation?: string; maintenanceLocationId?: string; costCenter?: string;
   driverName?: string; product?: string; productCode?: string; liters?: number;
   unitPrice?: number; total?: number; kilometer?: number | null; hourmeter?: number | null;
@@ -110,7 +111,9 @@ export async function GET(request: Request) {
       getDb().select({
         id: fuelEntries.id, systemNumber: fuelEntries.systemNumber, entryDate: fuelEntries.entryDate,
         entryTime: fuelEntries.entryTime, rn: fuelEntries.rn, requisitionCoupon: fuelEntries.requisitionCoupon,
-        fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description,
+        equipmentId: fuelEntries.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description,
+        externalIdentifier: fuelEntries.externalIdentifier, externalAssetType: fuelEntries.externalAssetType,
+        externalCompanyName: fuelEntries.externalCompanyName, externalDescription: fuelEntries.externalDescription, observation: fuelEntries.observation,
         station: fuelEntries.station, supplierId: fuelEntries.supplierId, supplierName: suppliers.name,
         maintenanceLocation: fuelEntries.maintenanceLocation, costCenter: fuelEntries.costCenter,
         driverName: fuelEntries.driverName, product: fuelEntries.product, productCode: fuelEntries.productCode,
@@ -119,7 +122,7 @@ export async function GET(request: Request) {
         source: fuelEntries.source, transactionType: fuelEntries.transactionType, fuelConvoyId: fuelEntries.fuelConvoyId,
         invoiceId: fuelEntries.invoiceId, receiptObjectKey: fuelEntries.receiptObjectKey,
         originalExternalId: fuelEntries.originalExternalId,
-      }).from(fuelEntries).innerJoin(equipment, eq(fuelEntries.equipmentId, equipment.id))
+      }).from(fuelEntries).leftJoin(equipment, eq(fuelEntries.equipmentId, equipment.id))
         .leftJoin(suppliers, eq(fuelEntries.supplierId, suppliers.id))
         .where(and(...conditions)).orderBy(asc(fuelEntries.systemNumber), asc(fuelEntries.createdAt)),
       getDb().select({ fuelEntryId: fuelCreditUsages.fuelEntryId, amountCents: sql<number>`coalesce(sum(${fuelCreditUsages.amountCents}),0)` })
@@ -128,7 +131,7 @@ export async function GET(request: Request) {
     const usageMap = new Map(usageRows.map((row) => [row.fuelEntryId, row.amountCents]));
     const [latestNumber] = await getDb().select({ value: sql<number>`coalesce(max(${fuelEntries.systemNumber}), 0)` })
       .from(fuelEntries).where(eq(fuelEntries.companyId, companyId));
-    return Response.json({ entries: rows.map((row) => ({ ...row, creditUsedCents: Number(usageMap.get(row.id) || 0) })), nextSystemNumber: Number(latestNumber?.value || 0) + 1 });
+    return Response.json({ entries: rows.map((row) => ({ ...row, fleetNumber: row.externalIdentifier || row.fleetNumber || "Fora da frota", plate: row.externalIdentifier || row.plate, description: row.externalDescription || row.description || "Veículo externo autorizado", creditUsedCents: Number(usageMap.get(row.id) || 0) })), nextSystemNumber: Number(latestNumber?.value || 0) + 1 });
   } catch (error) { return apiError(error); }
 }
 
@@ -152,7 +155,13 @@ export async function POST(request: Request) {
         const required = body.strict === true;
         const location = await resolveLocation(companyId, input, required);
         const supplier = await resolveSupplier(companyId, input, required);
-        const matched = await resolveEquipment(companyId, input);
+        const externalAsset = input.assetKind === "external";
+        const matched = externalAsset ? null : await resolveEquipment(companyId, input);
+        const externalIdentifier = externalAsset ? (input.externalIdentifier?.trim() || input.fleetNumber?.trim() || input.plate?.trim() || "") : "";
+        if (externalAsset && !externalIdentifier) throw new Error("Informe o ID ou a placa do veículo autorizado fora da frota.");
+        if (externalAsset && !input.externalAssetType?.trim()) throw new Error("Selecione o tipo do equipamento externo.");
+        if (externalAsset && !input.externalDescription?.trim()) throw new Error("Informe a descrição do equipamento externo.");
+        if (externalAsset && input.externalAssetType === "Equipamento de empresa terceirizada" && !input.externalCompanyName?.trim()) throw new Error("Informe o nome da empresa terceirizada.");
         const litersMilli = Math.round(Number(input.liters) * 1000);
         const unitPriceMilli = Math.round(Number(input.unitPrice) * 1000);
         const calculated = Number(input.liters) * Number(input.unitPrice), total = Number(input.total) || calculated;
@@ -166,7 +175,7 @@ export async function POST(request: Request) {
           if (duplicate) throw new Error(`A requisição/cupom ${requisition} já foi lançada no registro ${String(duplicate.systemNumber || 0).padStart(6, "0")}.`);
           batchRns.add(requisition);
         }
-        const fingerprintRaw = fuelEntryFingerprint({ date: input.entryDate, equipmentId: matched.id, supplierId: supplier?.id || "", requisitionCoupon: requisition, litersMilli, totalCents });
+        const fingerprintRaw = fuelEntryFingerprint({ date: input.entryDate, equipmentId: matched?.id || `external:${normalizedPlate(externalIdentifier)}`, supplierId: supplier?.id || "", requisitionCoupon: requisition, litersMilli, totalCents });
         const fingerprint = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(fingerprintRaw)).then((buffer) => Array.from(new Uint8Array(buffer)).map((x) => x.toString(16).padStart(2, "0")).join(""));
         if (batchFingerprints.has(fingerprint)) throw new Error("Lançamento repetido nesta planilha.");
         const [duplicateFingerprint] = await db.select({ id: fuelEntries.id }).from(fuelEntries).where(and(eq(fuelEntries.companyId, companyId), eq(fuelEntries.sourceFingerprint, fingerprint))).limit(1);
@@ -175,7 +184,7 @@ export async function POST(request: Request) {
 
         let convoyId: string | null = null;
         let stockReceipt = false;
-        if (isConvoy(matched)) {
+        if (matched && isConvoy(matched)) {
           const convoy = await ensureConvoy(companyId, matched, access.user.userId, location, input.costCenter?.trim() || null, supplier?.id || null);
           convoyId = convoy.id; stockReceipt = true;
           if (!(convoy.capacityMilli > 0)) throw new Error(`Configure a capacidade do comboio ${convoy.convoyNumber} antes de registrar entradas de estoque.`);
@@ -200,19 +209,24 @@ export async function POST(request: Request) {
         }
         const now = new Date().toISOString();
         const entry: typeof fuelEntries.$inferInsert = {
-          id: crypto.randomUUID(), companyId, equipmentId: matched.id, systemNumber: nextSystemNumber++,
+          id: crypto.randomUUID(), companyId, equipmentId: matched?.id || null, systemNumber: nextSystemNumber++,
           entryDate: input.entryDate, rn: requisition || null, station: supplier?.name || input.station?.trim() || null,
           maintenanceLocation: location?.name || input.maintenanceLocation?.trim() || null,
-          driverName: input.driverName?.trim() || matched.operatorName || null,
+          driverName: input.driverName?.trim() || matched?.operatorName || null,
           product: input.product.trim(), productCode: input.productCode?.trim() || null,
           litersMilli, unitPriceMilli, totalCents, kilometer: input.kilometer ?? null, hourmeter: input.hourmeter ?? null,
           source: body.source || "manual", status: "confirmed", importFileName: body.fileName?.trim() || null,
           entryTime: input.entryTime?.trim() || null, requisitionCoupon: requisition || null,
           supplierId: supplier?.id || null, invoiceId: input.invoiceId || null, fuelConvoyId: convoyId,
-          costCenter: input.costCenter?.trim() || matched.costCenter || matched.projectName || null,
+          costCenter: input.costCenter?.trim() || matched?.costCenter || matched?.projectName || null,
           receiptObjectKey: input.receiptObjectKey || null,
           originalExternalId: input.originalExternalId?.trim() || input.externalIdentifier?.trim() || null,
           sourceFingerprint: fingerprint, transactionType: stockReceipt ? "stock_receipt" : "consumption",
+          externalIdentifier: externalAsset ? externalIdentifier : null,
+          externalAssetType: externalAsset ? input.externalAssetType?.trim() || null : null,
+          externalCompanyName: externalAsset ? input.externalCompanyName?.trim() || null : null,
+          externalDescription: externalAsset ? input.externalDescription?.trim() || null : null,
+          observation: input.observation?.trim() || null,
           createdBy: access.user.userId, createdAt: now,
         };
         prepared.push({ entry, creditNoteId, creditAmountCents, stockReceipt });
@@ -248,9 +262,14 @@ export async function PATCH(request: Request) {
     }
     const [location] = await db.select().from(masterData).where(and(eq(masterData.companyId, companyId), eq(masterData.type, "local_manutencao"), eq(masterData.active, true), body.maintenanceLocationId ? eq(masterData.id, body.maintenanceLocationId) : eq(masterData.name, body.maintenanceLocation || ""))).limit(1);
     if (!location) return Response.json({ error: "Local de manutenção é obrigatório e deve estar cadastrado." }, { status: 400 });
-    const supplier = await resolveSupplier(companyId, body, true), matched = await resolveEquipment(companyId, body);
+    const supplier = await resolveSupplier(companyId, body, true);
+    const externalAsset = body.assetKind === "external";
+    const matched = externalAsset ? null : await resolveEquipment(companyId, body);
+    const externalIdentifier = externalAsset ? (body.externalIdentifier?.trim() || body.fleetNumber?.trim() || body.plate?.trim() || "") : "";
+    if (externalAsset && (!externalIdentifier || !body.externalAssetType?.trim() || !body.externalDescription?.trim())) return Response.json({ error: "Informe o tipo, ID/placa e a descrição do equipamento externo." }, { status: 400 });
+    if (externalAsset && body.externalAssetType === "Equipamento de empresa terceirizada" && !body.externalCompanyName?.trim()) return Response.json({ error: "Informe o nome da empresa terceirizada." }, { status: 400 });
     const totalCents = Math.round(Number(body.liters) * Number(body.unitPrice) * 100);
-    await db.update(fuelEntries).set({ equipmentId: matched.id, entryDate: body.entryDate, entryTime: body.entryTime || null, rn: requisition || null, requisitionCoupon: requisition || null, supplierId: supplier?.id || null, station: supplier?.name || null, maintenanceLocation: location.name, costCenter: body.costCenter?.trim() || matched.costCenter || matched.projectName || null, driverName: body.driverName?.trim() || null, product: body.product.trim(), productCode: body.productCode?.trim() || null, litersMilli: Math.round(Number(body.liters) * 1000), unitPriceMilli: Math.round(Number(body.unitPrice) * 1000), totalCents, kilometer: body.kilometer ?? null, hourmeter: body.hourmeter ?? null, status: "confirmed" }).where(eq(fuelEntries.id, current.id));
+    await db.update(fuelEntries).set({ equipmentId: matched?.id || null, externalIdentifier: externalAsset ? externalIdentifier : null, externalAssetType: externalAsset ? body.externalAssetType?.trim() || null : null, externalCompanyName: externalAsset ? body.externalCompanyName?.trim() || null : null, externalDescription: externalAsset ? body.externalDescription?.trim() || null : null, observation: body.observation?.trim() || null, entryDate: body.entryDate, entryTime: body.entryTime || null, rn: requisition || null, requisitionCoupon: requisition || null, supplierId: supplier?.id || null, station: supplier?.name || null, maintenanceLocation: location.name, costCenter: body.costCenter?.trim() || matched?.costCenter || matched?.projectName || null, driverName: body.driverName?.trim() || matched?.operatorName || null, product: body.product.trim(), productCode: body.productCode?.trim() || null, litersMilli: Math.round(Number(body.liters) * 1000), unitPriceMilli: Math.round(Number(body.unitPrice) * 1000), totalCents, kilometer: body.kilometer ?? null, hourmeter: body.hourmeter ?? null, status: "confirmed" }).where(eq(fuelEntries.id, current.id));
     await db.insert(auditLog).values({ id: crypto.randomUUID(), companyId, userId: access.user.userId, action: "fuel.reopened-entry-confirmed", entity: "fuel_entry", entityId: current.id, createdAt: new Date().toISOString() });
     return Response.json({ status: "confirmed" });
   } catch (error) { return apiError(error); }

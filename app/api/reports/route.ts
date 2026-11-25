@@ -19,8 +19,8 @@ export async function GET(request: Request) {
       db.select({ entryDate: dailyPartEntries.entryDate, status: dailyPartEntries.status, equipmentId: dailyPartEntries.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description, equipmentType: equipment.equipmentType, costCenter: equipment.costCenter, projectName: equipment.projectName })
         .from(dailyPartEntries).innerJoin(equipment, eq(dailyPartEntries.equipmentId, equipment.id))
         .where(and(eq(dailyPartEntries.companyId, companyId), gte(dailyPartEntries.entryDate, from), lte(dailyPartEntries.entryDate, to))),
-      db.select({ equipmentId: fuelEntries.equipmentId, totalCents: fuelEntries.totalCents, litersMilli: fuelEntries.litersMilli, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
-        .from(fuelEntries).innerJoin(equipment, eq(fuelEntries.equipmentId, equipment.id))
+      db.select({ equipmentId: fuelEntries.equipmentId, totalCents: fuelEntries.totalCents, litersMilli: fuelEntries.litersMilli, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description, externalIdentifier: fuelEntries.externalIdentifier, externalAssetType: fuelEntries.externalAssetType, externalCompanyName: fuelEntries.externalCompanyName, externalDescription: fuelEntries.externalDescription })
+        .from(fuelEntries).leftJoin(equipment, eq(fuelEntries.equipmentId, equipment.id))
         .where(and(eq(fuelEntries.companyId, companyId), gte(fuelEntries.entryDate, from), lte(fuelEntries.entryDate, to), eq(fuelEntries.status, "confirmed"))),
       db.select({ equipmentId: quickServiceEntries.equipmentId, category: quickServiceEntries.category, totalCents: quickServiceEntries.totalCents, paymentResponsibility: quickServiceEntries.paymentResponsibility, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
         .from(quickServiceEntries).innerJoin(equipment, eq(quickServiceEntries.equipmentId, equipment.id))
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
 
     const costMap = new Map<string, any>();
     for (const asset of assets) costMap.set(asset.id, { equipmentId: asset.id, fleetNumber: asset.fleetNumber, plate: asset.plate, description: asset.description, equipmentType: asset.equipmentType, rentCents: 0, fuelCents: 0, quickCents: 0, directMaintenanceCents: 0, totalCents: 0 });
-    for (const row of fuel) { const target = costMap.get(row.equipmentId); if (target) target.fuelCents += row.totalCents; }
+    for (const row of fuel) { if (!row.equipmentId) continue; const target = costMap.get(row.equipmentId); if (target) target.fuelCents += row.totalCents; }
     for (const row of quick) { const target = costMap.get(row.equipmentId); if (target) target.quickCents += row.totalCents; }
     for (const row of orderItems) if (row.item.paymentResponsibility === "company") { const target = costMap.get(row.equipmentId); if (target) target.directMaintenanceCents += row.item.totalCents; }
     for (const row of rents) if (measuredRentByItem.has(row.item.id) && costMap.has(row.item.equipmentId)) costMap.get(row.item.equipmentId)!.rentCents += measuredRentByItem.get(row.item.id) || 0;

@@ -267,6 +267,13 @@
       "when": 1795320000000,
       "tag": "0037_user_password_login",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1795604997289,
+      "tag": "0038_fuel_external_assets_and_observation",
+      "breakpoints": true
     }
   ]
 }

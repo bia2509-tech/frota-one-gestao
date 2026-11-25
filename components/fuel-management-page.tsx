@@ -1,23 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3, Printer } from "lucide-react";
 import { offlineRequest } from "@/lib/offline";
 
-type Equipment = { id: string; fleetNumber: string; plate: string | null; description: string; equipmentType?: string | null; projectName?: string | null; costCenter?: string | null; operatorName?: string | null };
+type Equipment = { id: string; fleetNumber: string; plate: string | null; description: string; equipmentType?: string | null; projectName?: string | null; costCenter?: string | null; operatorName?: string | null; ownerName?: string | null };
+type EquipmentOption = Pick<Equipment, "id" | "fleetNumber" | "plate" | "description">;
 type Supplier = { id: string; name: string; active?: boolean };
 type Location = { id: string; name: string; description?: string | null };
 type Credit = { id: string; supplierId: string; supplierName: string; creditNumber: string; issueDate: string; originalCents: number; remainingCents: number };
 type Convoy = { id: string; equipmentId: string; convoyNumber: string; maintenanceLocation: string | null; costCenter: string | null; supplierName: string | null; fleetNumber: string; plate: string | null; description: string; capacityMilli: number; openingBalanceMilli: number; balanceMilli: number; percent: number; status: string };
-type FuelEntry = { id: string; equipmentId: string; systemNumber: number; entryDate: string; entryTime?: string | null; requisitionCoupon?: string | null; rn?: string | null; fleetNumber: string; plate: string | null; description: string; station: string | null; supplierId?: string | null; supplierName?: string | null; maintenanceLocation: string | null; costCenter?: string | null; product: string; litersMilli: number; totalCents: number; status: string; transactionType?: string; fuelConvoyId?: string | null; receiptObjectKey?: string | null; creditUsedCents?: number };
+type FuelEntry = { id: string; equipmentId: string | null; systemNumber: number; entryDate: string; entryTime?: string | null; requisitionCoupon?: string | null; rn?: string | null; fleetNumber: string; plate: string | null; description: string; externalIdentifier?: string | null; externalAssetType?: string | null; externalCompanyName?: string | null; externalDescription?: string | null; observation?: string | null; driverName?: string | null; kilometer?: number | null; station: string | null; supplierId?: string | null; supplierName?: string | null; maintenanceLocation: string | null; costCenter?: string | null; product: string; litersMilli: number; unitPriceMilli: number; totalCents: number; status: string; transactionType?: string; fuelConvoyId?: string | null; receiptObjectKey?: string | null; creditUsedCents?: number };
 type StockMovement = { id: string; convoyId: string; convoyNumber: string; movementType: string; movementDate: string; quantityMilli: number; deltaMilli: number; totalCents: number; supplierName: string | null; destinationEquipment: string | null; observation: string | null };
 
 const today = new Date().toISOString().slice(0, 10);
 const monthStart = `${today.slice(0, 8)}01`;
-const emptyForm = () => ({ entryDate: today, entryTime: "", requisitionCoupon: "", equipmentId: "", supplierId: "", maintenanceLocationId: "", costCenter: "", product: "ÓLEO DIESEL S10", productCode: "000002", liters: "", unitPrice: "", invoiceId: "", creditNoteId: "", creditAmount: "", receiptObjectKey: "" });
+const externalAssetTypes = ["Motosserra", "Motor vibrador", "Equipamento de empresa terceirizada", "Prensa", "Roçadeira", "Motor bomba", "Motores - oficina / almoxarifado", "Compactador", "Outro equipamento externo"];
+const emptyForm = () => ({ assetKind: "fleet" as "fleet" | "external", externalAssetType: "", externalIdentifier: "", externalCompanyName: "", externalDescription: "", observation: "", entryDate: today, entryTime: "", requisitionCoupon: "", equipmentId: "", supplierId: "", maintenanceLocationId: "", costCenter: "", product: "ÓLEO DIESEL S10", productCode: "000002", liters: "", unitPrice: "", invoiceId: "", creditNoteId: "", creditAmount: "", receiptObjectKey: "" });
 const currency = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((Number(cents) || 0) / 100);
 const liters = (milli: number) => `${(Number(milli || 0) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 3 })} L`;
 const isConvoyAsset = (e: Equipment) => /COMBOIO/i.test(`${e.equipmentType || ""} ${e.description || ""}`);
+const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
 
 export default function FuelManagementPage() {
   const [companyId, setCompanyId] = useState("");
@@ -40,6 +43,7 @@ export default function FuelManagementPage() {
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [filters, setFilters] = useState({ from: monthStart, to: today, supplierId: "", convoyId: "", equipmentId: "", costCenter: "" });
+  const [assetSearchFilter, setAssetSearchFilter] = useState("");
   const [detail, setDetail] = useState<Convoy | null>(null);
   const [openConvoyList, setOpenConvoyList] = useState(false);
   const [alertList, setAlertList] = useState(false);
@@ -67,12 +71,27 @@ export default function FuelManagementPage() {
     setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []); setCostCenters((costCenterData.records || []).filter((x: any) => x.active !== false));
   }
 
+  function changeCompany(id: string) {
+    setError(false); setMessage(""); setCompanyId(id); setForm(emptyForm()); setCreditAnswer("");
+    setFilters((current) => ({ ...current, supplierId: "", convoyId: "", equipmentId: "", costCenter: "" }));
+    setAssetSearchFilter("");
+    setConfigureEquipmentId(""); setDetail(null);
+  }
+
   useEffect(() => {
     fetch("/api/companies").then((r) => r.json()).then((data) => { const rows = data.companies || []; setCompanies(rows); const id = rows[0]?.id || ""; setCompanyId(id); }).catch(() => { setError(true); setMessage("Não foi possível carregar as empresas."); });
   }, []);
   useEffect(() => { if (companyId) load(); }, [filters.from, filters.to, filters.supplierId, filters.convoyId, filters.equipmentId, companyId]);
 
-  const filteredHistory = useMemo(() => history.filter((row) => !filters.costCenter || row.costCenter === filters.costCenter), [history, filters.costCenter]);
+  const filteredHistory = useMemo(() => {
+    const query = assetSearchFilter.trim().toLocaleLowerCase("pt-BR");
+    return history.filter((row) => {
+      if (filters.costCenter && row.costCenter !== filters.costCenter) return false;
+      if (!query) return true;
+      return [row.fleetNumber, row.plate, row.externalIdentifier, row.externalAssetType, row.externalCompanyName, row.externalDescription, row.description]
+        .some((value) => String(value || "").toLocaleLowerCase("pt-BR").includes(query));
+    });
+  }, [history, filters.costCenter, assetSearchFilter]);
   const purchases = filteredHistory.filter((x) => x.transactionType !== "distribution");
   const totalLiters = purchases.reduce((s, x) => s + x.litersMilli, 0);
   const totalValue = purchases.reduce((s, x) => s + x.totalCents, 0);
@@ -84,7 +103,7 @@ export default function FuelManagementPage() {
   }, [filteredHistory]);
   const equipmentRows = useMemo(() => {
     const map = new Map<string, { label: string; total: number }>();
-    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => { const current = map.get(x.equipmentId); map.set(x.equipmentId, { label: `${x.fleetNumber} ${x.plate || x.description}`, total: (current?.total || 0) + x.totalCents }); });
+    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => { const key = x.equipmentId || `external:${x.externalIdentifier || x.id}`; const current = map.get(key); map.set(key, { label: x.equipmentId ? `${x.fleetNumber} ${x.plate || x.description}` : `${x.externalIdentifier || x.fleetNumber} · ${x.externalAssetType || x.externalDescription || "Externo"}`, total: (current?.total || 0) + x.totalCents }); });
     return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 5);
   }, [filteredHistory]);
   const monthlyRows = useMemo(() => {
@@ -101,6 +120,22 @@ export default function FuelManagementPage() {
   function selectEquipment(id: string) {
     const found = equipment.find((e) => e.id === id);
     setForm((current) => ({ ...current, equipmentId: id, costCenter: found?.costCenter || found?.projectName || current.costCenter, maintenanceLocationId: current.maintenanceLocationId || "" }));
+  }
+
+  function printFuelReport() {
+    const companyName = companies.find((company) => company.id === companyId)?.tradeName || "SEPCO1";
+    const totalVolume = filteredHistory.reduce((sum, row) => sum + row.litersMilli, 0);
+    const totalAmount = filteredHistory.reduce((sum, row) => sum + row.totalCents, 0);
+    const rows = filteredHistory.map((row) => {
+      const asset = row.equipmentId
+        ? `Frota ${row.fleetNumber} · ${row.plate || "sem placa"} · ${row.description}`
+        : `${row.externalAssetType || "Equipamento externo"}: ${row.externalIdentifier || "sem identificação"} · ${row.externalDescription || ""}${row.externalCompanyName ? ` · ${row.externalCompanyName}` : ""}`;
+      return `<tr><td>${escapeHtml(row.entryDate.split("-").reverse().join("/"))}</td><td>${escapeHtml(asset)}</td><td>${escapeHtml(row.costCenter || "-")}</td><td>${escapeHtml(row.station || row.maintenanceLocation || "-")}</td><td>${escapeHtml(row.product)}</td><td class="num">${escapeHtml(liters(row.litersMilli))}</td><td class="num">${escapeHtml(currency(Math.round(row.unitPriceMilli / 10)))}</td><td class="num">${escapeHtml(currency(row.totalCents))}</td><td>${escapeHtml(row.observation || "-")}</td></tr>`;
+    }).join("");
+    const popup = window.open("", "_blank");
+    if (!popup) { setError(true); setMessage("O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir o relatório."); return; }
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Relatório de abastecimentos</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#172033;font-size:10px;margin:0}header{display:flex;align-items:center;gap:18px;border-bottom:3px solid #0b3b70;padding-bottom:10px;margin-bottom:12px}header img{width:135px;max-height:48px;object-fit:contain}h1{font-size:18px;margin:0 0 4px;color:#0b3b70}.sub{color:#475569}.summary{display:flex;gap:10px;margin:12px 0}.card{border:1px solid #cbd5e1;border-radius:6px;padding:8px 12px;min-width:150px}.card b{display:block;font-size:13px;margin-top:4px}table{width:100%;border-collapse:collapse}th{background:#0b3b70;color:white;text-align:left;font-size:9px}th,td{border:1px solid #cbd5e1;padding:6px;vertical-align:top}tr:nth-child(even){background:#f8fafc}.num{text-align:right;white-space:nowrap}.footer{margin-top:10px;font-size:8px;color:#64748b}</style></head><body><header><img src="/assets/sepco1-logo-template.png" alt="SEPCO1"><div><h1>Relatório de abastecimentos</h1><div class="sub"><b>${escapeHtml(companyName)}</b> · Período: ${escapeHtml(filters.from.split("-").reverse().join("/"))} a ${escapeHtml(filters.to.split("-").reverse().join("/"))}${assetSearchFilter ? ` · Busca: ${escapeHtml(assetSearchFilter)}` : ""}</div></div></header><div class="summary"><div class="card">Lançamentos<b>${filteredHistory.length}</b></div><div class="card">Volume abastecido<b>${escapeHtml(liters(totalVolume))}</b></div><div class="card">Valor total<b>${escapeHtml(currency(totalAmount))}</b></div></div><table><thead><tr><th>Data</th><th>Equipamento / maquinário</th><th>Centro de custo</th><th>Posto / local</th><th>Combustível</th><th>Litros</th><th>Preço / litro</th><th>Total</th><th>Observação</th></tr></thead><tbody>${rows || `<tr><td colspan="9">Nenhum abastecimento encontrado no período.</td></tr>`}</tbody></table><div class="footer">Relatório gerado pelo sistema Frota One · SEPCO1</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+    popup.document.close();
   }
 
   async function attachReceipt(file?: File) {
@@ -153,6 +188,7 @@ export default function FuelManagementPage() {
         kilometer: Number(pick(row, ["Km Atual", "KM"])) || null,
         hourmeter: Number(pick(row, ["Horímetro Atual", "Horimetro", "Horímetro"])) || null,
         originalExternalId: String(pick(row, ["Nº Comboio", "ID externo", "Identificação externa"])),
+        observation: String(pick(row, ["Observação", "Observacao"])),
         rowNumber: i + headerIndex + 2,
       }));
       const res = await offlineRequest("/api/fuel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ companyId, source: "spreadsheet", strict: true, fileName: file.name, entries: rows }) });
@@ -188,15 +224,21 @@ export default function FuelManagementPage() {
 
     {message && <div className={`rounded-xl border p-3 text-sm font-semibold ${error ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>{message}</div>}
 
-    <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-7">
-      <label className="text-xs font-semibold text-slate-600">Empresa<select required className="input mt-1" value={companyId} onChange={(e) => { setError(false); setMessage(""); setCompanyId(e.target.value); setForm(emptyForm()); }}><option value="">Selecione</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.tradeName}</option>)}</select></label>
+    <section className="panel grid items-end gap-3 border-blue-200 bg-blue-50/60 p-4 md:grid-cols-[minmax(16rem,24rem)_1fr]">
+      <label className="text-sm font-bold text-slate-700">Empresa ativa no Abastecimento<select required className="input mt-1 bg-white" value={companyId} onChange={(e) => changeCompany(e.target.value)}><option value="">Selecione a empresa</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.tradeName}</option>)}</select></label>
+      <p className="text-sm text-slate-600">Os cadastros e lançamentos exibidos abaixo pertencem à empresa selecionada.</p>
+    </section>
+
+    <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-6">
       <label className="text-xs font-semibold text-slate-600">Período inicial<input className="input mt-1" type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })}/></label>
       <label className="text-xs font-semibold text-slate-600">Período final<input className="input mt-1" type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })}/></label>
       <label className="text-xs font-semibold text-slate-600">Fornecedor<select className="input mt-1" value={filters.supplierId} onChange={(e) => setFilters({ ...filters, supplierId: e.target.value })}><option value="">Todos</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
       <label className="text-xs font-semibold text-slate-600">Comboio<select className="input mt-1" value={filters.convoyId} onChange={(e) => setFilters({ ...filters, convoyId: e.target.value })}><option value="">Todos</option>{convoys.map((c) => <option key={c.id} value={c.id}>Comboio {c.convoyNumber} · {c.fleetNumber}</option>)}</select></label>
-      <label className="text-xs font-semibold text-slate-600">Equipamento<select className="input mt-1" value={filters.equipmentId} onChange={(e) => setFilters({ ...filters, equipmentId: e.target.value })}><option value="">Todos</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+      <div><label className="text-xs font-semibold text-slate-600">Equipamento da frota</label><EquipmentPicker items={equipment} value={filters.equipmentId} onChange={(value) => setFilters({ ...filters, equipmentId: value })} emptyLabel="Todos" className="input mt-1" /></div>
       <label className="text-xs font-semibold text-slate-600">Centro de custo / Canteiro<select className="input mt-1" value={filters.costCenter} onChange={(e) => setFilters({ ...filters, costCenter: e.target.value })}><option value="">Todos</option>{costCenterOptions.map((x) => <option key={x}>{x}</option>)}</select></label>
     </section>
+
+    <section className="panel flex flex-wrap items-end justify-between gap-3 p-4"><label className="min-w-64 flex-1 text-sm font-semibold">Buscar equipamento / maquinário por ID, placa ou tipo<input className="input mt-1" value={assetSearchFilter} onChange={(e) => setAssetSearchFilter(e.target.value)} placeholder="Ex.: placa, Motosserra, Roçadeira ou empresa terceirizada"/></label><button type="button" className="btn-secondary" onClick={printFuelReport} disabled={!filteredHistory.length}><Printer size={16}/>Imprimir relatório</button></section>
 
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4"><div className="text-sm font-semibold text-blue-900">VOLUME TOTAL (LT)</div><div className="mt-2 text-2xl font-black text-blue-950">{liters(totalLiters)}</div><div className="mt-1 text-xs text-blue-700">Entradas de combustível no período</div></div>
@@ -206,7 +248,7 @@ export default function FuelManagementPage() {
     </div>
 
     {configureEquipmentId && <section className="panel p-4"><div className="mb-3 flex justify-between"><div><h3 className="font-bold">Configurar comboio</h3><p className="text-sm text-slate-500">A identificação é criada pelo sistema e preservada no cadastro.</p></div><button className="btn-secondary" onClick={() => setConfigureEquipmentId("")}><X size={16}/></button></div><form onSubmit={configureConvoy} className="grid gap-3 md:grid-cols-5">
-      <label className="text-sm font-semibold">Equipamento<select required className="input mt-1" value={configureEquipmentId} onChange={(e) => setConfigureEquipmentId(e.target.value)}>{comboioCandidates.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+      <div><label className="text-sm font-semibold">Equipamento</label><EquipmentPicker items={comboioCandidates} value={configureEquipmentId} onChange={setConfigureEquipmentId} required placeholder="Digite ID ou placa do comboio" className="input mt-1" /></div>
       <label className="text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={configure.locationId} onChange={(e) => setConfigure({ ...configure, locationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
       <label className="text-sm font-semibold">Capacidade (L)<input required min="0.001" step="0.001" type="number" className="input mt-1" value={configure.capacity} onChange={(e) => setConfigure({ ...configure, capacity: e.target.value })}/></label>
       <label className="text-sm font-semibold">Saldo inicial (L)<input min="0" step="0.001" type="number" className="input mt-1" value={configure.openingBalance} onChange={(e) => setConfigure({ ...configure, openingBalance: e.target.value })}/></label>
@@ -222,7 +264,7 @@ export default function FuelManagementPage() {
           <Chart title="Equipamentos com maior gasto" rows={equipmentRows}/>
           <Chart title="Evolução mensal · compras" rows={monthlyRows.map(([label, v]) => ({ label, value: v.value, sub: liters(v.volume) }))}/>
         </div>
-        <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Histórico de abastecimentos</h3><p>{filteredHistory.length} lançamento(s) · integra com a apropriação</p></div><Search size={18}/></div><div className="overflow-x-auto"><table className="min-w-[1000px]"><thead><tr><th>Código</th><th>Data / Hora</th><th>ID / Placa</th><th>Origem</th><th>Litros</th><th>Valor</th><th>Req. / Cupom</th><th>Situação</th><th>Comprovante</th></tr></thead><tbody>{filteredHistory.length ? filteredHistory.map((e) => <tr key={e.id}><td className="font-bold text-blue-800">{String(e.systemNumber || "-").padStart(6, "0")}</td><td>{e.entryDate?.split("-").reverse().join("/")}{e.entryTime ? ` · ${e.entryTime}` : ""}</td><td>{e.fleetNumber} · {e.plate || "-"}</td><td>{e.transactionType === "stock_receipt" ? `Comboio ${convoys.find((c) => c.id === e.fuelConvoyId)?.convoyNumber || ""}` : e.station || e.maintenanceLocation || "-"}</td><td>{liters(e.litersMilli)}</td><td>{currency(e.totalCents)}</td><td>{e.requisitionCoupon || e.rn || "-"}</td><td>{e.status === "confirmed" ? "Confirmado" : e.status}</td><td>{e.receiptObjectKey ? <a className="text-blue-700 underline" target="_blank" href={`/api/fuel/receipt?companyId=${encodeURIComponent(companyId)}&key=${encodeURIComponent(e.receiptObjectKey)}`}>Baixar</a> : "-"}</td></tr>) : <tr><td colSpan={9} className="py-8 text-center text-slate-500">Nenhum lançamento no período selecionado.</td></tr>}</tbody></table></div></section>
+        <section className="panel overflow-hidden"><div className="panel-head"><div><h3>Histórico de abastecimentos</h3><p>{filteredHistory.length} lançamento(s) · integra com a apropriação</p></div><Search size={18}/></div><div className="overflow-x-auto"><table className="min-w-[1100px]"><thead><tr><th>Código</th><th>Data / Hora</th><th>ID / Placa</th><th>Origem</th><th>Litros</th><th>Valor</th><th>Req. / Cupom</th><th>Observação</th><th>Situação</th><th>Comprovante</th></tr></thead><tbody>{filteredHistory.length ? filteredHistory.map((e) => <tr key={e.id}><td className="font-bold text-blue-800">{String(e.systemNumber || "-").padStart(6, "0")}</td><td>{e.entryDate?.split("-").reverse().join("/")}{e.entryTime ? ` · ${e.entryTime}` : ""}</td><td><div>{e.fleetNumber} · {e.plate || "-"}</div>{!e.equipmentId && <div className="text-xs text-slate-500">{e.externalAssetType}{e.externalCompanyName ? ` · ${e.externalCompanyName}` : ""}</div>}</td><td>{e.transactionType === "stock_receipt" ? `Comboio ${convoys.find((c) => c.id === e.fuelConvoyId)?.convoyNumber || ""}` : e.station || e.maintenanceLocation || "-"}</td><td>{liters(e.litersMilli)}</td><td>{currency(e.totalCents)}</td><td>{e.requisitionCoupon || e.rn || "-"}</td><td className="max-w-56 whitespace-normal">{e.observation || "-"}</td><td>{e.status === "confirmed" ? "Confirmado" : e.status}</td><td>{e.receiptObjectKey ? <a className="text-blue-700 underline" target="_blank" href={`/api/fuel/receipt?companyId=${encodeURIComponent(companyId)}&key=${encodeURIComponent(e.receiptObjectKey)}`}>Baixar</a> : "-"}</td></tr>) : <tr><td colSpan={10} className="py-8 text-center text-slate-500">Nenhum lançamento no período selecionado.</td></tr>}</tbody></table></div></section>
       </div>
       <aside className="space-y-4">
         <section className="panel p-4"><div className="flex items-center justify-between"><div><h3 className="font-bold">Comboios</h3><p className="text-xs text-slate-500">Saldo calculado por movimentação</p></div><button className="btn-secondary" onClick={() => setConfigureEquipmentId(comboioCandidates[0]?.id || "")} disabled={!comboioCandidates.length}><Truck size={15}/>Configurar</button></div><div className="mt-3 space-y-2">{convoys.map((c) => <button key={c.id} onClick={() => { setDetail(c); setAlertList(false); }} className="w-full rounded-lg border p-3 text-left hover:bg-slate-50"><div className="flex justify-between"><span className="font-bold">Comboio {c.convoyNumber} · {c.fleetNumber}</span><span className={`font-bold ${c.percent <= 20 ? "text-red-700" : c.percent < 40 ? "text-amber-700" : "text-emerald-700"}`}>{c.capacityMilli ? `${c.percent.toFixed(1)}%` : "Configurar capacidade"}</span></div><div className="mt-1 flex justify-between text-sm text-slate-600"><span>{c.maintenanceLocation || "Local não definido"}</span><span>{liters(c.balanceMilli)}</span></div></button>)}{!convoys.length && <p className="py-4 text-center text-sm text-slate-500">Nenhum comboio configurado.</p>}</div></section>
@@ -231,8 +273,10 @@ export default function FuelManagementPage() {
           <label className="block text-sm font-semibold">Requisição / Cupom<input className="input mt-1" value={form.requisitionCoupon} onChange={(e) => setForm({ ...form, requisitionCoupon: e.target.value })}/></label>
           <label className="block text-sm font-semibold">Local de manutenção<select required className="input mt-1" value={form.maintenanceLocationId} onChange={(e) => setForm({ ...form, maintenanceLocationId: e.target.value })}><option value="">Selecione</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
           <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })}/></label><label className="text-sm font-semibold">Hora<input type="time" className="input mt-1" value={form.entryTime} onChange={(e) => setForm({ ...form, entryTime: e.target.value })}/></label></div>
-          <label className="block text-sm font-semibold">ID / Placa<select required className="input mt-1" value={form.equipmentId} onChange={(e) => selectEquipment(e.target.value)}><option value="">Selecione</option>{equipment.map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Origem do equipamento<select className="input mt-1" value={form.assetKind} onChange={(e) => setForm((current) => ({ ...current, assetKind: e.target.value as "fleet" | "external", equipmentId: "", externalIdentifier: "", externalAssetType: "", externalCompanyName: "", externalDescription: "" }))}><option value="fleet">Equipamento da frota</option><option value="external">Equipamento / veículo externo autorizado</option></select></label>
+          {form.assetKind === "fleet" ? <div><label className="block text-sm font-semibold">ID / Placa da frota</label><EquipmentPicker items={equipment} value={form.equipmentId} onChange={selectEquipment} required placeholder="Digite o ID ou a placa" className="input mt-1" /></div> : <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/60 p-3"><p className="text-xs text-blue-900">Este lançamento fica separado do cadastro e do quantitativo da frota.</p><label className="block text-sm font-semibold">Tipo do equipamento externo<select required className="input mt-1 bg-white" value={form.externalAssetType} onChange={(e) => setForm({ ...form, externalAssetType: e.target.value, externalCompanyName: "" })}><option value="">Selecione</option>{externalAssetTypes.map((type) => <option key={type}>{type}</option>)}</select></label><label className="block text-sm font-semibold">Identificação (ID, placa ou patrimônio)<input required className="input mt-1 bg-white" value={form.externalIdentifier} onChange={(e) => setForm({ ...form, externalIdentifier: e.target.value })} placeholder="Ex.: placa, patrimônio ou código interno"/></label><label className="block text-sm font-semibold">Descrição / modelo<input required className="input mt-1 bg-white" value={form.externalDescription} onChange={(e) => setForm({ ...form, externalDescription: e.target.value })} placeholder="Ex.: Motosserra Stihl MS 250"/></label>{form.externalAssetType === "Equipamento de empresa terceirizada" && <label className="block text-sm font-semibold">Empresa terceirizada<input required className="input mt-1 bg-white" value={form.externalCompanyName} onChange={(e) => setForm({ ...form, externalCompanyName: e.target.value })} placeholder="Nome da empresa responsável"/></label>}</div>}
           <label className="block text-sm font-semibold">Obra / canteiro (centro de custo)<select required className="input mt-1" value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })}><option value="">Selecione</option>{costCenterOptions.map((x) => <option key={x} value={x}>{x}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Observação<textarea rows={3} className="input mt-1 min-h-20 resize-y" value={form.observation} onChange={(e) => setForm({ ...form, observation: e.target.value })} placeholder="Informe detalhes importantes do abastecimento"/></label>
 
           <label className="block text-sm font-semibold">Posto / Fornecedor<select required className="input mt-1" value={form.supplierId} onChange={(e) => { setForm({ ...form, supplierId: e.target.value, creditNoteId: "", creditAmount: "" }); setCreditAnswer(""); }}><option value="">Selecione</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
           {supplierCredits.length > 0 && <div className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm text-red-900"><div className="font-bold">Há nota(s) de crédito disponível(is) para {supplierCredits[0].supplierName}.</div><button type="button" className="mt-1 font-bold underline" onClick={() => setShowCreditDetails(true)}>Ver detalhes</button><p className="mt-1">Deseja utilizar uma Nota de Crédito neste abastecimento?</p><div className="mt-2 flex gap-2"><button type="button" className="btn-primary" onClick={() => { setCreditAnswer("yes"); setForm({ ...form, creditNoteId: supplierCredits[0].id, creditAmount: ((supplierCredits[0].remainingCents / 100)).toFixed(2) }); }}>Sim</button><button type="button" className="btn-secondary" onClick={() => { setCreditAnswer("no"); setForm({ ...form, creditNoteId: "", creditAmount: "" }); }}>Não</button></div>{creditAnswer === "yes" && <div className="mt-2 space-y-2"><select required className="input" value={form.creditNoteId} onChange={(e) => setForm({ ...form, creditNoteId: e.target.value, creditAmount: ((supplierCredits.find((c) => c.id === e.target.value)?.remainingCents || 0) / 100).toFixed(2) })}>{supplierCredits.map((c) => <option key={c.id} value={c.id}>NF {c.creditNumber} · disponível {currency(c.remainingCents)}</option>)}</select><div className="text-xs">Valor original: {currency(selectedCredit?.originalCents || 0)} · já usado: {currency((selectedCredit?.originalCents || 0) - (selectedCredit?.remainingCents || 0))} · saldo: {currency(selectedCredit?.remainingCents || 0)}</div><label className="block text-xs font-semibold">Valor a utilizar<input required min="0.01" step="0.01" type="number" className="input mt-1" value={form.creditAmount} onChange={(e) => setForm({ ...form, creditAmount: e.target.value })}/></label></div>}</div>}
@@ -250,6 +294,36 @@ export default function FuelManagementPage() {
     {openConvoyList && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-xl font-black">Detalhamento dos comboios</h3><button onClick={() => setOpenConvoyList(false)}><X/></button></div><div className="mt-4 space-y-2">{convoys.map((c) => <button key={c.id} onClick={() => { setOpenConvoyList(false); setDetail(c); }} className="w-full rounded-lg border p-3 text-left hover:bg-slate-50"><div className="flex flex-wrap justify-between gap-2"><b>Comboio {c.convoyNumber} / {c.fleetNumber}</b><b className={c.percent <= 20 ? "text-red-700" : c.percent < 40 ? "text-amber-700" : "text-emerald-700"}>{c.percent.toFixed(1)}% / {liters(c.balanceMilli)}</b></div><div className="mt-1 text-sm text-slate-600">Local: {c.maintenanceLocation || "não definido"} / Canteiro: {c.costCenter || "não definido"} / Fornecedor: {c.supplierName || "não definido"} / Capacidade: {liters(c.capacityMilli)}</div></button>)}{!convoys.length && <p className="py-6 text-center text-slate-500">Nenhum comboio cadastrado.</p>}</div></section></div>}
     {detail && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><h3 className="text-xl font-black">Comboio {detail.convoyNumber} · {detail.fleetNumber}</h3><p className="text-sm text-slate-500">{detail.maintenanceLocation} · {detail.costCenter || "Canteiro não definido"} · Fornecedor: {detail.supplierName || "não definido"}</p></div><button onClick={() => setDetail(null)}><X/></button></div><div className="mt-4 grid gap-3 sm:grid-cols-4"><Mini label="Capacidade" value={liters(detail.capacityMilli)}/><Mini label="Saldo atual" value={liters(detail.balanceMilli)}/><Mini label="Saldo percentual" value={detail.capacityMilli ? `${detail.percent.toFixed(1)}%` : "Sem capacidade"}/><Mini label="Situação" value={detail.percent <= 20 ? "Crítico" : detail.percent < 40 ? "Atenção" : "Normal"}/></div><form onSubmit={saveMovement} className="mt-5 grid gap-3 rounded-xl bg-slate-50 p-4 md:grid-cols-4"><label className="text-sm font-semibold">Movimentação<select className="input mt-1" value={movement.type} onChange={(e) => setMovement({ ...movement, type: e.target.value })}><option value="distribution">Distribuição para equipamento</option><option value="adjustment">Ajuste autorizado</option></select></label><label className="text-sm font-semibold">Data<input required type="date" className="input mt-1" value={movement.date} onChange={(e) => setMovement({ ...movement, date: e.target.value })}/></label>{movement.type === "distribution" ? <label className="text-sm font-semibold">Equipamento destino<select required className="input mt-1" value={movement.equipmentId} onChange={(e) => setMovement({ ...movement, equipmentId: e.target.value })}><option value="">Selecione</option>{equipment.filter((x) => x.id !== detail.equipmentId).map((e) => <option key={e.id} value={e.id}>{e.fleetNumber} · {e.plate || e.description}</option>)}</select></label> : <label className="text-sm font-semibold">Variação (L, + ou −)<input required type="number" step="0.001" className="input mt-1" value={movement.adjustment} onChange={(e) => setMovement({ ...movement, adjustment: e.target.value })}/></label>}{movement.type === "distribution" && <label className="text-sm font-semibold">Litros<input required min="0.001" step="0.001" type="number" className="input mt-1" value={movement.liters} onChange={(e) => setMovement({ ...movement, liters: e.target.value })}/></label>}<label className="text-sm font-semibold md:col-span-2">Motivo / observação<input required={movement.type === "adjustment"} className="input mt-1" value={movement.reason} onChange={(e) => setMovement({ ...movement, reason: e.target.value })}/></label><div className="flex items-end"><button disabled={busy} className="btn-primary w-full">Registrar movimentação</button></div></form><h4 className="mt-5 font-bold">Movimentações recentes</h4><div className="mt-2 max-h-56 overflow-auto"><table className="w-full text-sm"><thead><tr><th>Data</th><th>Tipo</th><th>Quantidade</th><th>Valor</th><th>Destino / fornecedor</th></tr></thead><tbody>{movementHistory.filter((h) => h.convoyId === detail.id).map((h) => <tr key={h.id}><td>{h.movementDate}</td><td>{h.movementType}</td><td>{liters(h.quantityMilli)}</td><td>{currency(h.totalCents)}</td><td>{h.destinationEquipment || h.supplierName || "-"}</td></tr>)}</tbody></table></div></section></div>}
     {alertList && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><section className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-xl font-black">Comboios em atenção ou situação crítica</h3><button onClick={() => setAlertList(false)}><X/></button></div><div className="mt-4 space-y-2">{alertConvoys.map((c) => <button key={c.id} onClick={() => { setAlertList(false); setDetail(c); }} className="w-full rounded-lg border border-amber-200 bg-amber-50 p-3 text-left"><b>Comboio {c.convoyNumber} · {c.fleetNumber}</b><span className="float-right">{c.percent.toFixed(1)}% · {liters(c.balanceMilli)}</span><div className="text-sm">{c.maintenanceLocation} · {c.costCenter}</div></button>)}{!alertConvoys.length && <div className="p-4 text-center text-slate-500">Nenhum comboio abaixo de 40%.</div>}</div></section></div>}
+  </div>;
+}
+
+function EquipmentPicker({ items, value, onChange, required = false, placeholder = "Digite o ID ou a placa", className = "", emptyLabel }: { items: EquipmentOption[]; value: string; onChange: (value: string) => void; required?: boolean; placeholder?: string; className?: string; emptyLabel?: string }) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selected = items.find((item) => item.id === value);
+  const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+  const matches = items.filter((item) => normalize(`${item.fleetNumber} ${item.plate || ""} ${item.description}`).includes(normalize(query.trim()))).slice(0, 80);
+
+  useEffect(() => {
+    if (selected) setQuery(`${selected.fleetNumber} • ${selected.plate || selected.description}`);
+    else if (!value) setQuery("");
+  }, [value, selected?.id, items]);
+
+  function choose(item: EquipmentOption) {
+    onChange(item.id);
+    setQuery(`${item.fleetNumber} • ${item.plate || item.description}`);
+    setOpen(false);
+    inputRef.current?.setCustomValidity("");
+  }
+
+  return <div className="relative">
+    <input ref={inputRef} required={required} className={className} value={query} placeholder={placeholder} autoComplete="off" onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onChange={(event) => { setQuery(event.target.value); onChange(""); setOpen(true); inputRef.current?.setCustomValidity(required && event.target.value ? "Selecione um equipamento da lista." : ""); }} onKeyDown={(event) => { if (event.key === "Enter" && open) { event.preventDefault(); if (matches[0]) choose(matches[0]); } if (event.key === "Escape") setOpen(false); }} />
+    {open && <div className="absolute z-40 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-xl">
+      {emptyLabel && <button type="button" className="block w-full px-3 py-2 text-left text-sm hover:bg-blue-50" onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(""); setQuery(""); setOpen(false); }}>{emptyLabel}</button>}
+      {matches.map((item) => <button type="button" key={item.id} className="block w-full px-3 py-2 text-left text-sm hover:bg-blue-50" onMouseDown={(event) => event.preventDefault()} onClick={() => choose(item)}><span className="font-semibold">{item.fleetNumber}</span><span> • {item.plate || item.description}</span>{item.plate && <span className="block pl-1 text-xs text-slate-500">{item.description}</span>}</button>)}
+      {!matches.length && <div className="px-3 py-2 text-sm text-slate-500">Nenhum equipamento encontrado.</div>}
+    </div>}
   </div>;
 }
 

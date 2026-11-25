@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       costCenter: quickServiceEntries.costCenter, requisitionNumber: quickServiceEntries.requisitionNumber,
       paymentResponsibility: quickServiceEntries.paymentResponsibility, invoiceNumber: quickServiceEntries.invoiceNumber,
       status: quickServiceEntries.status, source: quickServiceEntries.source, observation: quickServiceEntries.observation,
-      equipmentId: equipment.id, fleetNumber: equipment.fleetNumber, plate: equipment.plate, equipmentDescription: equipment.description,
+      equipmentId: equipment.id, fleetNumber: equipment.fleetNumber, plate: equipment.plate, equipmentDescription: equipment.description, ownerName: equipment.ownerName,
     }).from(quickServiceEntries).innerJoin(equipment, eq(quickServiceEntries.equipmentId, equipment.id))
       .where(and(...filters)).orderBy(asc(quickServiceEntries.systemNumber), desc(quickServiceEntries.entryDate));
     return Response.json({ entries });

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FuelManagementPage from "@/components/fuel-management-page";
 import { countContractMonthsInclusive } from "@/lib/contracts-finance";
@@ -1382,10 +1382,6 @@ export default function Home() {
             <Menu />
           </button>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Base definitiva • SEPCO1
-            </div>
-            <h1 className="text-xl font-bold md:text-2xl">{screen}</h1>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button onClick={() => setScreen("Central administrativa")} className="hidden items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-800 xl:flex">

@@ -25,7 +25,11 @@ export async function GET(request: Request) {
     }
     if (!fleetNumber && !plate) {
       const rows = await getDb().select().from(equipment).where(and(eq(equipment.companyId, companyId), ne(equipment.status, "demo")));
-      const sortedRows = [...rows].sort((a, b) => String(a.fleetNumber || "").localeCompare(String(b.fleetNumber || ""), "pt-BR", { numeric: true, sensitivity: "base" }));
+      const naturalKey = (value: string | null) => String(value || "").toUpperCase().replace(/\d+/g, (digits) => digits.padStart(12, "0"));
+      const sortedRows = [...rows].sort((a, b) => {
+        const left = naturalKey(a.fleetNumber), right = naturalKey(b.fleetNumber);
+        return left < right ? -1 : left > right ? 1 : 0;
+      });
       return Response.json({ equipment: dailyList ? sortedRows.map((row) => ({ id: row.id, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, equipmentType: row.equipmentType, serialNumber: row.serialNumber, ownerName: row.ownerName, projectName: row.projectName, frontName: row.frontName, costCenter: row.costCenter, status: row.status, operatorName: row.operatorName, currentKilometer: row.currentKilometer, currentHourmeter: row.currentHourmeter })) : sortedRows });
     }
 

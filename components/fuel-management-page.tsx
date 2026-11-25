@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3, Printer } from "lucide-react";
@@ -229,7 +229,6 @@ export default function FuelManagementPage() {
 
     <section className="panel grid items-end gap-3 border-blue-200 bg-blue-50/60 p-4 md:grid-cols-[minmax(16rem,24rem)_1fr]">
       <label className="text-sm font-bold text-slate-700">Empresa ativa no Abastecimento<select required className="input mt-1 bg-white" value={companyId} onChange={(e) => changeCompany(e.target.value)}><option value="">Selecione a empresa</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.tradeName}</option>)}</select></label>
-      <p className="text-sm text-slate-600">Os cadastros e lançamentos exibidos abaixo pertencem à empresa selecionada.</p>
     </section>
 
     <section className="panel grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-6">

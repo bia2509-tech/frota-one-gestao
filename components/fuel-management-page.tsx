@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3, Printer } from "lucide-react";
+import { AlertTriangle, Fuel, Plus, Upload, FileSpreadsheet, Search, Truck, X, CheckCircle2, Download, Clock3, Printer, Camera } from "lucide-react";
 import { offlineRequest } from "@/lib/offline";
 
 type Equipment = { id: string; fleetNumber: string; plate: string | null; description: string; equipmentType?: string | null; serialNumber?: string | null; projectName?: string | null; costCenter?: string | null; operatorName?: string | null; ownerName?: string | null };
@@ -20,6 +20,8 @@ const emptyForm = () => ({ assetKind: "fleet" as "fleet" | "external", externalA
 const currency = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((Number(cents) || 0) / 100);
 const liters = (milli: number) => `${(Number(milli || 0) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 3 })} L`;
 const isConvoyAsset = (e: Equipment) => /COMBOIO/i.test(`${e.equipmentType || ""} ${e.description || ""}`);
+const normalizeCostCenterName = (value: string) => value.trim().replace(/\s*-\s*/g, " - ").replace(/\s+/g, " ");
+const costCenterKey = (value: string) => normalizeCostCenterName(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
 
 export default function FuelManagementPage() {
@@ -94,7 +96,7 @@ export default function FuelManagementPage() {
   const filteredHistory = useMemo(() => {
     const query = assetSearchFilter.trim().toLocaleLowerCase("pt-BR");
     return history.filter((row) => {
-      if (filters.costCenter && row.costCenter !== filters.costCenter) return false;
+      if (filters.costCenter && costCenterKey(row.costCenter || "") !== costCenterKey(filters.costCenter)) return false;
       if (!query) return true;
       return [row.fleetNumber, row.plate, row.externalIdentifier, row.externalAssetType, row.externalCompanyName, row.externalDescription, row.description]
         .some((value) => String(value || "").toLocaleLowerCase("pt-BR").includes(query));
@@ -106,7 +108,7 @@ export default function FuelManagementPage() {
   const alertConvoys = convoys.filter((x) => x.capacityMilli > 0 && x.percent < 40);
   const costRows = useMemo(() => {
     const map = new Map<string, number>();
-    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => map.set(x.costCenter || x.maintenanceLocation || "Sem canteiro", (map.get(x.costCenter || x.maintenanceLocation || "Sem canteiro") || 0) + x.totalCents));
+    filteredHistory.filter((x) => x.transactionType !== "stock_receipt").forEach((x) => { const name = normalizeCostCenterName(x.costCenter || x.maintenanceLocation || "Sem canteiro"); map.set(name, (map.get(name) || 0) + x.totalCents); });
     return [...map].sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [filteredHistory]);
   const equipmentRows = useMemo(() => {
@@ -123,11 +125,20 @@ export default function FuelManagementPage() {
   const selectedCredit = supplierCredits.find((x) => x.id === form.creditNoteId);
   const selectedEquipment = equipment.find((x) => x.id === form.equipmentId);
   const comboioCandidates = equipment.filter(isConvoyAsset);
-  const costCenterOptions = [...new Set([...costCenters.map((row) => row.name), ...equipment.map((row) => row.costCenter || row.projectName).filter(Boolean) as string[]])].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const costCenterOptions = (() => {
+    const unique = new Map<string, string>();
+    for (const raw of [...costCenters.map((row) => row.name), ...equipment.map((row) => row.costCenter || row.projectName).filter(Boolean) as string[]]) {
+      const name = normalizeCostCenterName(raw);
+      const key = costCenterKey(name);
+      if (name && !unique.has(key)) unique.set(key, name);
+    }
+    return [...unique.values()].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  })();
 
   function selectEquipment(id: string) {
     const found = equipment.find((e) => e.id === id);
-    setForm((current) => ({ ...current, equipmentId: id, costCenter: found?.costCenter || found?.projectName || current.costCenter, maintenanceLocationId: current.maintenanceLocationId || "" }));
+    const equipmentCostCenter = found?.costCenter || found?.projectName;
+    setForm((current) => ({ ...current, equipmentId: id, costCenter: equipmentCostCenter ? normalizeCostCenterName(equipmentCostCenter) : current.costCenter, maintenanceLocationId: current.maintenanceLocationId || "" }));
   }
 
   function printFuelReport() {
@@ -139,12 +150,18 @@ export default function FuelManagementPage() {
       const values = [0,1,2].map((group) => group === fuelGroup(row.product) ? `<td class="num">${escapeHtml(liters(row.litersMilli))}</td><td class="num">${escapeHtml(currency(Math.round(row.unitPriceMilli / 10)))}</td><td class="num">${escapeHtml(currency(row.totalCents))}</td>` : "<td></td><td></td><td></td>").join("");
       return `<tr><td>${escapeHtml(external ? row.externalIdentifier || "" : row.fleetNumber)}</td><td>${escapeHtml(external ? "" : row.plate || "")}</td><td>${escapeHtml(asset?.serialNumber || "")}</td><td>${escapeHtml(row.driverName || asset?.operatorName || "")}</td><td>${escapeHtml(external ? row.externalCompanyName || "" : asset?.ownerName || "")}</td><td>${escapeHtml(external ? row.externalAssetType || "" : asset?.equipmentType || row.description)}</td><td>${escapeHtml(row.entryDate.split("-").reverse().join("/"))}</td><td>${escapeHtml(String(row.systemNumber || ""))}</td><td>${escapeHtml(row.requisitionCoupon || row.rn || "")}</td><td>${escapeHtml(row.kilometer ?? "")}</td><td>${escapeHtml(companyName)}</td>${values}<td class="num">${escapeHtml(currency(row.totalCents))}</td><td>${escapeHtml(row.costCenter || row.maintenanceLocation || "")}</td></tr>`;
     }).join("");
+    const photoAttachments = filteredHistory.filter((row) => row.receiptObjectKey && /\.(jpe?g|png|webp)$/i.test(row.receiptObjectKey)).map((row) => {
+      const external = !row.equipmentId;
+      const assetLabel = external ? row.externalIdentifier || row.externalDescription || "Equipamento externo" : `${row.fleetNumber} ${row.plate || row.description}`;
+      const imageUrl = `/api/fuel/receipt?companyId=${encodeURIComponent(companyId)}&key=${encodeURIComponent(row.receiptObjectKey!)}&inline=1`;
+      return `<figure><img src="${escapeHtml(imageUrl)}" alt="Comprovante do abastecimento ${escapeHtml(row.systemNumber)}"><figcaption>Abastecimento ${escapeHtml(String(row.systemNumber || ""))} | ${escapeHtml(row.entryDate.split("-").reverse().join("/"))} | ${escapeHtml(assetLabel)} | ${escapeHtml(row.supplierName || row.station || "")}</figcaption></figure>`;
+    }).join("");
     const popup = window.open("", "_blank");
     if (!popup) { setError(true); setMessage("O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir o relatório."); return; }
     const supplier = filters.supplierId ? suppliers.find((item) => item.id === filters.supplierId)?.name || "" : "Todos";
     const from = filters.from.split("-").reverse().join("/"), to = filters.to.split("-").reverse().join("/");
     const totalVolume = filteredHistory.reduce((sum, row) => sum + row.litersMilli, 0);
-    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Fornecimento de combustível</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font:8px Arial,sans-serif;color:#111;margin:0}header{display:flex;justify-content:space-between}header img{width:105px;max-height:34px;object-fit:contain}.number{text-align:right}h1{text-align:center;font-size:13px;margin:4px 0 7px}.project{text-align:center;font-weight:bold;margin-bottom:6px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 10px;border:1px solid #222;padding:5px;margin-bottom:7px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #333;padding:3px 2px;vertical-align:middle;overflow-wrap:anywhere}thead th{text-align:center;font-size:7px}.num{text-align:right;white-space:nowrap}.total{text-align:right;font-weight:bold;margin-top:6px}.approval{margin-top:15px}.approval-title{text-align:center;font-weight:bold;margin-bottom:20px}.signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;text-align:center}.signatures div{border-top:1px solid #222;padding-top:3px}.cn{display:block;font-size:7px}</style></head><body><header><img src="/assets/sepco1-logo-template.png" alt="SEPCO1"><div class="number"><b>RELATÓRIO Nº</b> ${escapeHtml(filteredHistory[0]?.systemNumber || "")} &nbsp; <b>DATA:</b> ${escapeHtml(new Date().toLocaleDateString("pt-BR"))}</div></header><h1>RELATÓRIO DE FORNECIMENTO DE COMBUSTÍVEL</h1><div class="project">TRECHO 3 - LT 800 kV GRAÇA ARANHA SILVÂNIA</div><div class="meta"><span><b>FORNECEDOR Nº / NOME:</b> ${escapeHtml(supplier)}</span><span><b>CENTRO DE CUSTO:</b> ${escapeHtml(filters.costCenter || "Todos")}</span><span><b>MEDIÇÃO GERAL:</b> ${escapeHtml(from)} a ${escapeHtml(to)}</span><span><b>TOTAL R$:</b> ${escapeHtml(currency(totalAmount))}</span><span><b>EMPRESA:</b> ${escapeHtml(companyName)}</span><span><b>LANÇAMENTOS:</b> ${filteredHistory.length}</span><span><b>VOLUME:</b> ${escapeHtml(liters(totalVolume))}</span></div><table><thead><tr><th colspan="11">VEÍCULO / USUÁRIO</th><th colspan="3">ÓLEO DIESEL COMUM</th><th colspan="3">ÓLEO DIESEL S10</th><th colspan="3">GASOLINA</th><th rowspan="2">TOTAL</th><th rowspan="2">C. CUSTO</th></tr><tr><th>GS TAG</th><th>Placa</th><th>Série</th><th>Motorista</th><th>Proprietário</th><th>Tipo Equipamento</th><th>Data</th><th>O.S.</th><th>Requisição</th><th>Total KM</th><th>Empresa</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th></tr></thead><tbody>${rows || `<tr><td colspan="22">Nenhum abastecimento no período.</td></tr>`}</tbody></table><div class="total">TOTAL GERAL: ${escapeHtml(currency(totalAmount))}</div><div class="approval"><div class="approval-title">CONFERIDO E APROVADO POR:</div><div class="signatures"><div>Gerente</div><div>Subgerente</div><div>Verificador</div></div></div><script>window.onload=()=>window.print()<\/script></body></html>`);
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Fornecimento de combustível</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font:8px Arial,sans-serif;color:#111;margin:0}header{display:flex;justify-content:space-between}header img{width:105px;max-height:34px;object-fit:contain}.number{text-align:right}h1{text-align:center;font-size:13px;margin:4px 0 7px}.project{text-align:center;font-weight:bold;margin-bottom:6px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 10px;border:1px solid #222;padding:5px;margin-bottom:7px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #333;padding:3px 2px;vertical-align:middle;overflow-wrap:anywhere}thead th{text-align:center;font-size:7px}.num{text-align:right;white-space:nowrap}.total{text-align:right;font-weight:bold;margin-top:6px}.approval{margin-top:15px}.approval-title{text-align:center;font-weight:bold;margin-bottom:20px}.signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;text-align:center}.signatures div{border-top:1px solid #222;padding-top:3px}.cn{display:block;font-size:7px}.photo-appendix{page-break-before:always;break-before:page}.photo-appendix h2{text-align:center;font-size:14px;margin:0 0 8mm}.photo-appendix figure{page-break-after:always;break-after:page;text-align:center;margin:0}.photo-appendix img{display:block;max-width:100%;max-height:235mm;margin:0 auto;object-fit:contain}.photo-appendix figcaption{font-size:10px;margin-top:3mm}</style></head><body><header><img src="/assets/sepco1-logo-template.png" alt="SEPCO1"><div class="number"><b>RELATÓRIO Nº</b> ${escapeHtml(filteredHistory[0]?.systemNumber || "")} &nbsp; <b>DATA:</b> ${escapeHtml(new Date().toLocaleDateString("pt-BR"))}</div></header><h1>RELATÓRIO DE FORNECIMENTO DE COMBUSTÍVEL</h1><div class="project">TRECHO 3 - LT 800 kV GRAÇA ARANHA SILVÂNIA</div><div class="meta"><span><b>FORNECEDOR Nº / NOME:</b> ${escapeHtml(supplier)}</span><span><b>CENTRO DE CUSTO:</b> ${escapeHtml(filters.costCenter || "Todos")}</span><span><b>MEDIÇÃO GERAL:</b> ${escapeHtml(from)} a ${escapeHtml(to)}</span><span><b>TOTAL R$:</b> ${escapeHtml(currency(totalAmount))}</span><span><b>EMPRESA:</b> ${escapeHtml(companyName)}</span><span><b>LANÇAMENTOS:</b> ${filteredHistory.length}</span><span><b>VOLUME:</b> ${escapeHtml(liters(totalVolume))}</span></div><table><thead><tr><th colspan="11">VEÍCULO / USUÁRIO</th><th colspan="3">ÓLEO DIESEL COMUM</th><th colspan="3">ÓLEO DIESEL S10</th><th colspan="3">GASOLINA</th><th rowspan="2">TOTAL</th><th rowspan="2">C. CUSTO</th></tr><tr><th>GS TAG</th><th>Placa</th><th>Série</th><th>Motorista</th><th>Proprietário</th><th>Tipo Equipamento</th><th>Data</th><th>O.S.</th><th>Requisição</th><th>Total KM</th><th>Empresa</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th><th>Quant.</th><th>Preço Unit.</th><th>Valor</th></tr></thead><tbody>${rows || `<tr><td colspan="22">Nenhum abastecimento no período.</td></tr>`}</tbody></table><div class="total">TOTAL GERAL: ${escapeHtml(currency(totalAmount))}</div><div class="approval"><div class="approval-title">CONFERIDO E APROVADO POR:</div><div class="signatures"><div>Gerente</div><div>Subgerente</div><div>Verificador</div></div></div>${photoAttachments ? `<section class="photo-appendix"><h2>FOTOS DOS COMPROVANTES</h2>${photoAttachments}</section>` : ""}<script>const imgs=[...document.images];Promise.all(imgs.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=img.onerror=resolve;}))).then(()=>window.print())<\/script></body></html>`);
     popup.document.close();
   }
   async function attachReceipt(file?: File) {
@@ -292,7 +309,7 @@ export default function FuelManagementPage() {
           <label className="block text-sm font-semibold">Combustível<select className="input mt-1" value={form.product} onChange={(e) => setForm({ ...form, product: e.target.value })}><option>ÓLEO DIESEL S10</option><option>ÓLEO DIESEL S500</option><option>GASOLINA</option><option>ARLA 32</option></select></label>
           <div className="grid grid-cols-2 gap-2"><label className="text-sm font-semibold">Litros<input required min="0.001" step="0.001" type="number" className="input mt-1" value={form.liters} onChange={(e) => setForm({ ...form, liters: e.target.value })}/></label><label className="text-sm font-semibold">Valor por litro<input required min="0.001" step="0.001" type="number" className="input mt-1" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })}/></label></div>
           <div className="rounded-lg bg-slate-50 p-3 text-sm font-bold">Valor total: {currency(Math.round(Number(form.liters || 0) * Number(form.unitPrice || 0) * 100))}</div>
-          <label className="block text-sm font-semibold">Anexar comprovante<input className="input mt-1" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" disabled={busy} onChange={(e) => attachReceipt(e.target.files?.[0])}/><span className="text-xs font-normal text-slate-500">PDF ou imagem até 15 MB.</span></label>
+          <div className="space-y-2"><span className="block text-sm font-semibold">Comprovante do abastecimento (opcional)</span><div className="grid grid-cols-2 gap-2"><label className="btn-secondary cursor-pointer justify-center"><Camera size={16}/>Tirar foto<input className="hidden" type="file" accept="image/*" capture="environment" disabled={busy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void attachReceipt(file); e.target.value = ""; }}/></label><label className="btn-secondary cursor-pointer justify-center"><Upload size={16}/>Escolher arquivo<input className="hidden" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" disabled={busy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void attachReceipt(file); e.target.value = ""; }}/></label></div><span className="text-xs font-normal text-slate-500">A foto fica salva no lançamento e é impressa como anexo no relatório. PDF ou imagem até 15 MB.</span>{form.receiptObjectKey && <span className="block text-xs font-semibold text-emerald-700">Comprovante anexado a este lançamento.</span>}</div>
           <button disabled={busy || !companyId} className="btn-primary w-full">{busy ? "Salvando..." : "Salvar abastecimento"}</button>
         </form>}
       </aside>

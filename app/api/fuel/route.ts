@@ -9,7 +9,7 @@ import { fuelEntryFingerprint } from "@/lib/fuel-domain";
 
 type FuelInput = {
   entryDate?: string; entryTime?: string; rn?: string; requisitionCoupon?: string;
-  fleetNumber?: string; plate?: string; station?: string; supplierId?: string;
+  equipmentId?: string; fleetNumber?: string; plate?: string; station?: string; supplierId?: string;
   assetKind?: "fleet" | "external"; externalIdentifier?: string; externalAssetType?: string; externalCompanyName?: string; externalDescription?: string; observation?: string;
   maintenanceLocation?: string; maintenanceLocationId?: string; costCenter?: string;
   driverName?: string; product?: string; productCode?: string; liters?: number;
@@ -19,9 +19,18 @@ type FuelInput = {
 };
 
 function normalizedPlate(value = "") { return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase(); }
+function normalizedCostCenter(value?: string | null) { return value?.trim().replace(/\s*-\s*/g, " - ").replace(/\s+/g, " ") || null; }
 function isConvoy(row: { equipmentType?: string | null; description?: string | null }) { return /COMBOIO/i.test(`${row.equipmentType || ""} ${row.description || ""}`); }
 
 async function resolveEquipment(companyId: string, row: FuelInput) {
+  const equipmentId = row.equipmentId?.trim();
+  if (equipmentId) {
+    const [match] = await getDb().select().from(equipment).where(and(
+      eq(equipment.companyId, companyId), eq(equipment.id, equipmentId),
+    )).limit(1);
+    if (!match) throw new Error("O equipamento selecionado não pertence à empresa ativa ou não está cadastrado.");
+    return match;
+  }
   const fleet = row.fleetNumber?.trim();
   const plate = normalizedPlate(row.plate);
   if (!fleet && !plate) throw new Error("Informe a frota/ID ou a placa.");
@@ -192,7 +201,7 @@ export async function POST(request: Request) {
         let convoyId: string | null = null;
         let stockReceipt = false;
         if (matched && isConvoy(matched)) {
-          const convoy = await ensureConvoy(companyId, matched, access.user.userId, location, input.costCenter?.trim() || null, supplier?.id || null);
+          const convoy = await ensureConvoy(companyId, matched, access.user.userId, location, normalizedCostCenter(input.costCenter), supplier?.id || null);
           convoyId = convoy.id; stockReceipt = true;
           if (!(convoy.capacityMilli > 0)) throw new Error(`Configure a capacidade do comboio ${convoy.convoyNumber} antes de registrar entradas de estoque.`);
         }
@@ -225,7 +234,7 @@ export async function POST(request: Request) {
           source: body.source || "manual", status: "confirmed", importFileName: body.fileName?.trim() || null,
           entryTime: input.entryTime?.trim() || null, requisitionCoupon: requisition || null,
           supplierId: supplier?.id || null, invoiceId: input.invoiceId || null, fuelConvoyId: convoyId,
-          costCenter: input.costCenter?.trim() || matched?.costCenter || matched?.projectName || null,
+          costCenter: normalizedCostCenter(input.costCenter || matched?.costCenter || matched?.projectName),
           receiptObjectKey: input.receiptObjectKey || null,
           originalExternalId: input.originalExternalId?.trim() || input.externalIdentifier?.trim() || null,
           sourceFingerprint: fingerprint, transactionType: stockReceipt ? "stock_receipt" : "consumption",

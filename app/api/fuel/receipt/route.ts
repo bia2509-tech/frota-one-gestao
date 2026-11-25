@@ -26,9 +26,11 @@ export async function GET(request: Request) {
     if (!objectKey.startsWith(`fuel-receipts/${companyId}/`)) return Response.json({ error: "Comprovante não encontrado." }, { status: 404 });
     const object = await env.BUCKET.get(objectKey);
     if (!object) return Response.json({ error: "Comprovante indisponível." }, { status: 404 });
+    const contentType = object.httpMetadata?.contentType || "application/octet-stream";
+    const inlineImage = url.searchParams.get("inline") === "1" && contentType.startsWith("image/");
     return new Response(object.body, { headers: {
-      "content-type": object.httpMetadata?.contentType || "application/octet-stream",
-      "content-disposition": "attachment",
+      "content-type": contentType,
+      "content-disposition": inlineImage ? "inline" : "attachment",
       "cache-control": "private, no-store",
     } });
   } catch (error) { return apiError(error); }

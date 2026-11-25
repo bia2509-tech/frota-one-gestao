@@ -65,12 +65,18 @@ export default function FuelManagementPage() {
       fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=local_manutencao`), fetch(`/api/invoices?companyId=${encodeURIComponent(id)}`), fetch(`/api/master-data?companyId=${encodeURIComponent(id)}&type=centro_custo`),
     ]);
     const [fuelData, stockData, equipmentData, supplierData, locationData, invoiceData, costCenterData] = await Promise.all([fuelRes.json(), stockRes.json(), equipmentRes.json(), supplierRes.json(), locationRes.json(), invoiceRes.json(), costCenterRes.json()]);
-    if (!equipmentRes.ok) { setError(true); setMessage(equipmentData.error || "Não foi possível carregar os equipamentos da frota."); return; }
-    if (!supplierRes.ok) { setError(true); setMessage(supplierData.error || "Não foi possível carregar os fornecedores cadastrados."); return; }
-    if (!fuelRes.ok) { setError(true); setMessage(fuelData.error || "Não foi possível consultar os abastecimentos."); return; }
-    setHistory(fuelData.entries || []); setNextSystemNumber(Number(fuelData.nextSystemNumber || 1)); setConvoys(stockData.convoys || []); setCredits(stockData.credits || []); setMovementHistory(stockData.history || []);
-    setEquipment(equipmentData.equipment || []); setSuppliers((supplierData.suppliers || []).filter((s: Supplier) => s.active !== false));
-    setLocations((locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false)); setInvoices(invoiceData.invoices || []); setCostCenters((costCenterData.records || []).filter((x: any) => x.active !== false));
+    setEquipment(equipmentRes.ok ? equipmentData.equipment || [] : []);
+    setSuppliers(supplierRes.ok ? (supplierData.suppliers || []).filter((s: Supplier) => s.active !== false) : []);
+    setLocations(locationRes.ok ? (locationData.records || []).filter((x: Location & { active?: boolean }) => x.active !== false) : []);
+    setCostCenters(costCenterRes.ok ? (costCenterData.records || []).filter((x: any) => x.active !== false) : []);
+    setInvoices(invoiceRes.ok ? invoiceData.invoices || [] : []);
+    setHistory(fuelRes.ok ? fuelData.entries || [] : []);
+    setNextSystemNumber(fuelRes.ok ? Number(fuelData.nextSystemNumber || 1) : 1);
+    setConvoys(stockRes.ok ? stockData.convoys || [] : []);
+    setCredits(stockRes.ok ? stockData.credits || [] : []);
+    setMovementHistory(stockRes.ok ? stockData.history || [] : []);
+    const failure = !equipmentRes.ok ? equipmentData.error : !supplierRes.ok ? supplierData.error : !fuelRes.ok ? fuelData.error : !stockRes.ok ? stockData.error : "";
+    if (failure) { setError(true); setMessage(failure || "Não foi possível concluir a operação."); }
   }
 
   function changeCompany(id: string) {

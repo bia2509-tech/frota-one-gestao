@@ -132,7 +132,14 @@ export async function GET(request: Request) {
     const [latestNumber] = await getDb().select({ value: sql<number>`coalesce(max(${fuelEntries.systemNumber}), 0)` })
       .from(fuelEntries).where(eq(fuelEntries.companyId, companyId));
     return Response.json({ entries: rows.map((row) => ({ ...row, fleetNumber: row.externalIdentifier || row.fleetNumber || "Fora da frota", plate: row.externalIdentifier || row.plate, description: row.externalDescription || row.description || "Veículo externo autorizado", creditUsedCents: Number(usageMap.get(row.id) || 0) })), nextSystemNumber: Number(latestNumber?.value || 0) + 1 });
-  } catch (error) { return apiError(error); }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    if (/no such column.*(external_identifier|external_asset_type|external_company_name|external_description|observation)/i.test(detail)) {
+      console.error("A estrutura da tabela de abastecimento precisa da migração 0038", error);
+      return Response.json({ error: "A base desta empresa ainda não recebeu a migração 0038 do Abastecimento. Aplique a migração no banco D1 e carregue a página novamente." }, { status: 503 });
+    }
+    return apiError(error);
+  }
 }
 
 export async function POST(request: Request) {

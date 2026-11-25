@@ -63,12 +63,14 @@ export async function POST(request: Request) {
 
       nextNumber++;
       const orderId = crypto.randomUUID();
-      const closed = Boolean(actualEnd || source.isClosed);
-      const closedAt = actualEnd || (closed ? start : null);
+      // PREV. SAÍDA ATUAL is the source of truth for the actual close date.
+      // A completion label alone is not enough to close an imported order.
+      const closed = Boolean(actualEnd);
+      const closedAt = actualEnd || null;
       const orderNumber = String(nextNumber).padStart(4, "0");
       await db.insert(maintenanceOrders).values({
         id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance",
-        maintenanceType: type, maintenanceStatus: [source.maintenanceStatus?.trim() || (closed ? "Encerrada" : "Em andamento"), source.totalHours != null ? `Total de horas: ${source.totalHours}` : "", "Importada do FrotaManu.com"].filter(Boolean).join(" • "),
+        maintenanceType: type, maintenanceStatus: [closed ? "Encerrada" : "Em andamento", source.totalHours != null ? `Total de horas: ${source.totalHours}` : "", "Importada do FrotaManu.com"].filter(Boolean).join("  ·  "),
         maintenanceFormType: "maintenance", description, startedAt: start, closedAt,
         status: closed ? "closed" : "open", maintenanceLocation: source.worksite?.trim() || asset.projectName || null,
         costCenter: asset.costCenter || null, serviceType: "Manutenção operacional (FrotaManu.com)",

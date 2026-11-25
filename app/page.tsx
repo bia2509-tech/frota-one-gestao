@@ -3703,7 +3703,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const col = (...names: string[]) => headers.findIndex((header) => names.some((name) => header === name || header.includes(name)));
       const columns = {
         item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
-        entry: col("ENTRADA"), actualExit: col("DATADESAIDA", "SAIDAREAL"), totalHours: col("TOTALHORAS"), cause: col("CAUSADAMANUTENCAO"),
+        entry: col("ENTRADA"), actualExit: [col("PREVSAIDAATUAL"), col("DATADESAIDA", "SAIDAREAL")].filter((index) => index >= 0), totalHours: col("TOTALHORAS"), cause: col("CAUSADAMANUTENCAO"),
         description: col("DESCRICAODAMANUTENCAO"), status: col("STATUSANDAMENTO", "STATUS"),
       };
       const cell = (row: any[], index: number) => index >= 0 ? row[index] : "";
@@ -3721,7 +3721,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         const identity = String(cell(row, columns.identity) ?? "").trim();
         const pieces = identity.split(/[\/|]/).map((value) => value.trim()).filter(Boolean);
         const state = String(cell(row, columns.status) ?? "").trim();
-        const actualExitDate = parseDate(cell(row, columns.actualExit));
+        const actualExitDate = columns.actualExit.map((column) => parseDate(cell(row, column))).find(Boolean) || "";
         return {
           itemNumber: String(cell(row, columns.item) || index + 1),
           fleetNumber: pieces[0] || "",
@@ -4336,7 +4336,7 @@ function ReportsPage() {
       const dates: string[] = [];
       const cursor = new Date(`${from}T00:00:00Z`), last = new Date(`${to}T00:00:00Z`);
       while (cursor <= last) { dates.push(cursor.toISOString().slice(0, 10)); cursor.setUTCDate(cursor.getUTCDate() + 1); }
-      const format = (date: string) => date.split("-").reverse().join("/");
+      const format = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}/${date.slice(2, 4)}`;
       const dayLabels = dates.map(format), grouped = new Map<string, Record<string, any>>();
       for (const item of filtered) {
         const worksite = item.costCenter || item.projectName || "";
@@ -4481,7 +4481,7 @@ function ReportsPage() {
               const bytes = new Uint8Array(await logoResponse.arrayBuffer()); let binary = "";
               for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
               const imageId = workbook.addImage({ base64: `data:image/png;base64,${btoa(binary)}`, extension: "png" });
-              sheet.addImage(imageId, { tl: { col: 0, row: 0 }, br: { col: 2.8, row: 1 } });
+              sheet.addImage(imageId, { tl: { col: 0, row: 0 }, ext: { width: 130, height: 44 } });
             }
           } catch { /* Mantém o relatório mesmo se o logotipo não carregar. */ }
           const heading = sheet.getRow(2); heading.values = headers; heading.height = 32;

@@ -1,83 +1,145 @@
-import { and, asc, desc, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getDb } from "@/db";
-import { auditLog, equipment, quickServiceEntries } from "@/db/schema";
+import { equipment, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
+import { ensureSepcoVmeEquipment } from "@/lib/sepco-vme-bootstrap";
 
-async function findEquipment(companyId: string, equipmentId?: string, fleetNumber?: string, plate?: string) {
-  const db = getDb();
-  if (equipmentId) return (await db.select().from(equipment).where(and(eq(equipment.companyId, companyId), eq(equipment.id, equipmentId))).limit(1))[0];
-  if (fleetNumber) return (await db.select().from(equipment).where(and(eq(equipment.companyId, companyId), eq(equipment.fleetNumber, fleetNumber))).limit(1))[0];
-  if (plate) return (await db.select().from(equipment).where(and(eq(equipment.companyId, companyId), eq(equipment.plate, plate.toUpperCase()))).limit(1))[0];
+function normalizePlate(value = "") {
+  return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 }
 
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url), companyId = url.searchParams.get("companyId") || "";
-    await requirePermission(companyId, "maintenance", "view");
-    const from = url.searchParams.get("from"), to = url.searchParams.get("to");
-    const filters = [eq(quickServiceEntries.companyId, companyId)];
-    if (from) filters.push(gte(quickServiceEntries.entryDate, from));
-    if (to) filters.push(lt(quickServiceEntries.entryDate, `${to}T23:59:59`));
-    const entries = await getDb().select({
-      id: quickServiceEntries.id, systemNumber: quickServiceEntries.systemNumber, entryDate: quickServiceEntries.entryDate, category: quickServiceEntries.category,
-      serviceDescription: quickServiceEntries.serviceDescription, supplierName: quickServiceEntries.supplierName,
-      driverName: quickServiceEntries.driverName, quantityMilli: quickServiceEntries.quantityMilli,
-      unitPriceCents: quickServiceEntries.unitPriceCents, totalCents: quickServiceEntries.totalCents,
-      kilometer: quickServiceEntries.kilometer, hourmeter: quickServiceEntries.hourmeter,
-      costCenter: quickServiceEntries.costCenter, requisitionNumber: quickServiceEntries.requisitionNumber,
-      paymentResponsibility: quickServiceEntries.paymentResponsibility, invoiceNumber: quickServiceEntries.invoiceNumber,
-      status: quickServiceEntries.status, source: quickServiceEntries.source, observation: quickServiceEntries.observation,
-      equipmentId: equipment.id, fleetNumber: equipment.fleetNumber, plate: equipment.plate, equipmentDescription: equipment.description, ownerName: equipment.ownerName,
-    }).from(quickServiceEntries).innerJoin(equipment, eq(quickServiceEntries.equipmentId, equipment.id))
-      .where(and(...filters)).orderBy(asc(quickServiceEntries.systemNumber), desc(quickServiceEntries.entryDate));
-    return Response.json({ entries });
+    const url = new URL(request.url);
+    const companyId = url.searchParams.get("companyId") || "";
+    const fleetNumber = url.searchParams.get("fleetNumber")?.trim() || "";
+    const plate = normalizePlate(url.searchParams.get("plate") || "");
+    const dailyList = url.searchParams.get("dailyList") === "1";
+    const access = await requirePermission(companyId, fleetNumber || plate || dailyList ? "daily_parts" : "equipment", "view");
+    try {
+      await ensureSepcoVmeEquipment(companyId, access.user.userId);
+    } catch (bootstrapError) {
+      console.error("A carga automática dos equipamentos não pôde ser concluída", bootstrapError);
+    }
+    if (!fleetNumber && !plate) {
+      const rows = await getDb().select().from(equipment).where(and(eq(equipment.companyId, companyId), ne(equipment.status, "demo")));
+      return Response.json({ equipment: dailyList ? rows.map((row) => ({ id: row.id, fleetNumber: row.fleetNumber, plate: row.plate, description: row.description, equipmentType: row.equipmentType, serialNumber: row.serialNumber, ownerName: row.ownerName, projectName: row.projectName, frontName: row.frontName, costCenter: row.costCenter, status: row.status, operatorName: row.operatorName, currentKilometer: row.currentKilometer, currentHourmeter: row.currentHourmeter })) : rows });
+    }
+
+    let found;
+    if (fleetNumber) {
+      [found] = await getDb().select().from(equipment).where(and(
+        eq(equipment.companyId, companyId),
+        eq(equipment.fleetNumber, fleetNumber),
+      )).limit(1);
+    } else {
+      const rows = await getDb().select().from(equipment)
+        .where(eq(equipment.companyId, companyId));
+      found = rows.find((row) => normalizePlate(row.plate || "") === plate);
+    }
+    if (!found) return Response.json({ error: "Equipamento não encontrado." }, { status: 404 });
+    return Response.json({ equipment: { id: found.id, fleetNumber: found.fleetNumber, plate: found.plate, description: found.description, operatorName: found.operatorName, currentKilometer: found.currentKilometer, currentHourmeter: found.currentHourmeter } });
   } catch (error) { return apiError(error); }
+}
+
+type EquipmentInput = {
+  companyId?: string; id?: string; fleetNumber?: string; plate?: string;
+  description?: string; equipmentType?: string; brand?: string; model?: string;
+  manufactureYear?: number | null; chassis?: string; renavam?: string; color?: string;
+  fuelType?: string; serialNumber?: string; ownerName?: string; ownerTaxId?: string;
+  lessorId?: string | null; lessorName?: string; lessorTaxId?: string; ownershipType?: string; isCommodatum?: boolean;
+  commodatumName?: string; commodatumTaxId?: string; status?: string; monthlyRentCents?: number;
+  arrivalDate?: string; departureDate?: string; registrationDate?: string;
+  crlvExpiryDate?: string; tachographCalibrationDate?: string; tachographExpiryDate?: string;
+  tachographNumber?: string; insuranceProvider?: string; insurancePolicyNumber?: string;
+  insuranceStartDate?: string; insuranceExpiryDate?: string; projectName?: string;
+  frontName?: string; costCenter?: string; operatorName?: string; measurementType?: string;
+  currentKilometer?: number | null; currentHourmeter?: number | null;
+  entryChecklistStatus?: string; observation?: string;
+};
+
+function values(body: EquipmentInput) {
+  return {
+    fleetNumber: body.fleetNumber?.trim() || "",
+    plate: normalizePlate(body.plate || "") || null,
+    description: body.description?.trim() || "",
+    equipmentType: body.equipmentType?.trim() || null,
+    brand: body.brand?.trim() || null,
+    model: body.model?.trim() || null,
+    manufactureYear: body.manufactureYear || null,
+    chassis: body.chassis?.trim() || null,
+    renavam: body.renavam?.trim() || null,
+    color: body.color?.trim() || null,
+    fuelType: body.fuelType?.trim() || null,
+    serialNumber: body.serialNumber?.trim() || null,
+    ownerName: body.ownershipType === "owned" ? body.ownerName?.trim() || null : null,
+    ownerTaxId: body.ownershipType === "owned" ? body.ownerTaxId?.trim() || null : null,
+    lessorId: body.ownershipType !== "owned" ? body.lessorId || null : null,
+    lessorName: body.ownershipType !== "owned" ? body.lessorName?.trim() || null : null,
+    lessorTaxId: body.ownershipType !== "owned" ? body.lessorTaxId?.trim() || null : null,
+    ownershipType: body.ownershipType || null,
+    isCommodatum: Boolean(body.isCommodatum),
+    commodatumName: body.isCommodatum ? body.commodatumName?.trim() || null : null,
+    commodatumTaxId: body.isCommodatum ? body.commodatumTaxId?.trim() || null : null,
+    status: body.status || "available",
+    monthlyRentCents: Number(body.monthlyRentCents) || 0,
+    arrivalDate: body.arrivalDate || null,
+    departureDate: body.departureDate || null,
+    registrationDate: body.registrationDate || null,
+    crlvExpiryDate: body.crlvExpiryDate || null,
+    tachographCalibrationDate: body.tachographCalibrationDate || null,
+    tachographExpiryDate: body.tachographExpiryDate || null,
+    tachographNumber: body.tachographNumber?.trim() || null,
+    insuranceProvider: body.insuranceProvider?.trim() || null,
+    insurancePolicyNumber: body.insurancePolicyNumber?.trim() || null,
+    insuranceStartDate: body.insuranceStartDate || null,
+    insuranceExpiryDate: body.insuranceExpiryDate || null,
+    projectName: body.projectName?.trim() || null,
+    frontName: body.frontName?.trim() || null,
+    costCenter: body.costCenter?.trim() || null,
+    operatorName: body.operatorName?.trim() || null,
+    measurementType: body.measurementType || null,
+    currentKilometer: body.currentKilometer ?? null,
+    currentHourmeter: body.currentHourmeter ?? null,
+    entryChecklistStatus: body.entryChecklistStatus || "pending",
+    observation: body.observation?.trim() || null,
+  };
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as any, companyId = body.companyId || "";
-    const access = await requirePermission(companyId, "maintenance", "create");
-    const source = body.source === "spreadsheet" ? "spreadsheet" : "manual";
-    const rawEntries = Array.isArray(body.entries) ? body.entries : [body];
-    const inserted: any[] = [], errors: any[] = [];
-    const [sequence] = await getDb().select({ value: sql<number>`coalesce(max(${quickServiceEntries.systemNumber}), 0)` }).from(quickServiceEntries).where(eq(quickServiceEntries.companyId, companyId));
-    let nextSystemNumber = Number(sequence?.value || 0) + 1;
-    for (let index = 0; index < rawEntries.length; index++) {
-      const row = rawEntries[index];
-      const asset = await findEquipment(companyId, row.equipmentId, String(row.fleetNumber || "").trim(), String(row.plate || "").trim());
-      if (!asset) { errors.push({ row: index + 2, error: "Equipamento não localizado por ID/frota ou placa." }); continue; }
-      if (!row.entryDate || !row.category || !row.serviceDescription || Number(row.quantity || 0) <= 0 || Number(row.unitPrice || 0) < 0) {
-        errors.push({ row: index + 2, error: "Data, categoria, serviço, quantidade e valor são obrigatórios." }); continue;
-      }
-      const quantity = Number(row.quantity), unitPrice = Number(row.unitPrice);
-      const entry = { id: crypto.randomUUID(), companyId, equipmentId: asset.id, systemNumber: nextSystemNumber++, entryDate: row.entryDate,
-        category: String(row.category).trim(), serviceDescription: String(row.serviceDescription).trim(), supplierName: row.supplierName?.trim() || null,
-        driverName: row.driverName?.trim() || asset.operatorName || null, quantityMilli: Math.round(quantity * 1000), unitPriceCents: Math.round(unitPrice * 100),
-        totalCents: Math.round(quantity * unitPrice * 100), kilometer: row.kilometer === "" || row.kilometer == null ? null : Number(row.kilometer),
-        hourmeter: row.hourmeter === "" || row.hourmeter == null ? null : Number(row.hourmeter), costCenter: row.costCenter?.trim() || asset.costCenter || null,
-        requisitionNumber: row.requisitionNumber?.trim() || null, paymentResponsibility: row.paymentResponsibility === "lessor" ? "lessor" as const : "company" as const,
-        invoiceNumber: row.invoiceNumber?.trim() || null, status: "confirmed" as const, source, importFileName: body.fileName?.trim() || null,
-        observation: row.observation?.trim() || null, createdBy: access.user.userId, createdAt: new Date().toISOString() };
-      await getDb().insert(quickServiceEntries).values(entry); inserted.push(entry);
+    const body = await request.json() as EquipmentInput;
+    const companyId = body.companyId || "";
+    await requirePermission(companyId, "equipment", "create");
+    const row = values(body);
+    if (!row.fleetNumber || !row.description) return Response.json({ error: "Número da frota e descrição são obrigatórios." }, { status: 400 });
+    const [duplicate] = await getDb().select({ description: equipment.description }).from(equipment).where(and(eq(equipment.companyId, companyId), eq(equipment.fleetNumber, row.fleetNumber))).limit(1);
+    if (duplicate) return Response.json({ error: `O código/ID ${row.fleetNumber} já está cadastrado no equipamento “${duplicate.description}”. Informe um código diferente.` }, { status: 409 });
+    if (row.lessorId) {
+      const [lessor] = await getDb().select({ id: suppliers.id }).from(suppliers).where(and(eq(suppliers.id, row.lessorId), eq(suppliers.companyId, companyId))).limit(1);
+      if (!lessor) return Response.json({ error: "Locador/fornecedor não pertence à empresa selecionada." }, { status: 400 });
     }
-    return Response.json({ inserted: inserted.length, errors, entries: inserted }, { status: inserted.length ? 201 : 400 });
+    const record = { id: crypto.randomUUID(), companyId, ...row };
+    await getDb().insert(equipment).values(record);
+    return Response.json({ equipment: record }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json() as any, companyId = body.companyId || "";
-    const access = await requirePermission(companyId, "maintenance", "update");
-    const [current] = await getDb().select().from(quickServiceEntries).where(and(eq(quickServiceEntries.id, body.id || ""), eq(quickServiceEntries.companyId, companyId))).limit(1);
-    if (!current) return Response.json({ error: "Serviço rápido não encontrado." }, { status: 404 });
-    if (current.status !== "draft") return Response.json({ error: "Solicite a reabertura antes de alterar este serviço." }, { status: 409 });
-    const asset = await findEquipment(companyId, body.equipmentId, body.fleetNumber, body.plate);
-    if (!asset) return Response.json({ error: "Equipamento não localizado." }, { status: 400 });
-    if (!body.entryDate || !body.category || !body.serviceDescription || Number(body.quantity || 0) <= 0 || Number(body.unitPrice || 0) < 0) return Response.json({ error: "Data, categoria, serviço, quantidade e valor são obrigatórios." }, { status: 400 });
-    const quantity = Number(body.quantity), unitPrice = Number(body.unitPrice);
-    await getDb().update(quickServiceEntries).set({ equipmentId: asset.id, entryDate: body.entryDate, category: String(body.category).trim(), serviceDescription: String(body.serviceDescription).trim(), supplierName: body.supplierName?.trim() || null, driverName: body.driverName?.trim() || asset.operatorName || null, quantityMilli: Math.round(quantity * 1000), unitPriceCents: Math.round(unitPrice * 100), totalCents: Math.round(quantity * unitPrice * 100), kilometer: body.kilometer === "" ? null : Number(body.kilometer), hourmeter: body.hourmeter === "" ? null : Number(body.hourmeter), costCenter: body.costCenter?.trim() || null, requisitionNumber: body.requisitionNumber?.trim() || null, paymentResponsibility: body.paymentResponsibility === "lessor" ? "lessor" : "company", invoiceNumber: body.invoiceNumber?.trim() || null, observation: body.observation?.trim() || null, status: "confirmed" }).where(eq(quickServiceEntries.id, current.id));
-    await getDb().insert(auditLog).values({ id: crypto.randomUUID(), companyId, userId: access.user.userId, action: "Alterou e reconcluiu serviço rápido reaberto", entity: "quick_service", entityId: current.id, createdAt: new Date().toISOString() });
-    return Response.json({ status: "confirmed" });
+    const body = await request.json() as EquipmentInput;
+    const companyId = body.companyId || "";
+    await requirePermission(companyId, "equipment", "update");
+    if (!body.id) return Response.json({ error: "Equipamento não informado." }, { status: 400 });
+    const row = values(body);
+    if (!row.fleetNumber || !row.description) return Response.json({ error: "Número da frota e descrição são obrigatórios." }, { status: 400 });
+    const [duplicate] = await getDb().select({ description: equipment.description }).from(equipment).where(and(eq(equipment.companyId, companyId), eq(equipment.fleetNumber, row.fleetNumber), ne(equipment.id, body.id))).limit(1);
+    if (duplicate) return Response.json({ error: `O código/ID ${row.fleetNumber} já está cadastrado no equipamento “${duplicate.description}”. Informe um código diferente.` }, { status: 409 });
+    if (row.lessorId) {
+      const [lessor] = await getDb().select({ id: suppliers.id }).from(suppliers).where(and(eq(suppliers.id, row.lessorId), eq(suppliers.companyId, companyId))).limit(1);
+      if (!lessor) return Response.json({ error: "Locador/fornecedor não pertence à empresa selecionada." }, { status: 400 });
+    }
+    await getDb().update(equipment).set(row).where(and(eq(equipment.id, body.id), eq(equipment.companyId, companyId)));
+    return Response.json({ updated: true });
   } catch (error) { return apiError(error); }
 }

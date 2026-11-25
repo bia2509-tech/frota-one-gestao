@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (existing.length) return Response.json({ error: "Já existe uma solicitação de exclusão pendente para este registro." }, { status: 409 });
     const now = new Date().toISOString(), id = crypto.randomUUID();
     const isReopen = entityType.startsWith("reopen_");
-    const masterDirect = access.membership.role === "super_admin";
+    const masterDirect = access.membership.role === "super_admin" && entityType !== "fuel_entry";
     if (masterDirect) await deleteApproved(companyId, entityType, body.entityId);
     await getDb().insert(deletionRequests).values({ id, companyId, module: body.module || "master_data", entityType, entityId: body.entityId, entityLabel: body.entityLabel.trim(), reason, snapshotJson: JSON.stringify(body.snapshot ?? null), status: masterDirect ? "approved" : "pending", requestedBy: access.user.userId, requestedByName: access.membership.displayName || access.user.email || "Usuário", requestedAt: now, reviewedBy: masterDirect ? access.user.userId : null, reviewedByName: masterDirect ? access.membership.displayName || access.user.email || "Administrador Master" : null, reviewedAt: masterDirect ? now : null });
     await getDb().insert(auditLog).values({ id: crypto.randomUUID(), companyId, userId: access.user.userId, action: `${masterDirect ? "Executou" : "Solicitou"} ${isReopen ? "reabertura" : "exclusão"}: ${reason}`, entity: entityType, entityId: body.entityId, createdAt: now });

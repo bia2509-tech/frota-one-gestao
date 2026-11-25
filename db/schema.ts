@@ -707,6 +707,8 @@ export const fuelEntries = sqliteTable(
     fuelConvoyId: text("fuel_convoy_id"),
     costCenter: text("cost_center"),
     receiptObjectKey: text("receipt_object_key"),
+    requisitionPhotoObjectKey: text("requisition_photo_object_key"),
+    couponPhotoObjectKey: text("coupon_photo_object_key"),
     originalExternalId: text("original_external_id"),
     sourceFingerprint: text("source_fingerprint"),
     transactionType: text("transaction_type", { enum: ["consumption", "stock_receipt", "distribution"] }).notNull().default("consumption"),

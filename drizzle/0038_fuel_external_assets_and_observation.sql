@@ -2,6 +2,10 @@
 -- Preserve existing entries and dependent credit/stock movement records.
 PRAGMA defer_foreign_keys = ON;
 
+-- The trigger references fuel_entries. Drop it before rebuilding that table,
+-- then restore it after the replacement table and indexes are in place.
+DROP TRIGGER IF EXISTS `fuel_credit_usage_guard`;
+
 CREATE TABLE `fuel_entries_new` (
   `id` text PRIMARY KEY NOT NULL,
   `company_id` text NOT NULL REFERENCES `companies`(`id`),
@@ -68,3 +72,13 @@ CREATE UNIQUE INDEX `uidx_fuel_company_rn` ON `fuel_entries` (`company_id`,`rn`)
 CREATE UNIQUE INDEX `uidx_fuel_company_fingerprint` ON `fuel_entries` (`company_id`,`source_fingerprint`);
 CREATE INDEX `idx_fuel_company_supplier_date` ON `fuel_entries` (`company_id`,`supplier_id`,`entry_date`);
 CREATE INDEX `idx_fuel_company_convoy_date` ON `fuel_entries` (`company_id`,`fuel_convoy_id`,`entry_date`);
+
+CREATE TRIGGER `fuel_credit_usage_guard`
+BEFORE INSERT ON `fuel_credit_usages`
+WHEN NOT EXISTS (
+  SELECT 1 FROM `fiscal_credit_notes` c JOIN `fuel_entries` f ON f.`id` = NEW.`fuel_entry_id`
+  WHERE c.`id` = NEW.`credit_note_id` AND c.`company_id` = NEW.`company_id`
+    AND c.`status` = 'available' AND c.`remaining_cents` >= NEW.`amount_cents`
+    AND f.`company_id` = NEW.`company_id` AND f.`supplier_id` = c.`supplier_id`
+)
+BEGIN SELECT RAISE(ABORT, 'Crédito indisponível, de outro fornecedor ou com saldo insuficiente.'); END;

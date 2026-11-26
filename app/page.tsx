@@ -2635,7 +2635,7 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   const [companies, setCompanies] = useState<any[]>([]), [companyId, setCompanyId] = useState("");
   const [rows, setRows] = useState<any[]>([]), [detail, setDetail] = useState<any | null>(null), [equipmentOptions, setEquipmentOptions] = useState<any[]>([]), [projectOptions, setProjectOptions] = useState<any[]>([]);
   const [supplierOptions, setSupplierOptions] = useState<any[]>([]), [activeTab, setActiveTab] = useState("Contratos"), [showCreate, setShowCreate] = useState(false), [documentType, setDocumentType] = useState("Proposta assinada");
-  const [createDraft, setCreateDraft] = useState<any>({ number: "", object: "", contractType: "Locação sem mão de obra", documentKind: "initial", parentContractId: "", amendmentNumber: 0, supplierId: "", projectName: "", startsAt: "", endsAt: "", equipmentId: "", monthlyEquipment: "", monthlyOperator: "", mobilization: "", demobilization: "" });
+  const [createDraft, setCreateDraft] = useState<any>({ number: "", object: "", contractType: "Locação sem mão de obra", documentKind: "initial", parentContractId: "", amendmentNumber: 0, supplierId: "", projectName: "", startsAt: "", endsAt: "", equipmentId: "", quantity: "1", monthlyEquipment: "", monthlyOperator: "", mobilization: "", demobilization: "" });
   const [message, setMessage] = useState(""), [adding, setAdding] = useState(false), [saving, setSaving] = useState(false);
   const [editingContract, setEditingContract] = useState(false), [contractDraft, setContractDraft] = useState<any>({});
   const [formalizationDraft, setFormalizationDraft] = useState({ status: "not_informed", note: "" });
@@ -2671,12 +2671,12 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
       items: [{ equipmentId: createDraft.equipmentId, startsAt: createDraft.startsAt, endsAt: createDraft.endsAt,
         monthlyEquipment: Number(createDraft.monthlyEquipment || 0),
         monthlyOperator: normalizedType === "Locação com mão de obra" ? Number(createDraft.monthlyOperator || 0) : 0,
-        mobilization: Number(createDraft.mobilization || 0), demobilization: Number(createDraft.demobilization || 0), quantity: 1, billingMode: "Mensal" }]
+        mobilization: Number(createDraft.mobilization || 0), demobilization: Number(createDraft.demobilization || 0), quantity: Number(createDraft.quantity || 1), billingMode: "Mensal" }]
     }) });
     const data = await response.json(); setSaving(false);
     if (!response.ok) return setMessage(data.error || "Não foi possível cadastrar o contrato.");
     setShowCreate(false);
-    setCreateDraft({ number: "", object: "", contractType: "Locação sem mão de obra", documentKind: "initial", parentContractId: "", amendmentNumber: 0, supplierId: "", projectName: "", startsAt: "", endsAt: "", equipmentId: "", monthlyEquipment: "", monthlyOperator: "", mobilization: "", demobilization: "" });
+    setCreateDraft({ number: "", object: "", contractType: "Locação sem mão de obra", documentKind: "initial", parentContractId: "", amendmentNumber: 0, supplierId: "", projectName: "", startsAt: "", endsAt: "", equipmentId: "", quantity: "1", monthlyEquipment: "", monthlyOperator: "", mobilization: "", demobilization: "" });
     await load(companyId); setMessage("Contrato cadastrado; valores e período individual já podem alimentar a Apropriação.");
   }  async function uploadContractDocument(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!detail) return;
@@ -2870,7 +2870,7 @@ function Contracts({ query, setQuery, setModal: _setModal }: { query: string; se
   <label className="text-sm font-semibold sm:col-span-2">Objeto<input required className="input mt-1" value={createDraft.object} onChange={(e) => setCreateDraft({ ...createDraft, object: e.target.value })}/></label>
   <label className="text-sm font-semibold">Início da vigência<input type="date" className="input mt-1" value={createDraft.startsAt} onChange={(e) => setCreateDraft({ ...createDraft, startsAt: e.target.value })}/></label>
   <label className="text-sm font-semibold">Fim da vigência<input type="date" min={createDraft.startsAt || undefined} className="input mt-1" value={createDraft.endsAt} onChange={(e) => setCreateDraft({ ...createDraft, endsAt: e.target.value })}/></label>
-  <label className="text-sm font-semibold sm:col-span-2">Equipamento cadastrado na Frota<select required className="input mt-1" value={createDraft.equipmentId} onChange={(e) => setCreateDraft({ ...createDraft, equipmentId: e.target.value })}><option value="">Selecione</option>{equipmentOptions.map((row: any) => <option key={row.id} value={row.id}>{row.fleetNumber} · {row.plate || row.description} · {row.description}</option>)}</select></label>
+  <label className="text-sm font-semibold">Equipamento cadastrado na Frota<select required className="input mt-1" value={createDraft.equipmentId} onChange={(e) => setCreateDraft({ ...createDraft, equipmentId: e.target.value })}><option value="">Selecione</option>{equipmentOptions.map((row: any) => <option key={row.id} value={row.id}>{row.fleetNumber} · {row.plate || row.description} · {row.description}</option>)}</select></label><label className="text-sm font-semibold">Quantidade<input type="number" min="0.01" step="0.01" className="input mt-1" value={createDraft.quantity ?? "1"} onChange={(e) => setCreateDraft({ ...createDraft, quantity: e.target.value })} /></label>
   <label className="text-sm font-semibold">Valor mensal do equipamento<input required type="number" min="0" step="0.01" className="input mt-1" value={createDraft.monthlyEquipment} onChange={(e) => setCreateDraft({ ...createDraft, monthlyEquipment: e.target.value })}/></label>
   {createDraft.contractType === "Locação com mão de obra" && <label className="text-sm font-semibold">Valor mensal do operador<input type="number" min="0" step="0.01" className="input mt-1" value={createDraft.monthlyOperator} onChange={(e) => setCreateDraft({ ...createDraft, monthlyOperator: e.target.value })}/></label>}
   <label className="text-sm font-semibold">Mobilização (uma vez)<input type="number" min="0" step="0.01" className="input mt-1" value={createDraft.mobilization} onChange={(e) => setCreateDraft({ ...createDraft, mobilization: e.target.value })}/></label>
@@ -6147,6 +6147,7 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
+
 
 
 

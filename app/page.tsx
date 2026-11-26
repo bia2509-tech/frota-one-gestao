@@ -4702,7 +4702,7 @@ function MonthlyFleetDashboard({ data, period, companyName, money }: { data: any
       <img src="/assets/sepco1-logo-template.png" alt="SEPCO1" className="h-10 max-w-40 object-contain"/>
     </div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-      {card("Equipamentos cadastrados", String(summary.equipmentTotal || 0), `${summary.activeEquipment || 0} ativos · ${summary.demobilizedEquipment || 0} desmobilizados`, "bg-blue-600")}
+      {card("Equipamentos ativos", String(summary.activeEquipment || 0), `${summary.activeEquipment || 0} ativos · ${summary.demobilizedEquipment || 0} desmobilizados`, "bg-blue-600")}
       {card("Produtividade", `${(productivity * 100).toFixed(1)}%`, `${summary.worked || 0} dias trabalhados nas partes diárias`, "bg-emerald-500")}
       {card("Eficiência", `${(efficiency * 100).toFixed(1)}%`, "Trabalhado + à disposição ÷ T + D + M", "bg-cyan-500")}
       {card("Manutenção direta", money(summary.directMaintenanceCents), `${summary.maintenance || 0} apontamentos em manutenção`, "bg-rose-500")}
@@ -6153,6 +6153,7 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
+
 
 
 

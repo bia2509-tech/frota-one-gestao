@@ -1,4 +1,4 @@
-﻿import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLog, companyUsers, contractDocuments, contractEquipmentItems, contracts, equipment, masterData, measurements, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";

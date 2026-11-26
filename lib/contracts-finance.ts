@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Contract commitment rules shared by the API and the Anexo I preview.
  * Monthly billing counts completed monthly periods and one final partial month.
  * This matches 07/07–15/10 = four months and 07/07–06/07 = twelve months.
  */
-export function countContractMonthsInclusive(startsAt: string, endsAt: string): number {
+export function countContractMonthsInclusive(startsAt: string, endsAt: string): number { if (!startsAt || !endsAt) return 1;
   const start = new Date(`${startsAt}T12:00:00Z`);
   const end = new Date(`${endsAt}T12:00:00Z`);
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end < start) {
@@ -50,3 +50,4 @@ export function calculateEquipmentReductionCents(
   const updated = calculateEquipmentCommitmentCents(item);
   return Math.max(0, original - updated);
 }
+

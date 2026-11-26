@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+﻿import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLog, companyUsers, contractDocuments, contractEquipmentItems, contracts, equipment, masterData, measurements, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
@@ -111,7 +111,7 @@ export async function PATCH(request: Request) {
       const current = await db.select().from(contractEquipmentItems).where(and(eq(contractEquipmentItems.id, body.itemId), eq(contractEquipmentItems.contractId, body.contractId), eq(contractEquipmentItems.companyId, companyId))).limit(1);
       if (!current[0]) return Response.json({ error: "Equipamento do contrato não encontrado." }, { status: 404 });
       const item = body.item;
-      const values = { startsAt: item.startsAt, endsAt: item.endsAt, billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" };
+      const values = { startsAt: item.startsAt || "", endsAt: item.endsAt || "", billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" };
       await db.update(contractEquipmentItems).set(values).where(and(eq(contractEquipmentItems.id, body.itemId), eq(contractEquipmentItems.companyId, companyId)));
       await recalculateContract(companyId, body.contractId);
       await log(`Equipamento do contrato editado (${body.itemId}) | antes=${JSON.stringify(current[0])} | depois=${JSON.stringify(values)}`);
@@ -126,7 +126,7 @@ export async function PATCH(request: Request) {
     if (!contract || !asset) return Response.json({ error: "Contrato ou equipamento não pertence à empresa." }, { status: 404 });
     if (duplicate) return Response.json({ error: "Este equipamento já está vinculado ao contrato." }, { status: 409 });
     const item = body.item;
-    await db.insert(contractEquipmentItems).values({ id: crypto.randomUUID(), companyId, contractId: contract.id, equipmentId: asset.id, startsAt: item.startsAt, endsAt: item.endsAt, billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" });
+    await db.insert(contractEquipmentItems).values({ id: crypto.randomUUID(), companyId, contractId: contract.id, equipmentId: asset.id, startsAt: item.startsAt || "", endsAt: item.endsAt || "", billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" });
     await recalculateContract(companyId, contract.id);
     await log(`Equipamento adicionado ao contrato (${asset.id})`);
     return Response.json({ added: true });
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
       body.supplierName = supplier.name;
     }
     for (const item of body.items) {
-      if (!item.equipmentId || !item.startsAt || !item.endsAt) return Response.json({ error: "Todos os equipamentos precisam de data de entrada e data final." }, { status: 400 });
+      if (!item.equipmentId) return Response.json({ error: "Todos os equipamentos precisam ser selecionados." }, { status: 400 });
       const [asset] = await getDb().select({ id: equipment.id }).from(equipment).where(and(eq(equipment.id, item.equipmentId), eq(equipment.companyId, companyId))).limit(1);
       if (!asset) return Response.json({ error: "Um dos equipamentos não pertence à empresa selecionada." }, { status: 400 });
     }
@@ -209,7 +209,7 @@ export async function POST(request: Request) {
       monthlyAmountCents: Math.max(0, Math.round(body.monthlyAmountCents || 0)),
       status: "active",
     };
-    const itemRows = body.items.map((item) => ({ id: crypto.randomUUID(), companyId, contractId, equipmentId: item.equipmentId!, startsAt: item.startsAt!, endsAt: item.endsAt!, billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" }));
+    const itemRows = body.items.map((item) => ({ id: crypto.randomUUID(), companyId, contractId, equipmentId: item.equipmentId!, startsAt: item.startsAt || "", endsAt: item.endsAt || "", billingMode: item.billingMode || "Mensal", monthlyEquipmentCents: Math.round(Number(item.monthlyEquipment || 0) * 100), monthlyOperatorCents: Math.round(Number(item.monthlyOperator || 0) * 100), mobilizationCents: Math.round(Number(item.mobilization || 0) * 100), demobilizationCents: Math.round(Number(item.demobilization || 0) * 100), quantityMilli: Math.round(Number(item.quantity || 1) * 1000), status: item.status || "mobilized" }));
     row.totalCents = itemRows.reduce((sum, item) => sum + calculateEquipmentCommitmentCents(item), 0);
     row.monthlyRentCents = itemRows.reduce((sum, item) => sum + item.monthlyEquipmentCents, 0);
     row.monthlyLaborCents = itemRows.reduce((sum, item) => sum + item.monthlyOperatorCents, 0);
@@ -220,3 +220,4 @@ export async function POST(request: Request) {
     return apiError(error);
   }
 }
+

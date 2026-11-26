@@ -3428,7 +3428,6 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [importErrors, setImportErrors] = useState<{ row: number; error: string }[]>([]);
-  const [importProgress, setImportProgress] = useState({ total: 0, processed: 0, imported: 0, failed: 0 });
   const day31 = form.entryDate.endsWith("-31");
   const roundReading = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
   const readingTotal = (start: number | string | null | undefined, end: number | string | null | undefined) => start == null || end == null || start === "" || end === "" ? null : roundReading(Number(end) - Number(start));
@@ -3608,7 +3607,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
 
   async function importDailyFile(file?: File, operationalMaintenance = false) {
     if (!file || !companyId) return;
-    setBusy(true); setMessage(""); setImportErrors([]); setImportProgress({ total: 0, processed: 0, imported: 0, failed: 0 });
+    setBusy(true); setMessage(""); setImportErrors([]);
     try {
       const XLSX = await import("xlsx");
       const book = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
@@ -3639,32 +3638,19 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const statusValue = (raw: any) => { if (operationalMaintenance) return "M"; const text = normalize(raw); if (text === "AB" || text.includes("ABONO")) return "AB"; if (text === "M" || text.includes("MANUT")) return "M"; if (text === "D" || text.includes("DISPOS")) return "D"; return "T"; };
       const rows = matrix.slice(headerIndex + 1).map((row, index) => ({ row: headerIndex + index + 2, payload: { companyId, source: "spreadsheet", entryDate: dateValue(value(row, aliases.date)), fleetNumber: identifier(value(row, aliases.fleet, fleetColumn)), plate: identifier(value(row, aliases.plate, plateColumn)), status: statusValue(value(row, aliases.status)), maintenanceOrderNumber: identifier(value(row, aliases.order)), hourmeterStart: value(row, aliases.hs) === "" ? null : Number(value(row, aliases.hs)), hourmeterEnd: value(row, aliases.he) === "" ? null : Number(value(row, aliases.he)), kilometerStart: value(row, aliases.ks) === "" ? null : Number(value(row, aliases.ks)), kilometerEnd: value(row, aliases.ke) === "" ? null : Number(value(row, aliases.ke)), observation: String(value(row, aliases.obs) || (operationalMaintenance ? "Importado do FrotaManu.com" : "")).trim() } })).filter(({ payload }) => payload.entryDate || payload.fleetNumber || payload.plate);
       if (!rows.length) throw new Error("A planilha não possui lançamentos para importar.");
-      const errors: { row: number; error: string }[] = [];
-      let imported = 0;
-      let processed = 0;
-      const total = rows.length;
-      setImportProgress({ total, processed, imported, failed: 0 });
+      const errors: { row: number; error: string }[] = []; let imported = 0;
       for (const item of rows) {
-        if (!item.payload.entryDate || (!item.payload.fleetNumber && !item.payload.plate)) {
-          errors.push({ row: item.row, error: "Informe DATA e ID/FROTA ou PLACA." });
-          processed += 1;
-          setImportProgress({ total, processed, imported, failed: errors.length });
-          continue;
-        }
+        if (!item.payload.entryDate || (!item.payload.fleetNumber && !item.payload.plate)) { errors.push({ row: item.row, error: "Informe DATA e ID/FROTA ou PLACA." }); continue; }
         const response = await offlineRequest("/api/daily-parts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(item.payload) });
-        const data = await response.json();
-        if (response.ok) imported += 1;
-        else errors.push({ row: item.row, error: data.error || "Lançamento rejeitado." });
-        processed += 1;
-        setImportProgress({ total, processed, imported, failed: errors.length });
+        const data = await response.json(); if (response.ok) imported += 1; else errors.push({ row: item.row, error: data.error || "Lançamento rejeitado." });
       }
-      setImportErrors(errors);
-      setMessage(imported + " de " + total + " lançamento(s) importado(s). " + (total - processed) + " pendente(s); " + errors.length + " linha(s) com divergência.");
+      setImportErrors(errors); setMessage(`${imported} lançamento(s) importado(s).${errors.length ? ` ${errors.length} linha(s) com divergência.` : " Importação concluída com sucesso."}`);
       if (imported > 0) {
         const importedDates = rows.map((item) => item.payload.entryDate).filter(Boolean).sort();
         const from = importedDates[0], to = importedDates.at(-1)!;
         setHistoryFrom(from); setHistoryTo(to);
         await loadHistoryRange(companyId, from, to);
+        setMode("history");
       }
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível ler a planilha."); }
     setBusy(false);
@@ -3673,8 +3659,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
     const XLSX = await import("xlsx");
     const rows = (historyDetailDate ? historyFiltered.filter((row) => row.entryDate === historyDetailDate) : historyFiltered)
       .slice().sort((a, b) => a.entryDate.localeCompare(b.entryDate) || String(a.fleetNumber).localeCompare(String(b.fleetNumber), "pt-BR", { numeric: true }))
-      .map((row, index) => ({
-        Item: index + 1,
+      .map((row) => ({
         Data: row.entryDate.split("-").reverse().join("/"),
         "Nº Frota / ID": row.fleetNumber || "",
         Placa: row.plate || "",
@@ -3693,7 +3678,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         Observação: row.observation || "",
       }));
     const sheet = XLSX.utils.json_to_sheet(rows);
-    sheet["!cols"] = [{ wch: 8 }, { wch: 13 }, { wch: 16 }, { wch: 12 }, { wch: 38 }, { wch: 28 }, { wch: 24 }, { wch: 20 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 42 }];
+    sheet["!cols"] = [{ wch: 13 }, { wch: 16 }, { wch: 12 }, { wch: 38 }, { wch: 28 }, { wch: 24 }, { wch: 20 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 42 }];
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, "Partes Diárias");
     const suffix = historyDetailDate || `${historyFrom}_${historyTo}`;
@@ -3775,7 +3760,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         <label className={`panel flex cursor-pointer items-center gap-4 p-5 text-left hover:border-amber-300 ${busy ? "pointer-events-none opacity-60" : ""}`}><div className="iconbox amber"><Wrench size={21} /></div><div><div className="font-bold">Importar O.S. operacional</div><div className="text-sm text-slate-500">Cria os códigos da O.S. para vincular por equipamento e data</div></div><Upload className="ml-auto" size={18}/><input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importFrotaManuFile(e.target.files?.[0])}/></label>
         <button onClick={() => { setMode("history"); setHistoryDetailDate(""); loadHistoryRange(); }} className={`panel flex items-center gap-4 p-5 text-left ${mode === "history" ? "border-red-400 ring-2 ring-red-100" : "hover:border-red-300"}`}><div className="iconbox red"><FileText size={21} /></div><div><div className="font-bold">Total por dia</div><div className="text-sm text-slate-500">Quantidade de partes diárias lançadas</div></div><ChevronRight className="ml-auto" /></button>
       </div>
-      {mode === "import" && <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">Importação de Parte Diária</h3><p className="mt-1 text-sm text-slate-500">Aceita XLSX, XLS ou CSV. Localiza o equipamento pelo ID/Frota ou pela placa.</p></div><button type="button" onClick={downloadDailyTemplate} className="btn-secondary"><Download size={17}/>Baixar modelo padrão</button></div><label className="mt-4 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-400"><Upload className="text-blue-700"/><span className="mt-2 font-semibold">Selecionar a planilha preenchida</span><span className="text-xs text-slate-500">Colunas reconhecidas: Data, ID/Frota, Placa, Situação, O.S., horímetro e KM</span><input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importDailyFile(e.target.files?.[0])}/></label>{importProgress.total > 0 && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900"><div className="flex flex-wrap justify-between gap-2 font-semibold"><span>Processados: {importProgress.processed} de {importProgress.total}</span><span>Importados: {importProgress.imported}</span><span>Faltam: {Math.max(0, importProgress.total - importProgress.processed)}</span><span>Com divergência: {importProgress.failed}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100"><div className="h-full bg-emerald-600 transition-all" style={{ width: (importProgress.total ? (importProgress.processed / importProgress.total) * 100 : 0) + "%" }} /></div></div>}<div className="mt-3 flex justify-end"><label className={`btn-secondary cursor-pointer ${busy ? "pointer-events-none opacity-60" : ""}`}><Upload size={17}/>Importar manutenção operacional do FrotaManu.com<input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importFrotaManuFile(e.target.files?.[0])}/></label></div>{message && <div className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{message}</div>}{importErrors.slice(0, 20).map((item) => <div key={`${item.row}-${item.error}`} className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Linha {item.row}: {item.error}</div>)}<div className="mt-4 flex justify-end"><button type="button" className="btn-secondary" onClick={() => setMode("manual")}>Voltar ao lançamento manual</button></div></section>}
+      {mode === "import" && <section className="panel p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">Importação de Parte Diária</h3><p className="mt-1 text-sm text-slate-500">Aceita XLSX, XLS ou CSV. Localiza o equipamento pelo ID/Frota ou pela placa.</p></div><button type="button" onClick={downloadDailyTemplate} className="btn-secondary"><Download size={17}/>Baixar modelo padrão</button></div><label className="mt-4 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-400"><Upload className="text-blue-700"/><span className="mt-2 font-semibold">Selecionar a planilha preenchida</span><span className="text-xs text-slate-500">Colunas reconhecidas: Data, ID/Frota, Placa, Situação, O.S., horímetro e KM</span><input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importDailyFile(e.target.files?.[0])}/></label><div className="mt-3 flex justify-end"><label className={`btn-secondary cursor-pointer ${busy ? "pointer-events-none opacity-60" : ""}`}><Upload size={17}/>Importar manutenção operacional do FrotaManu.com<input disabled={busy} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => importFrotaManuFile(e.target.files?.[0])}/></label></div>{message && <div className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{message}</div>}{importErrors.slice(0, 20).map((item) => <div key={`${item.row}-${item.error}`} className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Linha {item.row}: {item.error}</div>)}<div className="mt-4 flex justify-end"><button type="button" className="btn-secondary" onClick={() => setMode("manual")}>Voltar ao lançamento manual</button></div></section>}
       {mode !== "import" && <section className="panel overflow-hidden">
         <div className="panel-head"><div><h3>{editingDailyId ? "Editar parte diária" : "Novo lançamento manual"}</h3><p>{editingDailyId ? "Corrija os dados do lançamento existente" : "Localize o equipamento pelo número da frota ou pela placa"}</p></div><button onClick={() => { setMode("history"); loadHistory(); }} className="btn-secondary"><FileText size={17} />Ver lançamentos do dia</button></div>
         <form onSubmit={save} className="space-y-5 p-5">
@@ -4064,7 +4049,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       }
       const summaryOffset = totalRow + 2 - 18;
       const summaryRow = (baseRow: number) => baseRow + summaryOffset;
-      const set = (address: string, value: any, format?: string) => { const cell = sheet.getCell(address).master; cell.value = value; if (format) cell.numFmt = format; };
+      const set = (address: string, value: any, format?: string) => { const cell = sheet.getCell(address); cell.value = value; if (format) cell.numFmt = format; };
       const joinPresent = (values: unknown[]) => values
         .map((value) => typeof value === "string" ? value.trim() : value)
         .filter((value) => value !== null && value !== undefined && value !== "")
@@ -4169,9 +4154,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       set(`N${r(20)}`, totalDistance, "#,##0.##"); set(`N${r(21)}`, allFuelLiters, "#,##0.000");
       set(`N${r(22)}`, allFuelLiters ? totalDistance / allFuelLiters : 0, "#,##0.##"); set(`N${r(23)}`, Number(data.fuel?.totalCents || 0) / 100, '"R$" #,##0.00');
       set(`N${r(24)}`, allFuelLiters ? Number(data.fuel?.totalCents || 0) / 100 / allFuelLiters : 0, '"R$" #,##0.00'); set(`N${r(25)}`, totalGrossCents / 100 / 30, '"R$" #,##0.00');
-      const observationCell = sheet.getCell(`K${r(29)}`).master;
-      observationCell.value = generalObservation || "";
-      observationCell.alignment = { ...observationCell.alignment, horizontal: "left", vertical: "top", wrapText: true };
+      set(`K${r(29)}`, generalObservation || "");
       const { scale: _templateScale, ...templatePageSetup } = sheet.pageSetup;
       sheet.pageSetup = {
         ...templatePageSetup,

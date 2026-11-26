@@ -339,7 +339,7 @@ export async function GET(request: Request) {
             ? "POWERCHINA"
             : "";
 
-      for (const column of [6, 7, 8]) r.getCell(column).master.numFmt = "#,##0.##";
+      for (const column of [6, 7, 8]) r.getCell(column).master.numFmt = "#,##0";
       r.getCell(9).master.numFmt = "#,##0.###";
       for (const column of [10, 11, 15]) r.getCell(column).master.numFmt = '"R$" #,##0.00';
     }

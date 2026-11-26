@@ -38,7 +38,7 @@ export function calculateEquipmentCommitmentCents(item: EquipmentCommitmentInput
   const monthly = calculateContractMonthlyCents(item);
   const oneTime = Math.max(0, item.mobilizationCents) + Math.max(0, item.demobilizationCents);
   const quantityMilli = Math.max(0, item.quantityMilli);
-  return Math.round((monthly * months + oneTime) * quantityMilli / 1000);
+  const effectiveMonths = quantityMilli && quantityMilli !== 1000 ? quantityMilli / 1000 : months; return Math.round(monthly * effectiveMonths + oneTime);
 }
 
 export function calculateEquipmentReductionCents(
@@ -50,4 +50,5 @@ export function calculateEquipmentReductionCents(
   const updated = calculateEquipmentCommitmentCents(item);
   return Math.max(0, original - updated);
 }
+
 

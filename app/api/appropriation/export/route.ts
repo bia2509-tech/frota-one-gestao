@@ -338,10 +338,6 @@ export async function GET(request: Request) {
           : services.length
             ? "POWERCHINA"
             : "";
-
-      for (const column of [6, 7, 8]) r.getCell(column).master.numFmt = "#,##0";
-      r.getCell(9).master.numFmt = "#,##0.###";
-      for (const column of [10, 11, 15]) r.getCell(column).master.numFmt = '"R$" #,##0.00';
     }
 
     const tr = sheet.getRow(44);
@@ -390,11 +386,7 @@ export async function GET(request: Request) {
         else if (txt.startsWith("VL CONSUMO COMBUSTIVEL")) { row.getCell(16).master.value = totalFuel; }
         else if (txt.startsWith("MEDIA LITRO COMBUSTIVEL")) { row.getCell(16).master.value = totalLiters ? Math.round((totalFuel / totalLiters) * 100) / 100 : 0; }
         else if (txt.startsWith("CUSTO MEDIO DIARIO")) { row.getCell(16).master.value = ap.paidDays ? Math.round((netInvoice / ap.paidDays) * 100) / 100 : 0; }
-        else if (txt.startsWith("OBSERVACOES GERAIS")) {
-          const observationCell = row.getCell(12).master;
-          observationCell.value = generalObservation || "";
-          observationCell.alignment = { ...observationCell.alignment, vertical: "top", wrapText: true };
-        }
+        else if (txt.startsWith("OBSERVACOES GERAIS")) { row.getCell(12).master.value = generalObservation || ""; }
         else if (txt.startsWith("VALOR TOTAL DO CONTRATO")) { row.getCell(16).master.value = contractItem ? Number(contractItem.contractTotalCents || 0) / 100 : "—"; }
         else if (txt.startsWith("SALDO DO CONTRATO")) { row.getCell(16).master.value = contractBalanceAfterCents != null ? contractBalanceAfterCents / 100 : "—"; }
       }

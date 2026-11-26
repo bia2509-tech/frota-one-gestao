@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, ne } from "drizzle-orm";
+﻿import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { getDb } from "@/db";
 import { appropriationAdjustments, contractEquipmentItems, contracts, dailyPartEntries, equipment, fiscalInvoicePayments, fiscalInvoices, fuelEntries, maintenanceOrderItems, maintenanceOrders, quickServiceEntries, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     const measuredOverrides = new Map<string, number>();
     for (const adjustment of measurementAdjustments) if (adjustment.fieldName === "measuredCents") measuredOverrides.set(adjustment.itemId, Math.max(0, Number(adjustment.newValue || 0)));
     const measuredRentByItem = new Map<string, number>();
-    for (const row of rents.filter((r) => r.item.status !== "demobilized" && r.item.startsAt <= to && r.item.endsAt >= from)) {
+    for (const row of rents.filter((r) => r.item.status !== "demobilized" && r.item.status !== "waiting_mobilization" && Boolean(r.item.startsAt) && r.item.startsAt <= to && r.item.endsAt >= from)) {
       const monthlyCents = Math.max(0, row.item.monthlyEquipmentCents) + Math.max(0, row.item.monthlyOperatorCents);
       const referenceMonth = from.slice(0, 7);
       const itemKey = `${row.item.contractId}:${row.item.equipmentId}`;
@@ -132,6 +132,7 @@ export async function GET(request: Request) {
     }));
     const monthlyPanel = { equipmentByType, equipmentByLessor, expensesByLessor, maintenanceByType, topEquipment: vehicleCosts.slice(0, 4), efficiency91to100: efficiency.filter((row) => row.efficiency >= .91 && row.efficiency <= 1).length };
 
-    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized").length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: (worked + idle) / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, productivityByEquipment, monthlyPanel, maintenanceEntries, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
+    return Response.json({ period: { from, to }, summary: { equipmentTotal: assets.length, activeEquipment: assets.filter((r) => r.status !== "demobilized" && r.status !== "waiting_mobilization" && r.status !== "registering" && Boolean(r.arrivalDate)).length, demobilizedEquipment: assets.filter((r) => r.status === "demobilized").length, worked, idle, maintenance, allowance, efficiency: (worked + idle) / Math.max(1, efficiencyBase), rentCents, fuelCents, quickCompanyCents, directMaintenanceCents, lessorReimbursementCents, lessorDiscountCents, invoiceTotalCents: invoices.reduce((s, r) => s + r.totalCents, 0), invoicePaidCents: invoiceDetails.reduce((s, r) => s + r.paidCents, 0), companyOperatingCostCents: fuelCents + quickCompanyCents + directMaintenanceCents, totalCompanyCostCents: rentCents + fuelCents + quickCompanyCents + directMaintenanceCents }, vehicleCosts, efficiency, productivityByType, productivityByEquipment, monthlyPanel, maintenanceEntries, tires, batteries, supplierSpending, invoiceDetails, contractExpenses });
   } catch (error) { return apiError(error); }
 }
+

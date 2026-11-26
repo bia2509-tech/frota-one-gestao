@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FuelManagementPage from "@/components/fuel-management-page";
 import { countContractMonthsInclusive } from "@/lib/contracts-finance";
@@ -4220,7 +4220,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
         set(`C${rowNumber}`, new Date(`${day}T12:00:00Z`), "dd/mm");
         set(`D${rowNumber}`, weekdays[new Date(`${day}T12:00:00Z`).getUTCDay()]);
         set(`E${rowNumber}`, entry?.status || "");
-        set(`F${rowNumber}`, start ?? "", "#,##0.##"); set(`G${rowNumber}`, end ?? "", "#,##0.##"); set(`H${rowNumber}`, distance || "", "#,##0.##");
+        set(`F${rowNumber}`, start ?? "", "General"); set(`G${rowNumber}`, end ?? "", "General"); set(`H${rowNumber}`, distance || "", "General");
         set(`I${rowNumber}`, liters || "", "#,##0.000"); set(`J${rowNumber}`, liters ? fuelCents / 100 / liters : "", '"R$" #,##0.00'); set(`K${rowNumber}`, fuelCents ? fuelCents / 100 : "", '"R$" #,##0.00');
         set(`L${rowNumber}`, joinPresent(fuel?.invoices || [])); set(`M${rowNumber}`, joinPresent(fuel?.stations || []));
         set(`N${rowNumber}`, services.map((item: any) => [item.orderNumber, item.productService, item.supplierName].filter(Boolean).join(" ")).join("; "));
@@ -4244,7 +4244,7 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       set("M8", data.equipment.plate || "-"); set("O8", Number(data.totals.lessorInvoiceCents || 0) / 100, '"R$" #,##0.00');
       set("E9", data.contract?.supplierName || data.equipment.lessorName || "-"); set("L9", data.equipment.fleetNumber || "-"); set("O9", data.equipment.costCenter || "-");
       set("E10", data.equipment.operatorName || "-"); set("L10", data.contract?.itemStartsAt?.split("-").reverse().join("/") || "-"); set("O10", data.contract?.itemEndsAt?.split("-").reverse().join("/") || "-");
-      set(`C${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "#,##0.##");
+      set(`C${totalRow}`, `CÓD: ${data.equipment.fleetNumber}`); set(`E${totalRow}`, "TOTAL:"); set(`H${totalRow}`, totalDistance, "General");
       set(`I${totalRow}`, totalLiters, "#,##0.000"); set(`K${totalRow}`, totalFuelCents / 100, '"R$" #,##0.00'); set(`N${totalRow}`, "TOTAL"); set(`O${totalRow}`, totalServiceCents / 100, '"R$" #,##0.00');
       const r = (baseRow: number) => summaryRow(baseRow);
       const summaryLabels = [
@@ -4277,8 +4277,8 @@ function Appropriation({ setModal }: { setModal: (s: string) => void }) {
       set(`H${r(31)}`, totalDiscountCents / 100, '"R$" #,##0.00');
       set(`H${r(32)}`, totalGrossCents / 100, '"R$" #,##0.00');
       set(`H${r(33)}`, Number(data.totals.lessorInvoiceCents || 0) / 100, '"R$" #,##0.00');
-      set(`N${r(20)}`, totalDistance, "#,##0.##"); set(`N${r(21)}`, allFuelLiters, "#,##0.000");
-      set(`N${r(22)}`, allFuelLiters ? totalDistance / allFuelLiters : 0, "#,##0.##"); set(`N${r(23)}`, Number(data.fuel?.totalCents || 0) / 100, '"R$" #,##0.00');
+      set(`N${r(20)}`, totalDistance, "General"); set(`N${r(21)}`, allFuelLiters, "#,##0.000");
+      set(`N${r(22)}`, allFuelLiters ? totalDistance / allFuelLiters : 0, "General"); set(`N${r(23)}`, Number(data.fuel?.totalCents || 0) / 100, '"R$" #,##0.00');
       set(`N${r(24)}`, allFuelLiters ? Number(data.fuel?.totalCents || 0) / 100 / allFuelLiters : 0, '"R$" #,##0.00'); set(`N${r(25)}`, totalGrossCents / 100 / 30, '"R$" #,##0.00');
       set(`K${r(29)}`, generalObservation || "");
       const { scale: _templateScale, ...templatePageSetup } = sheet.pageSetup;
@@ -6153,3 +6153,4 @@ function FuelCreditNotesManager({ companyId, suppliers }: { companyId: string; s
     <div className="mt-3 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Fornecedor</th><th>Nota</th><th>Original</th><th>Utilizado</th><th>Saldo</th><th>Status</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td>{r.supplierName}</td><td>{r.creditNumber}</td><td>{(r.originalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{((r.originalCents - r.remainingCents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{(r.remainingCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>{r.remainingCents > 0 ? "Disponível" : "Utilizado"}</td></tr>)}{!rows.length && <tr><td colSpan={6} className="py-4 text-center text-slate-500">Nenhuma nota de crédito cadastrada.</td></tr>}</tbody></table></div>
   </section>;
 }
+

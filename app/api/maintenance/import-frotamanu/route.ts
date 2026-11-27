@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       .update(maintenanceOrders)
       .set({
         status: "closed",
-        orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, maintenanceStatus: "Encerrada",
+            orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, maintenanceStatus: "Encerrada",
         closedAt: closedAt || existing.startedAt || start,
         description,
       })
@@ -131,8 +131,8 @@ export async function POST(request: Request) {
       .set({ status: "active" })
       .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
     result.updated = (result.updated || 0) + 1;
-  } else {
-    result.duplicates++;
+        } else if ((incomingOrderNum && existing.orderNumber !== incomingOrderNum) || (maintenanceType && existing.maintenanceType !== maintenanceType)) {
+          await db.update(maintenanceOrders).set({ orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, description }).where(eq(maintenanceOrders.id, existing.id)); result.updated = (result.updated || 0) + 1; } else { result.duplicates++;
   }
   continue;
 }

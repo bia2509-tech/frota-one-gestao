@@ -114,14 +114,14 @@ export async function POST(request: Request) {
       const key = `${asset.id}|${start}|${clean(description)}`;
       if (seenKeys.has(key)) { result.duplicates++; continue; }
       seenKeys.add(key);
-      const incomingOrderNum = String((source as any).orderNumber || "").trim(); const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
-      const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt || Boolean((source as any).isClosed); const closedAt = actualEnd || (isDoneSt ? start : null); if (existing) { if ((incomingOrderNum && existing.orderNumber !== incomingOrderNum) || (maintenanceType && existing.maintenanceType !== maintenanceType)) { await db.update(maintenanceOrders).set({ orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, description }).where(eq(maintenanceOrders.id, existing.id)); result.updated = (result.updated || 0) + 1; continue; }
+      const incomingOrderNum = String((source as any).orderNumber || "").trim(); const existing = existingOrders.find((candidate) => candidate.orderKind === "daily_maintenance" && ((incomingOrderNum && candidate.orderNumber === incomingOrderNum) || (candidate.equipmentId === asset.id && candidate.startedAt.slice(0, 10) === start)));
+      const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt || Boolean((source as any).isClosed); const closedAt = actualEnd || (isDoneSt ? start : null); if (existing) { if ((incomingOrderNum && existing.orderNumber !== incomingOrderNum) || (type && existing.maintenanceType !== type)) { await db.update(maintenanceOrders).set({ orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType: type, description }).where(eq(maintenanceOrders.id, existing.id)); result.updated = (result.updated || 0) + 1; continue; }
   const wasAlreadyCompletedLabel = /conclu[ií]d|finalizad|encerrad/i.test(String(existing.maintenanceStatus || "")); if ((closed || wasAlreadyCompletedLabel) && existing.status !== "closed") {
     await db
       .update(maintenanceOrders)
       .set({
         status: "closed",
-            orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, maintenanceStatus: "Encerrada",
+            orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType: type, maintenanceStatus: "Encerrada",
         closedAt: closedAt || existing.startedAt || start,
         description,
       })
@@ -131,8 +131,8 @@ export async function POST(request: Request) {
       .set({ status: "active" })
       .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
     result.updated = (result.updated || 0) + 1;
-        } else if ((incomingOrderNum && existing.orderNumber !== incomingOrderNum) || (maintenanceType && existing.maintenanceType !== maintenanceType)) {
-          await db.update(maintenanceOrders).set({ orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, description }).where(eq(maintenanceOrders.id, existing.id)); result.updated = (result.updated || 0) + 1; } else { result.duplicates++;
+        } else if ((incomingOrderNum && existing.orderNumber !== incomingOrderNum) || (type && existing.maintenanceType !== type)) {
+          await db.update(maintenanceOrders).set({ orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType: type, description }).where(eq(maintenanceOrders.id, existing.id)); result.updated = (result.updated || 0) + 1; } else { result.duplicates++;
   }
   continue;
 }

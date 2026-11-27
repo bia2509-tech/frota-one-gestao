@@ -3846,7 +3846,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const result = data.result || {};
       const errors = (result.rejected || []).map((item: any) => ({ row: item.row, error: item.reason }));
       setImportErrors(errors);
-      setMessage(`FrotaManu: ${result.created || 0} O.S. nova(s) aberta(s), ${result.updated || 0} O.S. alterada(s)/encerrada(s), ${result.duplicates || 0} já atualizada(s) e ${errors.length} rejeitada(s).`);
+      const resumoFrotaManu = `FrotaManu: ${result.created || 0} O.S. nova(s) aberta(s), ${result.updated || 0} O.S. alterada(s)/encerrada(s), ${result.duplicates || 0} já atualizada(s) e ${errors.length} rejeitada(s).`; setMessage(resumoFrotaManu); window.alert(resumoFrotaManu);
       await loadEquipmentOptions(companyId);
       await loadHistoryRange(companyId);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível ler o relatório do FrotaManu.com."); }

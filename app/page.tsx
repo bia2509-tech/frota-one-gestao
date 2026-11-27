@@ -3807,7 +3807,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const headers = matrix[headerIndex].map(normalize);
       const col = (...names: string[]) => headers.findIndex((header) => names.some((name) => header === name || header.includes(name)));
       const columns = {
-        item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
+        orderNumber: col("NORDEMDESERVICO", "ORDEMDESERVICO", "NUMEROOS", "OS"), item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
         entry: col("ENTRADA"), actualExit: [col("PREVSAIDAATUAL"), col("DATADESAIDA", "SAIDAREAL")].filter((index) => index >= 0), totalHours: col("TOTALHORAS"), cause: col("CAUSADAMANUTENCAO"),
         description: col("DESCRICAODAMANUTENCAO"), status: col("STATUSANDAMENTO", "STATUS"),
       };
@@ -3828,7 +3828,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         const state = String(cell(row, columns.status) ?? "").trim();
         const actualExitDate = columns.actualExit.map((column) => parseDate(cell(row, column))).find(Boolean) || "";
         return {
-          itemNumber: String(cell(row, columns.item) || index + 1),
+          orderNumber: String(cell(row, columns.orderNumber) || "").trim(), itemNumber: String(cell(row, columns.item) || index + 1),
           fleetNumber: pieces[0] || "",
           plate: pieces[1] || (pieces.length === 1 && /^[A-Z]{3}[- ]?\d[A-Z0-9]\d{2}$/i.test(pieces[0]) ? pieces[0] : ""),
           worksite: String(cell(row, columns.worksite) || "").trim(),

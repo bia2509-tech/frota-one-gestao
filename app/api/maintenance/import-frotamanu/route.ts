@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       return Math.max(highest, digits ? Number(digits) : 0);
     }, 0);
     const seenKeys = new Set<string>();
-    const result = { created: 0, duplicates: 0, rejected: [] as { row: number; reason: string }[] };
+    const result = { created: 0, updated: 0, duplicates: 0, rejected: [] as { row: number; reason: string }[] };
 
     for (let index = 0; index < body.rows.length; index++) {
       const source = body.rows[index];
@@ -109,20 +109,20 @@ export async function POST(request: Request) {
       if (!validDate(start)) { result.rejected.push({ row: rowNumber, reason: "Data de entrada inválida." }); continue; }
       if (actualEnd && !validDate(actualEnd)) { result.rejected.push({ row: rowNumber, reason: "Data de saída real inválida." }); continue; }
       if (actualEnd && actualEnd < start) { result.rejected.push({ row: rowNumber, reason: "A data de saída é anterior à entrada." }); continue; }
-      const description = [source.cause, source.description].filter(Boolean).join(" — ").trim() || "Manutenção operacional importada do FrotaManu.com";
+      const description = ([source.cause, source.description].filter(Boolean).join(" — ").trim() || "Manutenção operacional importada do FrotaManu.com").replace(/local:[a-f0-9-]{8,}/gi, "FrotaManu.com");
       const type = source.maintenanceType?.trim() || "Manutenção operacional";
       const key = `${asset.id}|${start}|${clean(description)}`;
       if (seenKeys.has(key)) { result.duplicates++; continue; }
       seenKeys.add(key);
       const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
       if (existing) {
-  if (closed && existing.status !== "closed") {
+  const wasAlreadyCompletedLabel = /conclu[ií]d|finalizad|encerrad/i.test(String(existing.maintenanceStatus || "")); if ((closed || wasAlreadyCompletedLabel) && existing.status !== "closed") {
     await db
       .update(maintenanceOrders)
       .set({
         status: "closed",
         maintenanceStatus: "Encerrada",
-        closedAt: actualEnd,
+        closedAt: closedAt || existing.startedAt || start,
         description,
       })
       .where(eq(maintenanceOrders.id, existing.id));
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
       .update(equipment)
       .set({ status: "active" })
       .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
-    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, actualEnd, description);
+    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, closedAt || existing.startedAt || start, description);
     result.updated = (result.updated || 0) + 1;
   } else {
     await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, closedAt, description);

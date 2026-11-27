@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       if (seenKeys.has(key)) { result.duplicates++; continue; }
       seenKeys.add(key);
       const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
-      if (existing) {
+      const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt; const closedAt = actualEnd || (isDoneSt ? start : null); if (existing) {
   const wasAlreadyCompletedLabel = /conclu[ií]d|finalizad|encerrad/i.test(String(existing.maintenanceStatus || "")); if ((closed || wasAlreadyCompletedLabel) && existing.status !== "closed") {
     await db
       .update(maintenanceOrders)
@@ -141,8 +141,8 @@ export async function POST(request: Request) {
       const orderId = crypto.randomUUID();
       // PREV. SAÍDA ATUAL is the source of truth for the actual close date.
       // A completion label alone is not enough to close an imported order.
-      const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt;
-      const closedAt = actualEnd || (isDoneSt ? start : null);
+  
+  
       const orderNumber = String(nextNumber).padStart(4, "0");
       batchOps.push(db.insert(maintenanceOrders).values({
         id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance",

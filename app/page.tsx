@@ -2473,7 +2473,7 @@ function MaintenancePage({ setModal: _setModal }: { setModal: (s: string) => voi
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="panel overflow-hidden">
         {mode === "new" ? <form onSubmit={createOrder}>
-          <div className="panel-head"><div><h3>{editingOrderId ? "Editar ordem de serviço" : "Abertura da ordem de serviço"}</h3><p>{editingOrderId ? "Altere os dados da O.S. aberta e confirme para salvar." : "Escolha primeiro se o controle será operacional ou financeiro."}</p></div><button type="button" onClick={() => { setEditingOrderId(""); setMode("list"); }} className="btn-secondary">Voltar</button></div>
+          <div className="panel-head"><div><h3>{editingOrderId ? "Editar ordem de serviço" : "Abertura da ordem de serviço"}</h3></div><button type="button" onClick={() => { setEditingOrderId(""); setMode("list"); }} className="btn-secondary">Voltar</button></div>
           <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
             <FuelField label="Número da O.S."><input readOnly className="input mt-1 bg-slate-100 font-bold" value={orderForm.orderNumber || nextOrderNumber}/></FuelField>
 

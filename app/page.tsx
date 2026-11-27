@@ -3828,7 +3828,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
         const state = String(cell(row, columns.status) ?? "").trim();
         const actualExitDate = columns.actualExit.map((column) => parseDate(cell(row, column))).find(Boolean) || "";
         return {
-          orderNumber: String(cell(row, columns.orderNumber) || "").trim(), itemNumber: String(cell(row, columns.item) || index + 1),
+          orderNumber: (() => { const v = columns.orderNumber >= 0 ? String(cell(row, columns.orderNumber) || "").trim() : ""; if (v) return v; const firstCell = String((Array.isArray(row) ? row.at(0) : Object.values(row || {}).at(0)) || "").trim(); return /^\d{4}-\d+$/.test(firstCell) ? firstCell : ""; })(), itemNumber: String(cell(row, columns.item) || index + 1),
           fleetNumber: pieces[0] || "",
           plate: pieces[1] || (pieces.length === 1 && /^[A-Z]{3}[- ]?\d[A-Z0-9]\d{2}$/i.test(pieces[0]) ? pieces[0] : ""),
           worksite: String(cell(row, columns.worksite) || "").trim(),

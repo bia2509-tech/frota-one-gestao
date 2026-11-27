@@ -125,11 +125,11 @@ export async function POST(request: Request) {
         closedAt: closedAt || existing.startedAt || start,
         description,
       })
-      .where(eq(maintenanceOrders.id, existing.id)));
+      .where(eq(maintenanceOrders.id, existing.id));
     await db
       .update(equipment)
       .set({ status: "active" })
-      .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))));
+      .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
     result.updated = (result.updated || 0) + 1;
   } else {
     result.duplicates++;

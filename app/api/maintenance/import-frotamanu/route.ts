@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { equipment, maintenanceOrders } from "@/db/schema";
+import { dailyPartEntries, equipment, maintenanceOrders } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
 
 type ImportRow = {
@@ -21,11 +21,67 @@ type ImportRow = {
 const clean = (value = "") => value.trim().replace(/\s+/g, " ").toLocaleUpperCase("pt-BR");
 const validDate = (value?: string) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)));
 
+function listInclusiveDates(startIso: string, endIso: string): string[] {
+  const dates: string[] = [];
+  const [sy, sm, sd] = startIso.slice(0, 10).split("-").map(Number);
+  const [ey, em, ed] = endIso.slice(0, 10).split("-").map(Number);
+  if (!sy || !sm || !sd || !ey || !em || !ed) return dates;
+  const cur = new Date(Date.UTC(sy, sm - 1, sd));
+  const end = new Date(Date.UTC(ey, em - 1, ed));
+  let guard = 0;
+  while (cur <= end && guard < 366) {
+    dates.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+    guard++;
+  }
+  return dates;
+}
+
+async function syncDailyPartsForMaintenance(
+  db: any,
+  companyId: string,
+  equipmentId: string,
+  maintenanceOrderId: string,
+  startIso: string,
+  endIso: string | null,
+  description: string
+) {
+  const effectiveEnd = endIso || new Date().toISOString().slice(0, 10);
+  const days = listInclusiveDates(startIso, effectiveEnd);
+  for (const day of days) {
+    const existing = await db
+      .select({ id: dailyPartEntries.id })
+      .from(dailyPartEntries)
+      .where(and(eq(dailyPartEntries.companyId, companyId), eq(dailyPartEntries.equipmentId, equipmentId), eq(dailyPartEntries.entryDate, day)))
+      .limit(1);
+    if (existing[0]) {
+      await db
+        .update(dailyPartEntries)
+        .set({
+          status: "maintenance",
+          maintenanceOrderId,
+          observation: description,
+        })
+        .where(eq(dailyPartEntries.id, existing[0].id));
+    } else {
+      await db.insert(dailyPartEntries).values({
+        id: crypto.randomUUID(),
+        companyId,
+        equipmentId,
+        entryDate: day,
+        status: "maintenance",
+        maintenanceOrderId,
+        entryChecklistStatus: "pending",
+        observation: description,
+      });
+    }
+  }
+}
 export async function POST(request: Request) {
   try {
     const body = await request.json() as { companyId?: string; rows?: ImportRow[] };
     const companyId = body.companyId || "";
-    const access = await requirePermission(companyId, "maintenance", "create");
+    const syncKeyHeader = request.headers.get("x-frotamanu-key"); const validApiKey = Boolean(process.env.FROTAMANU_SYNC_KEY && syncKeyHeader === process.env.FROTAMANU_SYNC_KEY); const access = validApiKey ? { user: { userId: null } } : await requirePermission(companyId, "maintenance", "create");
     if (!Array.isArray(body.rows) || !body.rows.length)
       return Response.json({ error: "A planilha não contém linhas de manutenção para importar." }, { status: 400 });
 
@@ -59,7 +115,29 @@ export async function POST(request: Request) {
       if (seenKeys.has(key)) { result.duplicates++; continue; }
       seenKeys.add(key);
       const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
-      if (existing) { result.duplicates++; continue; }
+      if (existing) {
+  if (closed && existing.status !== "closed") {
+    await db
+      .update(maintenanceOrders)
+      .set({
+        status: "closed",
+        maintenanceStatus: "Encerrada",
+        closedAt: actualEnd,
+        description,
+      })
+      .where(eq(maintenanceOrders.id, existing.id));
+    await db
+      .update(equipment)
+      .set({ status: "active" })
+      .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
+    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, actualEnd, description);
+    result.updated = (result.updated || 0) + 1;
+  } else {
+    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, closedAt, description);
+    result.duplicates++;
+  }
+  continue;
+}
 
       nextNumber++;
       const orderId = crypto.randomUUID();
@@ -77,7 +155,7 @@ export async function POST(request: Request) {
         kilometer: null, hourmeter: null, requestedBy: access.user.userId, preparedBy: access.user.userId, notifyLessor: false,
       });
       existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", startedAt: start, closedAt, description } as typeof existingOrders[number]);
-      if (!closed) await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
+      if (!closed) { await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } else { await db.update(equipment).set({ status: "active" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } await syncDailyPartsForMaintenance(db, companyId, asset.id, orderId, start, closedAt, description);
       result.created++;
     }
     return Response.json({ result });

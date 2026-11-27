@@ -113,6 +113,33 @@ function values(body: EquipmentInput) {
   };
 }
 
+async function notifyFrotaManuEquipment(action: "created" | "updated", payload: any) {
+  const url = process.env.FROTAMANU_WEBHOOK_URL;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-frotamanu-key": process.env.FROTAMANU_SYNC_KEY || "",
+      },
+      body: JSON.stringify({
+        event: `equipment.${action}`,
+        equipment: {
+          fleetNumber: payload.fleetNumber,
+          plate: payload.plate || "",
+          description: payload.description,
+          brand: payload.brand || "",
+          model: payload.model || "",
+          category: payload.category || "",
+          status: payload.status || "active",
+        },
+      }),
+    });
+  } catch {
+    // Nao bloqueia o cadastro no Gestao Frota se o Frota Manu estiver offline
+  }
+}
 export async function POST(request: Request) {
   try {
     const body = await request.json() as EquipmentInput;
@@ -128,6 +155,7 @@ export async function POST(request: Request) {
     }
     const record = { id: crypto.randomUUID(), companyId, ...row };
     await getDb().insert(equipment).values(record);
+    await notifyFrotaManuEquipment("created", record);
     return Response.json({ equipment: record }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
@@ -147,6 +175,7 @@ export async function PATCH(request: Request) {
       if (!lessor) return Response.json({ error: "Locador/fornecedor não pertence à empresa selecionada." }, { status: 400 });
     }
     await getDb().update(equipment).set(row).where(and(eq(equipment.id, body.id), eq(equipment.companyId, companyId)));
+    await notifyFrotaManuEquipment("updated", row);
     return Response.json({ updated: true });
   } catch (error) { return apiError(error); }
 }

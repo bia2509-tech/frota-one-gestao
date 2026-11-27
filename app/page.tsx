@@ -1549,14 +1549,14 @@ function Dashboard({
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setModal("importar planilha")}
+            onClick={() => setScreen("Equipamentos")}
             className="btn-secondary"
           >
             <Upload size={17} />
             Importar planilha
           </button>
           <button
-            onClick={() => setModal("novo equipamento")}
+            onClick={() => setScreen("Equipamentos")}
             className="btn-primary"
           >
             <Plus size={17} />

@@ -130,10 +130,8 @@ export async function POST(request: Request) {
       .update(equipment)
       .set({ status: "active" })
       .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
-    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, closedAt || existing.startedAt || start, description);
     result.updated = (result.updated || 0) + 1;
   } else {
-    await syncDailyPartsForMaintenance(db, companyId, asset.id, existing.id, start, closedAt, description);
     result.duplicates++;
   }
   continue;
@@ -155,8 +153,7 @@ export async function POST(request: Request) {
         kilometer: null, hourmeter: null, requestedBy: access.user.userId, preparedBy: access.user.userId, notifyLessor: false,
       });
       existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", startedAt: start, closedAt, description } as typeof existingOrders[number]);
-      if (!closed) { await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } else { await db.update(equipment).set({ status: "active" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } await syncDailyPartsForMaintenance(db, companyId, asset.id, orderId, start, closedAt, description);
-      result.created++;
+      if (!closed) { await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } else { await db.update(equipment).set({ status: "active" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } result.created++;
     }
     return Response.json({ result });
   } catch (error) { return apiError(error); }

@@ -141,8 +141,8 @@ export async function POST(request: Request) {
       const orderId = crypto.randomUUID();
       // PREV. SAÍDA ATUAL is the source of truth for the actual close date.
       // A completion label alone is not enough to close an imported order.
-      const closed = Boolean(actualEnd);
-      const closedAt = actualEnd || null;
+      const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt;
+      const closedAt = actualEnd || (isDoneSt ? start : null);
       const orderNumber = String(nextNumber).padStart(4, "0");
       await db.insert(maintenanceOrders).values({
         id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance",
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
         costCenter: asset.costCenter || null, serviceType: "Manutenção operacional (FrotaManu.com)",
         kilometer: null, hourmeter: null, requestedBy: access.user.userId, preparedBy: access.user.userId, notifyLessor: false,
       });
-      existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", startedAt: start, closedAt, description } as typeof existingOrders[number]);
+      existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", status: closed ? "closed" : "open", startedAt: start, closedAt, maintenanceStatus: closed ? "Encerrada" : "Em andamento", description } as any);
       if (!closed) { await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } else { await db.update(equipment).set({ status: "active" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } result.created++;
     }
     return Response.json({ result });

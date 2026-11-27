@@ -1,5 +1,5 @@
 "use client";
-class OrderSafeBoundary extends React.Component<{ children: React.ReactNode }, { err: string }> {
+import { Component, type ReactNode } from "react"; class OrderSafeBoundary extends Component<{ children: ReactNode }, { err: string }> {
   constructor(props: { children: React.ReactNode }) { super(props); this.state = { err: "" }; }
   static getDerivedStateFromError(e: any) { return { err: String(e?.message || e || "Erro ao abrir formulário") }; }
   render() {

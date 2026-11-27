@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       const key = `${asset.id}|${start}|${clean(description)}`;
       if (seenKeys.has(key)) { result.duplicates++; continue; }
       seenKeys.add(key);
-      const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
+      const incomingOrderNum = String((source as any).orderNumber || "").trim(); const existing = existingOrders.find((candidate) => candidate.equipmentId === asset.id && candidate.orderKind === "daily_maintenance" && candidate.startedAt.slice(0, 10) === start && clean(candidate.description) === clean(description));
       const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt || Boolean((source as any).isClosed); const closedAt = actualEnd || (isDoneSt ? start : null); if (existing) {
   const wasAlreadyCompletedLabel = /conclu[ií]d|finalizad|encerrad/i.test(String(existing.maintenanceStatus || "")); if ((closed || wasAlreadyCompletedLabel) && existing.status !== "closed") {
     await db
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       // A completion label alone is not enough to close an imported order.
   
   
-      const orderNumber = String(nextNumber).padStart(4, "0");
+      const orderNumber = incomingOrderNum || String(nextNumber).padStart(4, "0");
       batchOps.push(db.insert(maintenanceOrders).values({
         id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance",
         maintenanceType: type, maintenanceStatus: [closed ? "Encerrada" : "Em andamento", source.totalHours != null ? `Total de horas: ${source.totalHours}` : "", "Importada do FrotaManu.com"].filter(Boolean).join("  ·  "),

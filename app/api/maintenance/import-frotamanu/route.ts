@@ -151,7 +151,7 @@ export async function POST(request: Request) {
         status: closed ? "closed" : "open", maintenanceLocation: source.worksite?.trim() || asset.projectName || null,
         costCenter: asset.costCenter || null, serviceType: "Manutenção operacional (FrotaManu.com)",
         kilometer: null, hourmeter: null, requestedBy: access.user.userId, preparedBy: access.user.userId, notifyLessor: false,
-      });
+      }));
       existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", status: closed ? "closed" : "open", startedAt: start, closedAt, maintenanceStatus: closed ? "Encerrada" : "Em andamento", description } as any);
       batchOps.push(db.update(equipment).set({ status: closed ? "active" : "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)))); result.created++;
     }

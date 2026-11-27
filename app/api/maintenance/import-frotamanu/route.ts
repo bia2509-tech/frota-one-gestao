@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       return Math.max(highest, digits ? Number(digits) : 0);
     }, 0);
     const seenKeys = new Set<string>();
-    const result = { created: 0, updated: 0, duplicates: 0, rejected: [] as { row: number; reason: string }[] };
+    const result = { created: 0, updated: 0, duplicates: 0, rejected: [] as { row: number; reason: string }[] }; const batchOps: any[] = [];
 
     for (let index = 0; index < body.rows.length; index++) {
       const source = body.rows[index];
@@ -125,11 +125,11 @@ export async function POST(request: Request) {
         closedAt: closedAt || existing.startedAt || start,
         description,
       })
-      .where(eq(maintenanceOrders.id, existing.id));
+      .where(eq(maintenanceOrders.id, existing.id)));
     await db
       .update(equipment)
       .set({ status: "active" })
-      .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)));
+      .where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))));
     result.updated = (result.updated || 0) + 1;
   } else {
     result.duplicates++;
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       const rawSt = String((source as any).status || (source as any).maintenanceStatus || (source as any).situacao || "").toLowerCase(); const isDoneSt = /conclu|finalizad|encerrad/.test(rawSt); const closed = Boolean(actualEnd) || isDoneSt;
       const closedAt = actualEnd || (isDoneSt ? start : null);
       const orderNumber = String(nextNumber).padStart(4, "0");
-      await db.insert(maintenanceOrders).values({
+      batchOps.push(db.insert(maintenanceOrders).values({
         id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance",
         maintenanceType: type, maintenanceStatus: [closed ? "Encerrada" : "Em andamento", source.totalHours != null ? `Total de horas: ${source.totalHours}` : "", "Importada do FrotaManu.com"].filter(Boolean).join("  ·  "),
         maintenanceFormType: "maintenance", description, startedAt: start, closedAt,
@@ -153,8 +153,8 @@ export async function POST(request: Request) {
         kilometer: null, hourmeter: null, requestedBy: access.user.userId, preparedBy: access.user.userId, notifyLessor: false,
       });
       existingOrders.push({ id: orderId, companyId, equipmentId: asset.id, orderNumber, orderKind: "daily_maintenance", status: closed ? "closed" : "open", startedAt: start, closedAt, maintenanceStatus: closed ? "Encerrada" : "Em andamento", description } as any);
-      if (!closed) { await db.update(equipment).set({ status: "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } else { await db.update(equipment).set({ status: "active" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId))); } result.created++;
+      batchOps.push(db.update(equipment).set({ status: closed ? "active" : "maintenance" }).where(and(eq(equipment.id, asset.id), eq(equipment.companyId, companyId)))); result.created++;
     }
-    return Response.json({ result });
-  } catch (error) { return apiError(error); }
+    for (let i = 0; i < batchOps.length; i += 40) { await (db as any).batch(batchOps.slice(i, i + 40)); } return Response.json({ result });
+  } catch (error: any) { return Response.json({ error: error?.message || "Erro ao importar planilha FrotaManu." }, { status: 500 }); }
 }

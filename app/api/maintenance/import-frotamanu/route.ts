@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       .update(maintenanceOrders)
       .set({
         status: "closed",
-        orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, maintenanceStatus: "Encerrada",
+        orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, orderNumber: incomingOrderNum || existing.orderNumber, maintenanceType, maintenanceStatus: "Encerrada",
         closedAt: closedAt || existing.startedAt || start,
         description,
       })

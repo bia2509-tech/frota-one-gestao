@@ -3807,7 +3807,7 @@ function PartDailyPage({ setModal }: { setModal: (s: string) => void }) {
       const headers = matrix[headerIndex].map(normalize);
       const col = (...names: string[]) => headers.findIndex((header) => names.some((name) => header === name || header.includes(name)));
       const columns = {
-        orderNumber: col("NORDEMDESERVICO", "ORDEMDESERVICO", "NUMEROOS", "OS"), item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
+        orderNumber: headers.findIndex((h) => h.includes("ORDEMDESERVICO") || h.includes("NUMEROOS") || (h.includes("ORDEM") && h.includes("SERVICO"))), item: col("ITEM"), worksite: col("CANTEIRO"), identity: col("IDPLACA", "IDENTIFICACAO"), type: col("TIPODEMANUTENCAO"),
         entry: col("ENTRADA"), actualExit: [col("PREVSAIDAATUAL"), col("DATADESAIDA", "SAIDAREAL")].filter((index) => index >= 0), totalHours: col("TOTALHORAS"), cause: col("CAUSADAMANUTENCAO"),
         description: col("DESCRICAODAMANUTENCAO"), status: col("STATUSANDAMENTO", "STATUS"),
       };

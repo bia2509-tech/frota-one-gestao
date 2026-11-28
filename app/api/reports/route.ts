@@ -1,4 +1,4 @@
-﻿import { and, eq, gte, lte, ne } from "drizzle-orm";
+import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { getDb } from "@/db";
 import { appropriationAdjustments, contractEquipmentItems, contracts, dailyPartEntries, equipment, fiscalInvoicePayments, fiscalInvoices, fuelEntries, maintenanceOrderItems, maintenanceOrders, quickServiceEntries, suppliers } from "@/db/schema";
 import { apiError, requirePermission } from "@/lib/tenant";
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       db.select({ equipmentId: quickServiceEntries.equipmentId, category: quickServiceEntries.category, totalCents: quickServiceEntries.totalCents, paymentResponsibility: quickServiceEntries.paymentResponsibility, fleetNumber: equipment.fleetNumber, plate: equipment.plate, description: equipment.description })
         .from(quickServiceEntries).innerJoin(equipment, eq(quickServiceEntries.equipmentId, equipment.id))
         .where(and(eq(quickServiceEntries.companyId, companyId), gte(quickServiceEntries.entryDate, from), lte(quickServiceEntries.entryDate, to), eq(quickServiceEntries.status, "confirmed"))),
-      db.select({ item: maintenanceOrderItems, orderNumber: maintenanceOrders.orderNumber, startedAt: maintenanceOrders.startedAt, closedAt: maintenanceOrders.closedAt, orderStatus: maintenanceOrders.status, equipmentId: maintenanceOrders.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, equipmentDescription: equipment.description })
+      db.select({ item: maintenanceOrderItems, orderNumber: maintenanceOrders.orderNumber, orderKind: maintenanceOrders.orderKind, orderPaymentResponsibility: maintenanceOrders.paymentResponsibility, orderTotalCents: maintenanceOrders.totalCents, startedAt: maintenanceOrders.startedAt, closedAt: maintenanceOrders.closedAt, orderStatus: maintenanceOrders.status, equipmentId: maintenanceOrders.equipmentId, fleetNumber: equipment.fleetNumber, plate: equipment.plate, equipmentDescription: equipment.description })
         .from(maintenanceOrderItems).innerJoin(maintenanceOrders, eq(maintenanceOrderItems.maintenanceOrderId, maintenanceOrders.id)).innerJoin(equipment, eq(maintenanceOrders.equipmentId, equipment.id))
         .where(and(eq(maintenanceOrderItems.companyId, companyId), gte(maintenanceOrders.startedAt, from), lte(maintenanceOrders.startedAt, to))),
       db.select({ item: contractEquipmentItems, contractNumber: contracts.number, contractObject: contracts.object, supplierName: contracts.supplierName, projectName: contracts.projectName }).from(contractEquipmentItems).innerJoin(contracts, eq(contractEquipmentItems.contractId, contracts.id)).where(eq(contractEquipmentItems.companyId, companyId)),
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     ]);
 
     const directMaintenanceCents = orderItems.filter((r) => r.item.paymentResponsibility === "company").reduce((s, r) => s + r.item.totalCents, 0);
-    const lessorReimbursementCents = orderItems.filter((r) => r.item.paymentResponsibility === "lessor").reduce((s, r) => s + r.item.totalCents, 0) + quick.filter((r) => r.paymentResponsibility === "lessor").reduce((s, r) => s + r.totalCents, 0);
+    const isLessorOrderItem = (r: any) => r.item.paymentResponsibility === "lessor" || r.item.origin === "lessor_purchase" || (!r.item.paymentResponsibility && r.orderPaymentResponsibility === "lessor"); const lessorReimbursementCents = orderItems.filter(isLessorOrderItem).reduce((s, r) => s + r.item.totalCents, 0) + quick.filter((r) => r.paymentResponsibility === "lessor").reduce((s, r) => s + r.totalCents, 0);
     const lessorDiscountCents = orderItems.filter((r) => r.item.paymentResponsibility === "company_charge_lessor").reduce((s, r) => s + r.item.totalCents, 0);
     const fuelCents = fuel.reduce((s, r) => s + r.totalCents, 0);
     const quickCompanyCents = quick.filter((r) => r.paymentResponsibility === "company").reduce((s, r) => s + r.totalCents, 0);

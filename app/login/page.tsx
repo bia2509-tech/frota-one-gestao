@@ -26,19 +26,7 @@ export default function LoginPage() {
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#04153F] p-4 lg:block lg:p-0" style={{ backgroundImage: "url('/assets/login-bg.png')", backgroundSize: "100% 100%", backgroundPosition: "center" }}>
       <section className="relative z-10 flex w-full max-w-[440px] flex-col justify-between overflow-hidden rounded-[26px] bg-white px-8 pt-7 pb-6 shadow-2xl lg:fixed lg:left-[39.2%] lg:top-[13.2%] lg:h-[75.2%] lg:w-[36.2%] lg:max-w-none lg:px-10 lg:pt-8 lg:pb-7">
         <div>
-          <div className="mb-4 flex items-center justify-center gap-3">
-            <svg viewBox="0 0 120 74" className="h-14 w-auto" aria-hidden="true">
-              <path d="M12 42 C24 8, 86 4, 112 22 C84 14, 34 18, 22 44 Z" fill="#DC2626" />
-              <path d="M28 48 L28 32 L54 32 L64 43 L64 56 L24 56 L24 48 Z" fill="#0A1E46" />
-              <path d="M44 35 L53 35 L60 43 L44 43 Z" fill="#FFFFFF" />
-              <rect x="14" y="46" width="12" height="10" rx="2" fill="#0A1E46" />
-              <circle cx="26" cy="58" r="6.5" fill="#0A1E46" stroke="#FFFFFF" strokeWidth="2" />
-              <circle cx="53" cy="58" r="6.5" fill="#0A1E46" stroke="#FFFFFF" strokeWidth="2" />
-            </svg>
-            <div className="leading-none">
-              <div className="text-[28px] font-black tracking-tight text-[#0A1E46]">Frota One</div>
-              <div className="mt-0.5 text-[22px] font-medium italic text-[#1E3A6D]">Gestão</div>
-            </div>
+          <div className="mb-4 flex justify-center"><img src="/assets/frota-one-logo.png" alt="Frota One Gestão" className="h-16 w-auto object-contain" /></div>
           </div>
 
           <h1 className="text-center text-[22px] font-extrabold tracking-tight text-[#0F172A]">Acesse o sistema Frota One Gestão</h1>

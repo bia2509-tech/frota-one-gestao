@@ -26,7 +26,8 @@ export default function LoginPage() {
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#04153F] p-4 lg:block lg:p-0" style={{ backgroundImage: "url('/assets/login-bg.png')", backgroundSize: "100% 100%", backgroundPosition: "center" }}>
       <section className="relative z-10 flex w-full max-w-[440px] flex-col justify-between overflow-hidden rounded-[26px] bg-white px-8 pt-7 pb-6 shadow-2xl lg:fixed lg:left-[39.2%] lg:top-[13.2%] lg:h-[75.2%] lg:w-[36.2%] lg:max-w-none lg:px-10 lg:pt-8 lg:pb-7">
         <div>
-          <div className="mb-4 flex justify-center"><img src="/assets/frota-one-logo.png" alt="Frota One Gestão" className="h-16 w-auto object-contain" /></div>
+          <div className="mb-4 flex justify-center">
+            <img src="/assets/frota-one-logo.png" alt="Frota One Gestão" className="h-16 w-auto object-contain" />
           </div>
 
           <h1 className="text-center text-[22px] font-extrabold tracking-tight text-[#0F172A]">Acesse o sistema Frota One Gestão</h1>

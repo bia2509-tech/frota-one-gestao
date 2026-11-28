@@ -46,6 +46,8 @@ import {
   Wifi,
   WifiOff,
   X,
+  DollarSign,
+  FileSpreadsheet,
 } from "lucide-react";
 
 const countContractBillableDays = (startsAt: string, endsAt: string) => countContractMonthsInclusive(startsAt, endsAt) * 30;

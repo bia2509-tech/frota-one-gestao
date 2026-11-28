@@ -27,7 +27,7 @@ export default function LoginPage() {
       <section className="relative z-10 flex w-full max-w-[440px] flex-col justify-between overflow-hidden rounded-[26px] bg-white px-8 pt-7 pb-6 shadow-2xl lg:fixed lg:left-[39.2%] lg:top-[13.2%] lg:h-[75.2%] lg:w-[36.2%] lg:max-w-none lg:px-10 lg:pt-8 lg:pb-7">
         <div>
           <div className="mb-4 flex justify-center">
-            <img src="/assets/frota-one-logo.png" alt="Frota One Gestão" className="h-16 w-auto object-contain" />
+            <img src="/assets/frota-one-logo.png" alt="Frota One Gestão" className="h-24 w-auto object-contain" />
           </div>
 
           <h1 className="text-center text-[22px] font-extrabold tracking-tight text-[#0F172A]">Acesse o sistema Frota One Gestão</h1>
